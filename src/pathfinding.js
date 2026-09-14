@@ -8,14 +8,14 @@ export function clearLine(a,b){
   return true;
 }
 export function findPath(a,b){
-  const tile=p=>[Math.floor(p.x/40),Math.floor(p.y/40)];
+  const tile=p=>[Math.floor(p.x/CONFIG.tile),Math.floor(p.y/CONFIG.tile)];
   const start=tile(a),goal=tile(b),key=p=>p.join(',');
   const queue=[start],parents=new Map([[key(start),null]]);
   for(let i=0;i<queue.length;i++){
     const p=queue[i];if(key(p)===key(goal))break;
     for(const [dx,dy] of [[1,0],[0,-1],[-1,0],[0,1]]){
       const q=[p[0]+dx,p[1]+dy],c=center(q);
-      if(q[0]<1||q[0]>10||q[1]<1||q[1]>14||parents.has(key(q))||blocked(c.x,c.y))continue;
+      if(q[0]<1||q[0]>CONFIG.cols-2||q[1]<1||q[1]>CONFIG.rows-2||parents.has(key(q))||blocked(c.x,c.y))continue;
       parents.set(key(q),p);queue.push(q);
     }
   }

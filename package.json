@@ -1,1 +1,1 @@
-{"name":"leave-on-time-hero","version":"0.7.0-five-stage","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests/*.test.js"}}
+{"name":"leave-on-time-hero","version":"0.8.0-six-ranks","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests/*.test.js"}}

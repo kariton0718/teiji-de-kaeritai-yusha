@@ -1,7 +1,7 @@
 export function createInput(active,onPause,onCommand=()=>false){
   const held=new Set(),pressed=new Set(),physical=new Set(),quarantined=new Set(),pointers=new Map(),consumed=new Set();
   const mapping={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyJ:'attack',Space:'attack',KeyK:'ultimate',KeyI:'ultimate'};
-  const commands=new Set(['Digit1','Digit2','Digit3','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD','Enter','NumpadEnter','Escape','Space']);
+  const commands=new Set(['Digit1','Digit2','Digit3','Digit4','Digit5','Numpad1','Numpad2','Numpad3','Numpad4','Numpad5','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD','Enter','NumpadEnter','Escape','Space']);
   const clear=()=>{
     for(const code of physical)quarantined.add(code);
     held.clear();pressed.clear();pointers.clear();document.querySelectorAll('[data-input]').forEach(b=>b.classList.remove('held'));

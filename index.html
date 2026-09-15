@@ -2,15 +2,15 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#142934"><title>定時で帰りたい勇者 | Five Stage Action RPG</title>
-  <link rel="stylesheet" href="styles.css"><link rel="icon" href="data:,">
+  <meta name="theme-color" content="#142934"><title>定時で帰りたい勇者 | Six Ranks Action RPG</title>
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="title-art.css"><link rel="icon" href="data:,">
 </head>
 <body>
 <main class="layout">
   <aside class="intro">
-    <div class="eyebrow">魔王商事 / FIVE STAGE ACTION RPG</div>
-    <h1>定時で帰りたい<span>勇者 ✦</span></h1>
-    <p class="pitch">狭い斬撃から技を習得・進化させ、<br>5ステージと2人の魔王を突破せよ。</p>
+    <div class="eyebrow">魔王商事 / SIX RANKS ACTION RPG</div>
+    <h1 class="sr-only">定時で帰りたい勇者</h1><img class="title-logo" src="assets/title-logo.svg" alt="定時で帰りたい勇者">
+    <p class="pitch">技を重ねて大量撃破。<br>リーダーから社長まで6役職を突破せよ。</p>
     <section class="side-card" aria-label="勇者の状態">
       <div class="meter-label"><b>気力</b><span id="energy-text">100 / 100</span></div><div class="meter energy"><i id="energy-bar"></i></div>
       <div class="meter-label"><b id="ultimate-name">未選択</b><span id="ultimate-text">0%</span></div><div class="meter ultimate"><i id="ultimate-bar"></i></div>
@@ -21,21 +21,23 @@
       <p><b>移動</b>　WASD / 方向キー</p><p><b>J / Space</b>　タスク斬り</p><p><b>K / I</b>　選択した必殺技</p>
       <small>赤・紫の予告から歩いて離れます。音OFFでも判断できます。</small>
     </div>
+    <section class="audio-settings" aria-label="音量設定"><label>BGM <input id="bgm-volume" type="range" min="0" max="100" value="38"></label><label>効果音 <input id="sfx-volume" type="range" min="0" max="100" value="65"></label></section>
   </aside>
 
   <section class="game-shell" aria-label="定時退勤アクションRPG">
     <header class="hud">
       <div class="company">魔王商事<small id="clock">17:45 → 18:00</small></div>
-      <div class="countdown"><small>定時まで</small><strong id="timer">8:00</strong></div>
+      <div class="countdown"><small>定時まで</small><strong id="timer">9:00</strong></div>
       <div class="hud-buttons"><button id="sound" class="small-button" aria-label="音を有効にする" aria-pressed="false">音 OFF</button><button id="shake" class="small-button" aria-label="画面揺れを切る" aria-pressed="true">揺れ ON</button><button id="pause" class="small-button" aria-label="一時停止">Ⅱ</button></div>
     </header>
     <div class="time-track"><div id="time-bar"></div></div>
     <div id="boss-hud" class="boss-hud" hidden><span id="boss-name">魔王部長</span><div><i id="boss-bar"></i></div><b id="boss-hp">500</b></div>
     <div class="board">
-      <canvas id="game" width="480" height="640" tabindex="0" aria-label="勇者を移動しながら攻撃します。技を習得・進化し、魔王部長と魔王社長を倒して退勤ゲートへ進みます。"></canvas>
+      <canvas id="game" width="480" height="640" tabindex="0" aria-label="勇者を移動しながら攻撃します。技を習得・進化し、6役職の魔王を倒して退勤ゲートへ進みます。"></canvas>
       <div id="battle-banner" class="battle-banner" hidden><b></b><span></span></div>
       <div id="overlay" class="overlay">
         <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading">
+          <img id="dialog-logo" class="dialog-logo" src="assets/title-logo.svg" alt="定時で帰りたい勇者"><img id="title-art" class="title-art" src="assets/title-art.png" alt="青いマントの勇者と玉座機械に乗る魔王社長"><img id="title-cast" class="title-cast" src="assets/boss-lineup.svg" alt="リーダー、係長、課長、部長、専務、社長">
           <div id="badge" class="badge">魔王商事 / 17:45</div><h2 id="heading">定時で帰りたい勇者</h2>
           <p id="message">小さな斬撃から、新しい攻撃を育てよう。</p>
           <div id="upgrade-choices" class="upgrade-choices" hidden></div>
@@ -52,7 +54,7 @@
       <div class="skills"><button data-input="attack" class="attack" aria-label="タスク斬り"><b>斬る</b><small>J / Space</small></button><button data-input="ultimate" class="ultimate-button" aria-label="必殺技 本日は退勤します"><b>必殺</b><small>K / I</small></button></div>
     </div>
   </section>
-  <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>LOCAL FIVE STAGE ACTION RPG</span></footer>
+  <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>LOCAL SIX RANKS ACTION RPG</span></footer>
 </main>
 <script type="module" src="src/main.js"></script>
 </body></html>

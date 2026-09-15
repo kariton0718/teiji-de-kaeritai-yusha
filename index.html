@@ -50,8 +50,11 @@
     </div>
     <div class="status" id="status" role="status">出現予告から離れて敵を全滅させよう。</div>
     <div class="controls" aria-label="画面の操作ボタン">
-      <div class="dpad"><button data-input="left" aria-label="左へ移動">◀</button><div class="vertical"><button data-input="up" aria-label="上へ移動">▲</button><button data-input="down" aria-label="下へ移動">▼</button></div><button data-input="right" aria-label="右へ移動">▶</button></div>
-      <div class="skills"><button data-input="attack" class="attack" aria-label="タスク斬り"><b>斬る</b><small>J / Space</small></button><button data-input="ultimate" class="ultimate-button" aria-label="必殺技 本日は退勤します"><b>必殺</b><small>K / I</small></button></div>
+      <div id="joystick-zone" class="joystick-zone" aria-label="触れた位置から移動する仮想スティック">
+        <span class="joystick-hint">ここに触れて移動</span>
+        <div id="joystick-base" class="joystick-base" hidden><div id="joystick-knob" class="joystick-knob"></div></div>
+      </div>
+      <div class="skills"><button data-input="ultimate" class="ultimate-button" aria-label="必殺技 本日は退勤します"><b>必殺</b><small>K / I</small></button><button data-input="attack" class="attack" aria-label="タスク斬り"><b>斬る</b><small>長押し / J / Space</small></button></div>
     </div>
   </section>
   <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>LOCAL SIX RANKS ACTION RPG</span></footer>

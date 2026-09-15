@@ -1,7 +1,8 @@
 // Six-rank Action RPG balance. Distances are logical pixels, times are seconds.
 export const CONFIG=Object.freeze({
   width:480,height:640,tile:40,radius:12,timeLimit:540,startMinute:1065,deadlineMinute:1080,maxDelta:.1,step:1/120,
-  hero:{energy:100,speed:170,hitInvulnerability:1.2,slowDuration:.5,slowMultiplier:.68,stageHealRatio:.3},
+  hero:{energy:100,speed:170,hitInvulnerability:1.2,bossHitInvulnerability:1.5,slowDuration:.5,slowMultiplier:.68,stageHealRatio:.3},
+  mobileJoystick:{deadzone:14,radius:46},
   attack:{damage:24,cooldown:.35,duration:.18,knockback:24,followDamage:14,followDelay:.13,maxVisuals:42,ranges:[64,88,100,112],arcs:[100,145,165,190],fullCircleEvery:4,fullCircleDamage:22,fullCircleRange:146},
   ultimate:{max:100,invulnerability:.7,
     exit:{name:'本日は退勤します',mobDamage:90,bossDamage:45,duration:.85,gain:1},
@@ -17,14 +18,14 @@ export const CONFIG=Object.freeze({
   enemies:{slime:{name:'書類束スライム',hp:40,speed:76,damage:9,radius:14,contactCooldown:.82,ult:8},bat:{name:'封筒バット',hp:30,speed:64,damage:8,radius:13,desired:150,shootInterval:2.7,warning:.8,fanByStage:[1,1,2,3,3,4,5],spread:18,ult:10},ghost:{name:'電話ゴースト',hp:50,speed:48,damage:10,radius:15,chargeInterval:3.2,warning:1,chargeSpeed:240,chargeDuration:.58,recovery:.85,ult:12},brute:{name:'締切オーガ',hp:140,speed:41,damage:14,radius:22,areaInterval:2.9,warning:1.25,areaRadius:70,recovery:.8,rangedDistance:150,rangedCount:3,rangedSpread:23,rangedWarning:1,knockResistance:.25,ult:18},sentry:{name:'監視ドローン',hp:58,speed:56,damage:9,radius:15,desired:185,shootInterval:2.25,warning:.9,fanCount:3,spread:25,ult:12}},
   danger:{maxConcurrent:3,activeMargin:80},
   rankBosses:[
-    {rank:'リーダー',prop:'megaphone',hp:360,radius:25,speed:67,damage:12,interval:2.45,phases:1,patterns:[['charge','summon']],chargeWarning:1.15,summonCount:4},
-    {rank:'係長',prop:'stamp',hp:480,radius:27,speed:58,damage:13,interval:2.2,phases:1,patterns:[['slam','shockwave']],slamCount:3,areaRadius:58},
-    {rank:'課長',prop:'copier',hp:600,radius:28,speed:56,damage:14,interval:2.0,phases:2,patterns:[['fan','clone'],['fan','clone','fan']],fanCount:5,fanSpread:22,cloneCount:2},
-    {rank:'部長',prop:'ruler',hp:760,radius:30,speed:64,damage:15,interval:1.85,phases:2,patterns:[['sweep','charge'],['multi','sweep','charge']],sweepRadius:125,multiCount:3,chargeWarning:1.1},
-    {rank:'専務',prop:'drones',hp:900,radius:31,speed:52,damage:16,interval:1.65,phases:2,patterns:[['crossLaser','surround'],['surround','crossLaser','summon']],summonCount:4},
-    {rank:'社長',prop:'throne',hp:1200,radius:35,speed:48,damage:17,interval:1.45,phases:3,patterns:[['beam','fan'],['fan','floor','beam'],['beam','floor','fan','floor']],fanCount:7,fanSpread:18,floorCount:7,areaRadius:66}
+    {rank:'リーダー',prop:'megaphone',hp:360,radius:25,speed:67,damage:12,interval:2.3,phases:1,patterns:[['sidestep','charge','summon']],chargeWarning:1.15,summonCount:4,reinforcement:{first:4,interval:9,count:4,cap:12,ranged:1}},
+    {rank:'係長',prop:'stamp',hp:480,radius:27,speed:58,damage:13,interval:2.05,phases:1,patterns:[['jumpSlam','shockwave','slam']],slamCount:3,areaRadius:58,reinforcement:{first:4,interval:8.5,count:5,cap:12,ranged:1}},
+    {rank:'課長',prop:'copier',hp:600,radius:28,speed:56,damage:14,interval:1.86,phases:2,patterns:[['copyShift','fan','clone'],['copyShift','fan','clone','fan']],fanCount:5,fanSpread:22,cloneCount:2,reinforcement:{first:3.8,interval:7.5,count:6,cap:20,ranged:1}},
+    {rank:'部長',prop:'ruler',hp:760,radius:30,speed:64,damage:15,interval:1.72,phases:2,patterns:[['sweep','multi'],['multi','sweep','charge']],sweepRadius:125,multiCount:3,chargeWarning:1.1,reinforcement:{first:3.6,interval:7,count:7,cap:20,ranged:1}},
+    {rank:'専務',prop:'drones',hp:900,radius:31,speed:52,damage:16,interval:1.52,phases:2,patterns:[['flank','crossLaser','surround'],['flank','surround','crossLaser','summon']],summonCount:4,reinforcement:{first:3.4,interval:6,count:9,cap:30,ranged:2}},
+    {rank:'社長',prop:'throne',hp:1200,radius:35,speed:48,damage:17,interval:1.34,phases:3,patterns:[['presidentRush','beam','fan'],['presidentRush','fan','floor','beam'],['presidentRush','sweep','beam','floor','fan']],fanCount:7,fanSpread:18,floorCount:7,areaRadius:66,sweepRadius:142,reinforcement:{first:3.2,interval:5.5,count:10,cap:30,ranged:2}}
   ],
-  bossAttack:{warning:1.15,recovery:.72,chargeSpeed:280,chargeDuration:.7,beamWidth:64,beamRange:650,shockwaveSpeed:150,armorMultiplier:.72,weakMultiplier:1,summonCap:8},
+  bossAttack:{warning:1.15,recovery:.82,chargeSpeed:280,chargeDuration:.7,fastMoveSpeed:430,fastMoveDuration:.38,chainWarning:.62,beamWidth:64,beamRange:650,shockwaveSpeed:150,armorMultiplier:.72,weakMultiplier:1,summonCap:30,summonDamageMultiplier:.4,summonEnergyDrop:1},
   skills:{slash:{name:'タスク斬り',levels:['初期：射程64px・角度100°','射程88px・角度145°','二連斬撃を追加','4回ごとに全周斬撃']},reply:{name:'一斉返信',levels:['未取得','衝撃波を1方向へ発射','衝撃波を3方向へ発射','5方向・各4体まで貫通']},shredder:{name:'書類シュレッダー',levels:['未取得','周囲を回る書類刃×1','書類刃×3','刃×4・回転半径拡大']},thunder:{name:'承認サンダー',levels:['未取得','近い敵へ自動落雷','別の敵へ2連鎖','2本発動・最大4連鎖']},meteor:{name:'締切メテオ',levels:['未取得','敵の密集地点へ落下','着弾範囲拡大','3地点へ同時落下']},boomerang:{name:'差し戻しブーメラン',levels:['未取得','往路と復路で各1回命中','大型化・射程延長','威力・射程・発射頻度上昇']},drone:{name:'自動処理ドローン',levels:['未取得','追従ドローン1機が射撃','2機へ増加','2機が高速射撃']}},
   stages:[
     {id:1,name:'新人研修フロア',rank:'リーダー',rule:'小隊長の号令をかわし、基本の反撃を覚えよう。',size:[480,640],start:[5,13],gate:[10,1],desks:[{from:2,to:4,row:5},{from:7,to:9,row:5},{from:2,to:3,row:10},{from:8,to:9,row:10}],waves:[[{type:'slime',count:6}],[{type:'slime',count:8},{type:'bat',count:2}]]},

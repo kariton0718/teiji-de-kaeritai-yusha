@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 250" role="img" aria-labelledby="t d">
-<title id="t">定時で帰りたい勇者</title><desc id="d">時計、剣、退勤ゲートを組み合わせた紺、金、夕焼けオレンジのオリジナルロゴ</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 250" role="img" aria-labelledby="t d">
+<title id="t">定時で帰りたい勇者</title><desc id="d">読みやすい題字の右側に剣、左右に時計と退勤ゲートを配置したオリジナルロゴ</desc>
 <defs><linearGradient id="sun" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd967"/><stop offset="1" stop-color="#ef783e"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="3" flood-color="#071c2d" flood-opacity=".75"/></filter></defs>
-<path d="M35 196h690v28H35z" fill="#0b263c"/><path d="M618 61h91v135h-91z" rx="8" fill="#173d58" stroke="#ffd66a" stroke-width="8"/><path d="M641 86h45v110h-45z" fill="#f39548" opacity=".75"/><circle cx="98" cy="73" r="47" fill="#112f49" stroke="#ffd66a" stroke-width="8"/><path d="M98 39v36l25 17" fill="none" stroke="#fff4bf" stroke-width="8" stroke-linecap="round"/>
-<g filter="url(#shadow)" font-family="Yu Gothic,Meiryo,sans-serif" font-weight="900"><text x="150" y="77" font-size="54" fill="#fff4cf" stroke="#102d45" stroke-width="7" paint-order="stroke">定時で帰りたい</text><text x="84" y="177" font-size="105" fill="url(#sun)" stroke="#102d45" stroke-width="12" paint-order="stroke">勇 者</text></g>
-<path d="M520 25l25 18-131 146-20-17z" fill="#ecf7f6" stroke="#12344b" stroke-width="7"/><path d="M380 159l47 42-16 18-48-43z" fill="#f5c857" stroke="#12344b" stroke-width="7"/><path d="M532 16l22 16-19 20-22-17z" fill="#f08a47"/>
-<path d="M704 124l34 20-34 20z" fill="#fff1a5"><animate attributeName="opacity" values=".35;1;.35" dur="1.6s" repeatCount="indefinite"/></path>
+<path d="M26 204h868v27H26z" fill="#0b263c"/>
+<circle cx="78" cy="72" r="47" fill="#112f49" stroke="#ffd66a" stroke-width="8"/><path d="M78 38v36l25 17" fill="none" stroke="#fff4bf" stroke-width="8" stroke-linecap="round"/>
+<g filter="url(#shadow)" font-family="Yu Gothic,Meiryo,sans-serif" font-weight="900"><text x="142" y="78" font-size="54" fill="#fff4cf" stroke="#102d45" stroke-width="7" paint-order="stroke">定時で帰りたい</text><text x="132" y="190" font-size="112" letter-spacing="5" fill="url(#sun)" stroke="#102d45" stroke-width="12" paint-order="stroke">勇者</text></g>
+<g aria-label="剣"><path d="M660 38l27 19-105 126-23-18z" fill="#ecf7f6" stroke="#12344b" stroke-width="7"/><path d="M545 151l55 48-17 19-55-49z" fill="#f5c857" stroke="#12344b" stroke-width="7"/><path d="M672 26l25 18-21 24-25-19z" fill="#f08a47" stroke="#12344b" stroke-width="5"/></g>
+<g aria-label="退勤ゲート"><path d="M757 60h116v144H757z" rx="8" fill="#173d58" stroke="#ffd66a" stroke-width="8"/><path d="M783 87h62v117h-62z" fill="#f39548" opacity=".75"/><circle cx="831" cy="147" r="6" fill="#fff4bf"/><path d="M873 119l35 21-35 21z" fill="#fff1a5"><animate attributeName="opacity" values=".35;1;.35" dur="1.6s" repeatCount="indefinite"/></path></g>
 </svg>

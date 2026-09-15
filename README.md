@@ -11,6 +11,10 @@ node server.mjs
 
 [ゲームを開く](http://127.0.0.1:8179/)。サーバーは `127.0.0.1` のみで待ち受け、外部公開しません。起動済みの場合は再読み込みしてください。
 
+## GitHub Pages公開
+
+`.github/workflows/pages.yml` は、`main` ブランチへのpush時にゲーム本体だけをGitHub Pagesへ配信します。テスト、設計資料、ローカルサーバーは公開成果物へ含めません。GitHubでリポジトリの **Settings → Pages → Source** を **GitHub Actions** に設定すると、以後はpushのたびに自動更新されます。
+
 Node.jsがPATHにない場合：
 
 ```powershell

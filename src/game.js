@@ -17,7 +17,7 @@ export class Game{
     this.offers=[];this.upgradeType=null;this.afterUpgrade=null;this.layoutIndex=0;this.loadStage(1,false);
     this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];
     this.particles=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();this.auto={thunder:0,meteor:0,boomerang:0,drone:0};
-    this.kills=0;this.hitsTaken=0;this.pickups=[];this.floatingTexts=[];this.gateOpen=false;this.elevatorPending=false;this.travelTarget=null;
+    this.kills=0;this.hitsTaken=0;this.pickups=[];this.floatingTexts=[];this.secretBossTriggered=false;this.secretBossDefeated=false;this.exitArrivalTime=null;this.gateOpen=false;this.elevatorPending=false;this.travelTarget=null;
     this.banner=null;this.notice='Enterで操作説明へ';this.events=[];this.nextEnemyId=1;this.shake=0;this.healFreeze=0;this.boss=null;this.bossReports=[];this.transitionHeal=0;this.pendingBossRecovery=false;this.emergencyUsed=new Set();
     this.telemetry={damageByStage:Array(6).fill(0),healed:0,minEnergy:C.hero.energy,defeatedBy:null,ultimateUses:0};
   }
@@ -26,6 +26,7 @@ export class Game{
     if(moveHero)this.hero={...this.hero,...center(s.start),facing:{x:0,y:-1},attackCd:0,invulnerable:0,slowLeft:0};
   }
   get stageConfig(){return C.stages[this.stage-1];}
+  get bossDefinition(){return C.rankBosses[this.secretBossTriggered&&!this.secretBossDefeated?6:this.stage-1];}
   get stageName(){return this.stageConfig.name;}
   get waveLabel(){return this.wave?`STAGE ${this.stage} / WAVE ${this.wave}`:'移動中';}
   get activeEnemies(){return this.enemies.filter(e=>!e.dead);}
@@ -77,10 +78,10 @@ export class Game{
     if(boss?.report)boss.report.reinforcements+=added;if(added)this.events.push('summon');return added;
   }
   spawnBoss(){
-    if(this.state!=='bossIntro')return null;const d=C.rankBosses[this.stage-1],wanted={x:clamp(this.hero.x,this.worldWidth*.35,this.worldWidth*.65),y:clamp(this.hero.y-180,90,this.worldHeight-90)},pos=this.findSafePosition(wanted,d.radius,130);
+    if(this.state!=='bossIntro')return null;const d=this.bossDefinition,wanted={x:clamp(this.hero.x,this.worldWidth*.35,this.worldWidth*.65),y:clamp(this.hero.y-180,90,this.worldHeight-90)},pos=this.findSafePosition(wanted,d.radius,130);
     const report={stage:this.stage,rank:d.rank,time:0,reinforcements:0,attacks:0,fastMoves:0};this.bossReports.push(report);
-    const e={id:this.nextEnemyId++,type:'rankBoss',rankIndex:this.stage-1,prop:d.prop,pos,hp:d.hp,maxHp:d.hp,radius:d.radius,dead:false,flash:0,contactLeft:0,state:'chase',left:.8,dir:{x:0,y:1},path:[],repath:0,bossPhase:1,pattern:0,attackKind:null,chargesLeft:0,weak:false,phaseSeen:new Set(),reinforceLeft:d.reinforcement.first,moveTarget:null,moveFrom:null,afterMove:null,report};
-    this.enemies.push(e);this.boss=e;this.phase='boss';this.state='playing';this.wave=0;this.banner={title:`魔王${d.rank}、接近！`,detail:`${['「全員、集合！」','「承認印を受けろ！」','「複写しておいた！」','「寸法どおりに働け！」','「ドローン、包囲しろ！」','「最終決裁を下す！」'][e.rankIndex]}`,left:2.4};this.notice='赤紫の予告を避け、金色の反撃時間を狙え！';this.events.push('boss');return e;
+    const e={id:this.nextEnemyId++,type:'rankBoss',rankIndex:C.rankBosses.indexOf(d),prop:d.prop,pos,hp:d.hp,maxHp:d.hp,radius:d.radius,dead:false,flash:0,contactLeft:0,state:'chase',left:.8,dir:{x:0,y:1},path:[],repath:0,bossPhase:1,pattern:0,attackKind:null,chargesLeft:0,weak:false,phaseSeen:new Set(),reinforceLeft:d.reinforcement.first,moveTarget:null,moveFrom:null,afterMove:null,report};
+    this.enemies.push(e);this.boss=e;this.phase='boss';this.state='playing';this.wave=0;this.banner={title:`魔王${d.rank}、接近！`,detail:`${['「全員、集合！」','「承認印を受けろ！」','「複写しておいた！」','「寸法どおりに働け！」','「ドローン、包囲しろ！」','「最終決裁を下す！」','「効率が良すぎますね。追加監査です。」'][e.rankIndex]}`,left:2.4};this.notice='赤紫の予告を避け、金色の反撃時間を狙え！';this.events.push('boss');return e;
   }
 
   update(delta,input={}){
@@ -99,7 +100,21 @@ export class Game{
     if(this.phase==='travel'&&this.travelTarget&&dist(h,this.travelTarget)<48)this.beginWave(this.stage,this.wave);
     this.updateSpawns(dt);this.updateFollowups(dt);this.updateProjectiles(dt);this.updateAutomaticSkills(dt);this.updateUltimateEffects(dt);this.updateMeteors(dt);this.updateEnemyAreas(dt);this.updateEnemies(dt);this.separateEnemies();this.updateRecovery(dt);this.updateEffects(dt);
     if(this.phase==='wave')this.checkWaveClear(dt);
-    if(this.phase==='escape'&&dist(h,center(this.stageConfig.gate))<28)this.finish('success');
+    if(this.state==='playing'&&this.phase==='escape'&&dist(h,center(this.stageConfig.gate))<28)this.reachExit();
+  }
+
+  reachExit(){
+    if(this.state!=='playing'||this.phase!=='escape'||!this.gateOpen)return false;
+    if(!this.secretBossTriggered&&this.elapsed<=C.secretBoss.unlockSeconds){
+      this.exitArrivalTime=this.elapsed;this.secretBossTriggered=true;this.clearCombat();
+      this.state='bossIntro';this.phase='bossIntro';this.hero.invulnerable=1.5;
+      this.ultimate=C.ultimate.max;
+      this.spawnRecovery('drink',this.findSafePosition({x:this.hero.x-70,y:this.hero.y+65},12,35),true);
+      this.notice='好タイムを検知。外部監査により退勤ゲート封鎖！';
+      this.banner={title:'裏ボス出現：特命監査役',detail:C.secretBoss.company,left:3};
+      return true;
+    }
+    this.finish('success');return false;
   }
 
   autoTarget(){
@@ -181,7 +196,7 @@ export class Game{
     const hits=p.returning?p.backHits:p.outHits;for(const e of [...this.activeEnemies])if(!hits.has(e.id)&&dist(p.pos,e.pos)<p.radius+e.radius){hits.add(e.id);this.damageEnemy(e,p.damage,p.dir,6);}
   }
   offworld(p){return p.x<-20||p.x>this.worldWidth+20||p.y<-20||p.y>this.worldHeight+20;}
-  shootFan(pos,dir,count,spread,kind='mail',damage=C.projectile.enemyDamage){const start=-(count-1)*spread/2;for(let i=0;i<count&&this.enemyProjectiles.length<C.projectile.maxEnemy;i++)this.enemyProjectiles.push({kind,pos:copy(pos),dir:rotate(dir,start+i*spread),life:C.projectile.enemyLife,radius:kind==='boss'?8:7,damage,speed:kind==='boss'?C.projectile.bossSpeed:C.projectile.enemySpeed});this.events.push('shoot');}
+  shootFan(pos,dir,count,spread,kind='mail',damage=C.projectile.enemyDamage){const start=-(count-1)*spread/2;for(let i=0;i<count&&this.enemyProjectiles.length<C.projectile.maxEnemy;i++)this.enemyProjectiles.push({kind,pos:copy(pos),dir:rotate(dir,start+i*spread),life:C.projectile.enemyLife,radius:kind==='boss'?10:9,damage,speed:kind==='boss'?C.projectile.bossSpeed:C.projectile.enemySpeed});this.events.push('shoot');}
 
   moveEnemy(e,target,speed,dt){e.repath-=dt;if(this.nav.clearLine(e.pos,target,e.radius)){const d=norm(target.x-e.pos.x,target.y-e.pos.y);this.nav.move(e.pos,d.x*speed*dt,d.y*speed*dt,e.radius);return;}if(e.repath<=0){e.path=this.nav.findPath(e.pos,target);e.repath=.32;}while(e.path.length&&dist(e.pos,e.path[0])<10)e.path.shift();const p=e.path[0];if(p){const d=norm(p.x-e.pos.x,p.y-e.pos.y);this.nav.move(e.pos,d.x*speed*dt,d.y*speed*dt,e.radius);}}
   findBossTarget(e,kind){
@@ -195,7 +210,7 @@ export class Game{
     if(after==='landingSlam'){if(dist(e.pos,this.hero)<=d.areaRadius+C.radius)this.damageHero(d.damage,e.pos);this.enemyAreas.push({kind:'sweep',pos:copy(e.pos),radius:d.areaRadius,left:0,order:'承',damage:d.damage,fired:true,effect:.38});e.state='recover';e.left=C.bossAttack.recovery+0.25;this.events.push('danger');return;}
     e.attackKind=after;e.state='attackWarn';e.left=C.bossAttack.chainWarning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);this.notice=`高速移動後の${{charge:'突進',fan:'書類弾',crossLaser:'挟み撃ちレーザー',sweep:'薙ぎ払い',beam:'極太レーザー'}[after]||'攻撃'}！`;this.events.push('warn');
   }
-  updateFastMove(e,dt){const d=C.rankBosses[e.rankIndex],before=copy(e.pos),v=norm(e.moveTarget.x-e.pos.x,e.moveTarget.y-e.pos.y);this.nav.move(e.pos,v.x*C.bossAttack.fastMoveSpeed*dt,v.y*C.bossAttack.fastMoveSpeed*dt,e.radius);this.contactHero(e,d.damage);e.left-=dt;const stuck=dist(before,e.pos)<.05;if(e.left<=0||dist(e.pos,e.moveTarget)<8||stuck)this.finishFastMove(e);}
+  updateFastMove(e,dt){const d=C.rankBosses[e.rankIndex],before=copy(e.pos),v=norm(e.moveTarget.x-e.pos.x,e.moveTarget.y-e.pos.y);this.nav.move(e.pos,v.x*(d.fastMoveSpeed||C.bossAttack.fastMoveSpeed)*dt,v.y*(d.fastMoveSpeed||C.bossAttack.fastMoveSpeed)*dt,e.radius);this.contactHero(e,d.damage);e.left-=dt;const stuck=dist(before,e.pos)<.05;if(e.left<=0||dist(e.pos,e.moveTarget)<8||stuck)this.finishFastMove(e);}
   updateEnemies(dt){for(const e of [...this.activeEnemies]){e.flash=Math.max(0,e.flash-dt);e.contactLeft=Math.max(0,e.contactLeft-dt);if(e.type==='slime')this.updateSlime(e,dt);else if(e.type==='bat')this.updateBat(e,dt);else if(e.type==='ghost')this.updateGhost(e,dt);else if(e.type==='brute')this.updateBrute(e,dt);else if(e.type==='sentry')this.updateSentry(e,dt);else this.updateRankBoss(e,dt);}this.enemies=this.enemies.filter(e=>!e.dead);}
   canEnemyAttack(e){return this.inCamera(e.pos,C.danger.activeMargin);}
   summonDamage(e,amount){return e.bossSummon?amount*C.bossAttack.summonDamageMultiplier:amount;}
@@ -223,8 +238,8 @@ export class Game{
   bossWarning(e,base){return Math.max(C.bossAttack.minWarning,base*(1-e.rankIndex*C.bossAttack.rankWarningStep-(e.bossPhase-1)*C.bossAttack.phaseWarningStep));}
 
   updateRankBoss(e,dt){
-    const d=C.rankBosses[e.rankIndex],phase=Math.min(d.phases,1+Math.floor((1-e.hp/e.maxHp)*d.phases));if(phase!==e.bossPhase){e.bossPhase=phase;e.pattern=0;e.phaseSeen=new Set();e.left=Math.min(e.left,.2);const surge=C.bossAttack.phaseReinforcements[phase-1]||0;if(surge)this.scheduleBossMinions(surge,'bossPhase');this.banner={title:`魔王${d.rank}・第${phase}形態`,detail:phase===d.phases&&d.phases===3?'玉座機械、全開！ 攻撃速度上昇！':'増援とともに攻撃速度上昇！',left:1.5};this.events.push('bossPhase');}
-    e.report.time+=dt;e.weak=e.state==='recover';if(e.state==='fastMove'){this.updateFastMove(e,dt);return;}e.left-=dt;if(e.state==='phaseShift'){if(e.left<=0)e.state='chase';return;}if(e.state==='recover'){if(e.left<=0){e.state='chase';e.left=Math.max(.08,this.bossTempo(e,d)-C.bossAttack.recovery);}return;}if(e.state==='attackWarn'){if(e.left<=0)this.executeRankAttack(e);return;}if(e.state==='charge'){const x=e.pos.x+e.dir.x*C.bossAttack.chargeSpeed*dt,y=e.pos.y+e.dir.y*C.bossAttack.chargeSpeed*dt;if(this.isBlocked(x,y,e.radius)){e.state='recover';e.left=C.bossAttack.recovery+0.45;this.notice='障害物に激突！ 反撃時間！';this.events.push('stun');return;}this.nav.move(e.pos,e.dir.x*C.bossAttack.chargeSpeed*dt,e.dir.y*C.bossAttack.chargeSpeed*dt,e.radius);this.contactHero(e,d.damage);if(e.left<=0){if(e.chargesLeft>1){e.chargesLeft--;e.state='attackWarn';e.left=.56;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);}else{e.state='recover';e.left=C.bossAttack.recovery;}}return;}
+    const d=C.rankBosses[e.rankIndex],phase=Math.min(d.phases,1+Math.floor((1-e.hp/e.maxHp)*d.phases));if(phase!==e.bossPhase){e.bossPhase=phase;e.pattern=0;e.phaseSeen=new Set();e.left=Math.min(e.left,.2);const surge=C.bossAttack.phaseReinforcements[phase-1]||0;if(surge)this.scheduleBossMinions(surge,'bossPhase');this.banner={title:`魔王${d.rank}・第${phase}形態`,detail:e.rankIndex===6?'監査レベル上昇！ 高速連続攻撃！':phase===d.phases&&d.phases===3?'玉座機械、全開！ 攻撃速度上昇！':'増援とともに攻撃速度上昇！',left:1.5};this.events.push('bossPhase');}
+    e.report.time+=dt;e.weak=e.state==='recover';if(e.state==='fastMove'){this.updateFastMove(e,dt);return;}e.left-=dt;if(e.state==='phaseShift'){if(e.left<=0)e.state='chase';return;}if(e.state==='recover'){if(e.left<=0){e.state='chase';e.left=Math.max(.08,this.bossTempo(e,d)-C.bossAttack.recovery);}return;}if(e.state==='attackWarn'){if(e.left<=0)this.executeRankAttack(e);return;}if(e.state==='charge'){const x=e.pos.x+e.dir.x*(d.chargeSpeed||C.bossAttack.chargeSpeed)*dt,y=e.pos.y+e.dir.y*(d.chargeSpeed||C.bossAttack.chargeSpeed)*dt;if(this.isBlocked(x,y,e.radius)){e.state='recover';e.left=C.bossAttack.recovery+0.45;this.notice='障害物に激突！ 反撃時間！';this.events.push('stun');return;}this.nav.move(e.pos,e.dir.x*(d.chargeSpeed||C.bossAttack.chargeSpeed)*dt,e.dir.y*(d.chargeSpeed||C.bossAttack.chargeSpeed)*dt,e.radius);this.contactHero(e,d.damage);if(e.left<=0){if(e.chargesLeft>1){e.chargesLeft--;e.state='attackWarn';e.left=.56;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);}else{e.state='recover';e.left=C.bossAttack.recovery;}}return;}
     this.moveEnemy(e,this.hero,d.speed,dt);this.contactHero(e,d.damage);if(e.left<=0){if(this.dangerBusy(e))e.left=.24;else this.startRankAttack(e);}
   }
   startRankAttack(e){const d=C.rankBosses[e.rankIndex],patterns=d.patterns[e.bossPhase-1],kind=patterns[e.pattern++%patterns.length];e.attackKind=kind;e.state='attackWarn';const base=kind==='charge'||kind==='multi'?(d.chargeWarning||C.bossAttack.warning):C.bossAttack.warning;e.left=this.bossWarning(e,base);e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);if(['sidestep','jumpSlam','copyShift','flank','presidentRush'].includes(kind))e.moveTarget=this.findBossTarget(e,kind);e.phaseSeen.add(kind);e.report.attacks++;this.notice=`魔王${d.rank}：${{charge:'突進',summon:'増援の号令',slam:'連続ハンコ',shockwave:'衝撃波',fan:'扇状書類弾',clone:'コピー分身',sweep:'定規薙ぎ払い',multi:'連続突進',crossLaser:'交差レーザー',surround:'包囲射撃',beam:'極太レーザー',floor:'連続床攻撃',reorg:'組織再編',sidestep:'横移動から突進',jumpSlam:'予告地点へハンコジャンプ',copyShift:'分身を残す高速移動',flank:'外周へ移動して挟み撃ち',presidentRush:'高速移動から連続攻撃'}[kind]}！`;this.events.push('warn');}
@@ -237,12 +252,12 @@ export class Game{
     if(kind==='charge'||kind==='multi'){e.state='charge';e.left=C.bossAttack.chargeDuration;e.chargesLeft=kind==='multi'?Math.min(d.multiCount||3,e.bossPhase+1):1;if(kind==='multi')e.report.fastMoves++;return;}
     if(kind==='summon')this.scheduleBossMinions(d.summonCount||4,'bossSkill');
     else if(kind==='slam'){for(let i=0;i<d.slamCount;i++)this.enemyAreas.push({kind:'slam',pos:i===0?copy(this.hero):{x:clamp(this.hero.x+(i%2?90:-90),60,this.worldWidth-60),y:clamp(this.hero.y-60+i*60,60,this.worldHeight-60)},radius:d.areaRadius,left:.45+i*.48,order:i+1,damage:d.damage,fired:false,effect:0});e.left=2.1;}
-    else if(kind==='shockwave'){for(let i=0;i<10;i++){const v=rotate({x:1,y:0},i*36);this.enemyProjectiles.push({kind:'boss',pos:copy(e.pos),dir:v,life:4,radius:8,damage:d.damage,speed:C.bossAttack.shockwaveSpeed});}}
+    else if(kind==='shockwave'){for(let i=0;i<10;i++){const v=rotate({x:1,y:0},i*36);this.enemyProjectiles.push({kind:'boss',pos:copy(e.pos),dir:v,life:4,radius:10,damage:d.damage,speed:C.bossAttack.shockwaveSpeed});}}
     else if(kind==='fan')this.shootFan(e.pos,e.dir,d.fanCount,d.fanSpread,'boss',d.damage-3);
     else if(kind==='clone'){for(let i=0;i<d.cloneCount;i++){const c=this.createEnemy('sentry',{x:e.pos.x+(i?70:-70),y:e.pos.y+35});if(c)c.bossClone=true;}}
     else if(kind==='sweep'){const radius=d.sweepRadius||125;if(dist(e.pos,this.hero)<=radius+C.radius)this.damageHero(d.damage,e.pos);this.enemyAreas.push({kind:'sweep',pos:copy(e.pos),radius,left:0,order:'薙',damage:d.damage,fired:true,effect:.32});}
     else if(kind==='crossLaser'){this.fireBossLaser(e,e.dir,d.damage);this.fireBossLaser(e,{x:-e.dir.y,y:e.dir.x},d.damage);}
-    else if(kind==='surround'){for(let i=0;i<8;i++){const a=i*Math.PI/4,p={x:this.hero.x+Math.cos(a)*185,y:this.hero.y+Math.sin(a)*185},v=norm(this.hero.x-p.x,this.hero.y-p.y);this.enemyProjectiles.push({kind:'boss',pos:p,dir:v,life:3,radius:8,damage:d.damage-3,speed:C.projectile.bossSpeed});}}
+    else if(kind==='surround'){for(let i=0;i<8;i++){const a=i*Math.PI/4,p={x:this.hero.x+Math.cos(a)*185,y:this.hero.y+Math.sin(a)*185},v=norm(this.hero.x-p.x,this.hero.y-p.y);this.enemyProjectiles.push({kind:'boss',pos:p,dir:v,life:3,radius:10,damage:d.damage-3,speed:C.projectile.bossSpeed});}}
     else if(kind==='beam')this.fireBossLaser(e,e.dir,d.damage,C.bossAttack.beamWidth*(e.bossPhase===3?1.35:1));
     else if(kind==='floor'){for(let i=0;i<d.floorCount;i++){const a=i*Math.PI*2/d.floorCount,p={x:clamp(this.hero.x+Math.cos(a)*95,60,this.worldWidth-60),y:clamp(this.hero.y+Math.sin(a)*95,60,this.worldHeight-60)};this.enemyAreas.push({kind:'bossFloor',pos:p,radius:d.areaRadius,left:.5+i*.34,order:i+1,damage:d.damage,fired:false,effect:0});}e.left=3;}
     else if(kind==='reorg'){this.reorganizeOffice();e.left=C.bossAttack.recovery+1;}
@@ -271,7 +286,7 @@ export class Game{
   stopBossPressure(boss=null){for(const enemy of this.enemies)if(enemy!==boss)enemy.dead=true;this.enemies=boss?[boss]:[];this.spawnQueue=[];this.spawnWarnings=[];this.enemyProjectiles=[];this.enemyAreas=[];}
   killEnemy(e){
     if(e.dead)return;e.dead=true;this.kills++;if(!this.isBoss(e)){if(this.ultimateEffectLeft<=0){const gain=C.enemies[e.type].ult*(this.selectedUltimate?.gain||1);this.ultimate=clamp(this.ultimate+gain,0,C.ultimate.max);}if(e.bossSummon)this.hero.energy=Math.min(C.hero.energy,this.hero.energy+C.bossAttack.summonEnergyDrop);this.maybeDropRecovery(e);}for(let i=0;i<(this.isBoss(e)?34:9)&&this.particles.length<C.limits.particles;i++)this.particles.push({pos:copy(e.pos),vel:{x:(this.random()-.5)*160,y:(this.random()-.5)*160},left:.65+this.random()*.5,color:this.isBoss(e)?'#f4ca62':e.bossSummon?'#9af0bd':'#f3ecda'});this.events.push(this.isBoss(e)?'bossDown':'defeat');
-    if(e.type==='rankBoss'){this.stopBossPressure(e);const rank=C.rankBosses[e.rankIndex].rank;if(this.stage<6){this.pendingBossRecovery=true;this.banner={title:`魔王${rank}、撃破！`,detail:'増援撤退！ 次の階にコーヒーを用意',left:2};this.openUpgrade({kind:'stage',stage:this.stage+1},'new','boss');}else{this.gateOpen=true;this.phase='escape';this.banner={title:'魔王社長、撃破！',detail:'増援撤退！ 退勤ゲートへ走れ！',left:3};this.notice='画面端の矢印を追って退勤！';}}
+    if(e.type==='rankBoss'){this.stopBossPressure(e);const rank=C.rankBosses[e.rankIndex].rank;if(this.stage<6){this.pendingBossRecovery=true;this.banner={title:`魔王${rank}、撃破！`,detail:'増援撤退！ 次の階にコーヒーを用意',left:2};this.openUpgrade({kind:'stage',stage:this.stage+1},'new','boss');}else{if(e.rankIndex===6)this.secretBossDefeated=true;this.gateOpen=true;this.phase='escape';this.banner={title:e.rankIndex===6?'特命監査役、撃破！ 本当の退勤へ！':'魔王社長、撃破！',detail:'増援撤退！ 退勤ゲートへ走れ！',left:3};this.notice='画面端の矢印を追って退勤！';}}
   }
   separateEnemies(){const list=this.activeEnemies;for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){const a=list[i],b=list[j],dx=b.pos.x-a.pos.x,dy=b.pos.y-a.pos.y,d=Math.hypot(dx,dy),need=(a.radius+b.radius)*.7;if(d>0&&d<need){const p=(need-d)/2,nx=dx/d,ny=dy/d;this.nav.move(a.pos,-nx*p,-ny*p,a.radius);this.nav.move(b.pos,nx*p,ny*p,b.radius);}}}
   spawnRecovery(type,pos,force=false){const data=C.recovery.items[type];if(!data||this.pickups.length>=C.recovery.maxActive||(!force&&this.hero.energy>C.hero.energy*C.recovery.highEnergyCutoff))return false;const safe=this.findSafePosition(pos,12,25);this.pickups.push({id:`recovery-${this.nextEnemyId++}`,type,pos:safe,left:C.recovery.lifetime,collected:false});return true;}

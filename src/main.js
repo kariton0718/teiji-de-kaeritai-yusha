@@ -4,16 +4,16 @@ const $=id=>document.getElementById(id),game=new Game(),audio=new AudioCues(),ca
 const saved=(()=>{try{return JSON.parse(localStorage.getItem(storeKey)||'{}');}catch{return {};}})(),settings={muted:saved.muted??false,bgm:saved.bgm??.38,sfx:saved.sfx??.65,shake:saved.shake??true,autoStory:saved.autoStory??true};
 audio.muted=settings.muted;audio.setBgmVolume(settings.bgm);audio.setSfxVolume(settings.sfx);let effects=settings.shake,last=performance.now(),visualTime=0,previousState='',selection=0,resultSelection=0,storyMode=null,storyIndex=0,storyReturn=null,storyReturnPhase=null,openingSeen=false,settingsOpen=false;
 const OPENING=[
-  {image:'assets/title-art.png',className:'',symbol:'17:45',heading:'魔王商事、17時45分。',text:'今日も終わらない仕事が、勇者を待ち受けていた。'},
-  {image:'assets/boss-lineup.svg',className:'bosses',symbol:'6 RANKS',heading:'立ちはだかる役職魔王',text:'リーダー、係長、課長、部長、専務、そして社長。定時への道をふさぐ6人の魔王。'},
-  {image:'assets/title-art.png',className:'sunset',symbol:'帰る理由がある',heading:'それでも勇者は進む。',text:'待っている人のもとへ。今日という冒険を終わらせるために。'},
-  {image:'assets/title-logo.svg',className:'end',symbol:'18:00までに',heading:'すべての仕事を切り開け。',text:'魔王商事を突破し、退勤ゲートから定時退勤せよ。'}
+  {image:'assets/story-opening-v2.webp',className:'sheet q1 opening-scene',symbol:'17:45 / 魔王商事',heading:'終業まで、あと15分。',text:'今日も仕事の山は、勇者の机を城壁のように囲んでいた。だが、ここで諦めれば残業が始まる。'},
+  {image:'assets/story-opening-v2.webp',className:'sheet q2 opening-scene',symbol:'6 RANKS',heading:'退勤を阻む、6人の役職魔王。',text:'リーダー、係長、課長、部長、専務――そして玉座機械の社長。上へ行くほど、攻撃も増援も激しくなる。'},
+  {image:'assets/story-opening-v2.webp',className:'sheet q3 opening-scene',symbol:'帰る理由がある',heading:'剣を取る理由は、出世ではない。',text:'机の写真に目を向ける。待っている人のもとへ、今日という冒険を終えて帰るためだ。'},
+  {image:'assets/story-opening-v2.webp',className:'sheet q4 opening-scene',symbol:'MISSION / 18:00',heading:'すべての仕事を、定時までに斬れ。',text:'移動しながら自動攻撃。技を重ね、6役職を突破し、黄金の退勤ゲートを目指せ。'}
 ];
 const ENDING=[
-  {image:'assets/title-art.png',className:'',symbol:'GATE OPEN',heading:'魔王社長を退けた。',text:'最後の決裁は下された。退勤ゲートが、夕焼け色に開いていく。'},
-  {image:'assets/title-art.png',className:'sunset',symbol:'18:00',heading:'勇者は街へ走り出した。',text:'時計は、まだ18時を指している。風が青いマントを大きく揺らした。'},
-  {image:'assets/title-logo.svg',className:'end',symbol:'ただいま',heading:'今日の冒険は終わった。',text:'待っている人のもとへ、勇者は帰る。剣よりも大切なものを抱えて。'},
-  {image:'assets/boss-lineup.svg',className:'bosses',symbol:'THE END',heading:'定時退勤達成！',text:'しかし――月曜日は、またやってくる。'}
+  {image:'assets/story-ending-v2.webp',className:'sheet q1 ending-scene',symbol:'FINAL APPROVAL',heading:'魔王社長、沈黙。',text:'玉座機械の光が消え、最後の書類が床へ落ちた。勇者は剣を支えに立ち上がる。'},
+  {image:'assets/story-ending-v2.webp',className:'sheet q2 ending-scene',symbol:'GATE OPEN',heading:'退勤ゲートが、夕焼け色に開く。',text:'背後では魔王商事がまだ煙を上げている。それでも今日の仕事は、ここで終わりだ。'},
+  {image:'assets/story-ending-v2.webp',className:'sheet q3 ending-scene',symbol:'18:00',heading:'勇者は街へ走り出した。',text:'風が青いマントを大きく揺らす。会社の魔物より速く、待っている灯りへ。'},
+  {image:'assets/story-ending-v2.webp',className:'sheet q4 ending-scene',symbol:'ただいま / THE END',heading:'今日の冒険は、ちゃんと終わった。',text:'剣より大切なものを抱きしめる。定時退勤達成――ただし、月曜日はまたやってくる。'}
 ];
 const persist=()=>{try{localStorage.setItem(storeKey,JSON.stringify(settings));}catch{}};
 const input=createInput(()=>game.state==='playing'&&!settingsOpen,togglePause,command);
@@ -22,7 +22,7 @@ function togglePause(){if(storyMode||settingsOpen)return;if(game.state==='playin
 async function enableAudio(){await audio.unlock();}
 function action(){enableAudio();if(game.state==='title'){if(settings.autoStory&&!openingSeen)beginStory('opening');else game.showInstructions();}else if(game.state==='instructions')game.startRun();else if(game.state==='paused')game.resume();else if(game.state==='stageIntro')game.enterStage();else if(game.state==='bossIntro')game.spawnBoss();transition();canvas.focus({preventScroll:true});}
 function beginStory(mode,returnTo=null){input.clear();storyMode=mode;storyIndex=0;storyReturn=returnTo;storyReturnPhase=game.phase;if(mode==='opening')openingSeen=true;game.resumeState=game.state==='playing'?'playing':game.resumeState;game.state=mode==='ending'?'ending':'story';game.phase=game.state;$('story-overlay').hidden=false;$('overlay').hidden=true;renderStory();audio.setScene(mode==='ending'?'ending':'opening');}
-function renderStory(){const slides=storyMode==='ending'?ENDING:OPENING,s=slides[storyIndex];$('story-count').textContent=`${storyIndex+1} / ${slides.length}`;$('story-heading').textContent=s.heading;$('story-text').textContent=s.text;$('story-image').src=s.image;$('story-art').className=`story-art ${s.className}`;$('story-symbol').textContent=s.symbol;$('story-next').textContent=storyIndex===slides.length-1?(storyMode==='ending'?'結果を見る':'戦いへ'):'次へ';$('story-disable').checked=!settings.autoStory;$('story-next').focus({preventScroll:true});}
+function renderStory(){const slides=storyMode==='ending'?ENDING:OPENING,s=slides[storyIndex];$('story-overlay').dataset.mode=storyMode;$('story-overlay').dataset.scene=String(storyIndex+1);$('story-count').textContent=`${storyIndex+1} / ${slides.length}`;$('story-heading').textContent=s.heading;$('story-text').textContent=s.text;$('story-image').src=s.image;$('story-art').className=`story-art ${s.className}`;$('story-symbol').textContent=s.symbol;$('story-next').textContent=storyIndex===slides.length-1?(storyMode==='ending'?'結果を見る':'戦いへ'):'次へ';$('story-disable').checked=!settings.autoStory;$('story-next').focus({preventScroll:true});if(storyIndex>0)audio.play(storyMode==='ending'&&storyIndex===slides.length-1?'endingResolve':'storyTurn');}
 function nextStory(){const slides=storyMode==='ending'?ENDING:OPENING;if(++storyIndex<slides.length){renderStory();return;}finishStory();}
 function finishStory(){const mode=storyMode,returnTo=storyReturn,returnPhase=storyReturnPhase;storyMode=null;storyReturn=null;storyReturnPhase=null;$('story-overlay').hidden=true;if(returnTo==='resume'){game.state='playing';game.phase=returnPhase;}else if(returnTo==='result'){game.state='result';game.phase='result';}else if(mode==='ending')game.completeEnding();else{game.state='instructions';game.phase='instructions';}transition();}
 function skipStory(){finishStory();}

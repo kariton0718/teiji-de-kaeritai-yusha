@@ -1,5 +1,6 @@
-import {CONFIG as C,solids,center} from './config.js';
+import {center} from './config.js';
 export function render(ctx,g,time=0,effects=true){
+  const C=g.config,solids=g.solids;
   ctx.imageSmoothingEnabled=false;
   const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);};
   const label=(text,x,y,color='#f5efdf',size=12)=>{ctx.fillStyle=color;ctx.font=`bold ${size}px "Meiryo",sans-serif`;ctx.textAlign='center';ctx.fillText(text,x,y);};
@@ -22,6 +23,20 @@ export function render(ctx,g,time=0,effects=true){
       const x=col*40,y=d.row*40;rect(x+3,y+5,38,39,'#aa9f89');rect(x+3,y+30,5,10,'#52616a');rect(x+31,y+30,5,10,'#52616a');rect(x,y,40,31,'#657a80');rect(x+2,y+2,36,24,'#87999a');rect(x+3,y+27,34,4,'#445b65');rect(x+8,y+4,23,15,'#2a424d');rect(x+10,y+6,19,10,'#acd4cc');rect(x+12,y+8,11,2,'#e5ebca');rect(x+17,y+19,5,3,'#3b515c');rect(x+10,y+23,19,3,'#d9dcd0');
     }
   }
+  if(g.slime?.phase==='warning'){
+    const a=g.slime.area;
+    ctx.fillStyle='#f5bc3650';ctx.strokeStyle='#a86a14';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(a.x,a.y,C.slime.radius,0,Math.PI*2);ctx.fill();ctx.stroke();
+    label('会議予告 '+g.slime.left.toFixed(1)+'秒',a.x,Math.max(58,a.y-C.slime.radius-8),'#864910',14);
+  }
+  if(g.director&&['windup','charge'].includes(g.director.phase)){
+    const a=g.director.origin,b=g.chargeEnd();
+    ctx.strokeStyle=g.director.phase==='windup'?'#db48585c':'#e3444499';ctx.lineWidth=C.radius*4;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.strokeStyle='#a5223b';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
+    ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.y-a.y,b.x-a.x));ctx.fillStyle='#ae2b46';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-17,-10);ctx.lineTo(-17,10);ctx.fill();ctx.restore();
+    label('突進予告！ 横へ逃げよう',240,62,'#9f253e',15);
+  }
   // Fixtures are solid; the numbered circle in front is the work position.
   C.stations.forEach((s,i)=>{
     const p=center(s.tile),spot=center(s.spot),jobs=g.jobs.filter(j=>j.station===s.id);
@@ -43,6 +58,12 @@ export function render(ctx,g,time=0,effects=true){
     label(name,p.x,p.y-26,'#264d48',13);
     rect(spot.x-22,spot.y+28,44,5,'#9a947b');rect(spot.x-22,spot.y+28,Math.round(44*progress),5,done?'#3d8059':'#f2cc74');
   });
+  if(g.slime){
+    const p=g.slime.pos;
+    rect(p.x-19,p.y+8,38,8,'#8f9986');rect(p.x-20,p.y-2,40,19,'#61ae9a');rect(p.x-15,p.y-13,30,20,'#80d8b3');rect(p.x-8,p.y-18,16,8,'#a9e5c0');
+    rect(p.x-9,p.y-5,4,5,'#28534e');rect(p.x+6,p.y-5,4,5,'#28534e');rect(p.x-5,p.y+5,12,3,'#28534e');
+    label('会議スライム',p.x,p.y-25,'#245650',12);
+  }
   function actor(p,boss){
     const x=Math.round(p.x),y=Math.round(p.y),walk=g.state==='playing'&&!g.working?Math.floor(g.elapsed*8)%2:0;
     rect(x-13,y+12,27,5,'#a89e87');
@@ -50,7 +71,13 @@ export function render(ctx,g,time=0,effects=true){
     rect(x-10,y-2,20,16,boss?'#823f67':'#2d72a0');rect(x-13,y+1,5,13,boss?'#a64f77':'#509ccd');rect(x+9,y+1,5,13,boss?'#a64f77':'#509ccd');
     rect(x-7,y+11,6,7+walk*2,'#293f4b');rect(x+3,y+11,6,9-walk*2,'#293f4b');
     rect(x-9,y-19,18,18,boss?'#b79aab':'#f2cd9d');rect(x-7,y-22,14,6,boss?'#52394f':'#c19a4c');
-    if(boss){rect(x-13,y-24,5,10,'#e7cd9c');rect(x+8,y-24,5,10,'#e7cd9c');rect(x-9,y-11,8,5,'#263947');rect(x+2,y-11,8,5,'#263947');rect(x-1,y-10,3,2,'#263947');rect(x-2,y+1,5,8,'#e7ccaa');}
+    if(boss){rect(x-13,y-24,5,10,'#e7cd9c');rect(x+8,y-24,5,10,'#e7cd9c');rect(x-9,y-11,8,5,'#263947');rect(x+2,y-11,8,5,'#263947');rect(x-1,y-10,3,2,'#263947');rect(x-2,y+1,5,8,'#e7ccaa');
+      if(g.director){rect(x-13,y-28,26,7,'#e7bd53');rect(x-13,y-33,5,6,'#e7bd53');rect(x-2,y-35,5,8,'#e7bd53');rect(x+8,y-33,5,6,'#e7bd53');}
+      if(g.anger===C.maxAnger){ctx.strokeStyle='#d53549';ctx.lineWidth=3;ctx.strokeRect(x-17,y-25,34,45);label('激怒',x,y-38,'#b62743',13);}
+      if(g.director?.phase==='stunned')label('★ 気絶 ★',x,y-43,'#9c6a20',14);
+      else if(g.bossRest>0)label('停止中',x,y-40,'#376c65',12);
+      else if(g.slowLeft>0)label('減速中',x,y-38,'#376c65',12);
+    }
     else{rect(x-12,y-20,24,6,'#c2d1d0');rect(x-7,y-23,15,4,'#e9e9ce');rect(x-2,y-24,4,9,'#78aaa9');rect(x-5,y-10,3,3,'#293e49');rect(x+4,y-10,3,3,'#293e49');rect(x+3,y+2,5,7,'#f3eed7');rect(x+4,y+3,3,2,'#83b7b0');}
   }
   if(g.working){
@@ -58,6 +85,7 @@ export function render(ctx,g,time=0,effects=true){
     ctx.strokeStyle='#fff6c7';ctx.lineWidth=4;ctx.beginPath();ctx.arc(g.hero.x,g.hero.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*job.progress/job.duration);ctx.stroke();
   }
   [ [g.hero,false],[g.boss,true] ].sort((a,b)=>g.protection>0?(a[1]?-1:1):a[0].y-b[0].y).forEach(([p,b])=>actor(p,b));
+  if(g.meetingLeft>0)label('会議中 '+g.meetingLeft.toFixed(1)+'秒',g.hero.x,Math.max(48,g.hero.y-38),'#a06617',14);
   if(g.state==='encounter'){label('ちょっといい？',g.boss.x,Math.max(45,g.boss.y-38),'#803d64',14);}
   else if(g.elapsed<C.warningTime&&g.state==='playing')label('上司はまだメールを読んでいる…',240,625,'#fff0c5',13);
   else if(g.state==='playing')label(dash?'業務完了 → 右上の出口へ！':g.working?'作業中：離して逃げても進捗保存':'番号の丸に立って E / Space 長押し',240,625,'#fff0c5',12);

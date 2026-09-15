@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#182b35"><title>定時で帰りたい勇者 | 試作版0.2</title>
+  <meta name="theme-color" content="#182b35"><title>定時で帰りたい勇者 | 試作版0.3</title>
   <link rel="stylesheet" href="styles.css"><link rel="icon" href="data:,">
 </head>
 <body>
 <main class="layout">
   <aside class="intro">
-    <div class="eyebrow">魔王商事 / 試作版 0.2</div>
+    <div class="eyebrow">魔王商事 / 試作版 0.3</div>
     <h1>定時で帰りたい<span>勇者 ✦</span></h1>
     <p class="pitch">あと少しだけ、仕事する？<br>それとも、今は逃げる？</p>
     <section class="task-panel" aria-label="業務の進捗">
@@ -16,7 +16,8 @@
       <div id="jobs"></div>
       <div id="extras" class="extras">追加業務なし</div>
     </section>
-    <div class="office-stats"><span id="shield-status">有給の盾 ×1</span><span id="boss-status">上司 通常</span></div>
+    <div class="office-stats"><span id="shield-status">有給の盾 ×1</span><span id="boss-status">上司の怒り 0 / 3</span></div>
+    <div id="stage-label" class="stage-label">月曜 / いつもの魔王商事</div>
     <div class="instructions">
       <p><b>① 光る作業場所へ移動</b><br>報告書 → 印刷 → 引き継ぎ。順番は自由。</p>
       <p><b>② E / Space を押し続けて作業</b><br>作業中は動けません。離して逃げても進捗は保存。</p>
@@ -40,14 +41,25 @@
           <div id="badge" class="badge">魔王商事、17:45。</div>
           <h2 id="heading">仕事を終えて、帰ろう。</h2>
           <p id="message">報告書・印刷・引き継ぎの3つ。<br>上司が来るまで、あと何秒粘る？</p>
+          <div id="stage-select" class="stage-select"></div>
+          <div id="timing-panel" hidden>
+            <div class="timing-track" aria-label="緑の範囲で決定"><div id="timing-zone"></div><div id="timing-cursor"></div></div>
+            <p id="timing-help">緑の範囲でSpace／Enter、または下をタップ</p>
+            <button id="judge" class="primary">今だ！ 判定する</button>
+          </div>
           <div id="choices" class="choices" hidden>
             <button data-choice="accept"><b>承知しました</b><small id="accept-detail">追加業務＋1</small></button>
             <button data-choice="tomorrow"><b>明日やります</b><small id="tomorrow-detail">追加なし / 上司が速くなる</small></button>
-            <button data-choice="deflect"><b>担当は部長です</b><small id="deflect-detail">50%で回避 / 失敗で追加＋1</small></button>
+            <button data-choice="deflect"><b>担当は部長です</b><small id="deflect-detail">タイミングで回避 / 失敗で長い追加業務</small></button>
             <button data-choice="shield"><b>有給の盾</b><small id="shield-detail">1プレイ1回、完全回避</small></button>
           </div>
           <dl id="result-stats" class="result-stats" hidden></dl>
+          <button id="next-stage" class="primary" hidden>次のステージへ</button>
           <button id="action" class="primary">業務を始める →</button>
+          <button id="to-title" class="secondary" hidden>ステージ選択へ</button>
+          <button id="reset-save" class="secondary" hidden>保存データをリセット</button>
+          <div id="reset-confirm" hidden><p>解放状況と最高称号を消しますか？</p><button id="confirm-reset" class="secondary">消して最初から</button><button id="cancel-reset" class="secondary">キャンセル</button></div>
+          <small id="save-status"></small>
           <small id="hint">移動：WASD / 矢印　作業：E / Space 長押し</small>
         </section>
       </div>
@@ -58,7 +70,7 @@
       <button data-dir="action" class="work-button" aria-label="作業を長押し"><b>作業</b><small>E / Space 長押し</small></button>
     </div>
   </section>
-  <footer>定時は守る。仕事は…できるだけ。 <span>LOCAL PROTOTYPE 0.2</span></footer>
+  <footer>定時は守る。仕事は…できるだけ。 <span>LOCAL PROTOTYPE 0.3</span></footer>
 </main>
 <script type="module" src="src/main.js"></script>
 </body></html>

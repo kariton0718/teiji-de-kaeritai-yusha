@@ -1,13 +1,13 @@
 import {CONFIG,solids,center} from './config.js';
-export function blocked(x,y,r=CONFIG.radius){
-  return solids.some(s=>Math.hypot(x-Math.max(s.x,Math.min(x,s.x+s.w)),y-Math.max(s.y,Math.min(y,s.y+s.h)))<r-.00001);
+export function blocked(x,y,r=CONFIG.radius,obstacles=solids){
+  return obstacles.some(s=>Math.hypot(x-Math.max(s.x,Math.min(x,s.x+s.w)),y-Math.max(s.y,Math.min(y,s.y+s.h)))<r-.00001);
 }
-export function clearLine(a,b){
+export function clearLine(a,b,obstacles=solids){
   const n=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/4);
-  for(let i=0;i<=n;i++){const t=n?i/n:0;if(blocked(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t))return false;}
+  for(let i=0;i<=n;i++){const t=n?i/n:0;if(blocked(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,CONFIG.radius,obstacles))return false;}
   return true;
 }
-export function findPath(a,b){
+export function findPath(a,b,obstacles=solids){
   const tile=p=>[Math.floor(p.x/CONFIG.tile),Math.floor(p.y/CONFIG.tile)];
   const start=tile(a),goal=tile(b),key=p=>p.join(',');
   const queue=[start],parents=new Map([[key(start),null]]);
@@ -15,7 +15,7 @@ export function findPath(a,b){
     const p=queue[i];if(key(p)===key(goal))break;
     for(const [dx,dy] of [[1,0],[0,-1],[-1,0],[0,1]]){
       const q=[p[0]+dx,p[1]+dy],c=center(q);
-      if(q[0]<1||q[0]>CONFIG.cols-2||q[1]<1||q[1]>CONFIG.rows-2||parents.has(key(q))||blocked(c.x,c.y))continue;
+      if(q[0]<1||q[0]>CONFIG.cols-2||q[1]<1||q[1]>CONFIG.rows-2||parents.has(key(q))||blocked(c.x,c.y,CONFIG.radius,obstacles))continue;
       parents.set(key(q),p);queue.push(q);
     }
   }
@@ -23,7 +23,15 @@ export function findPath(a,b){
   const path=[];for(let p=goal;p;p=parents.get(key(p)))path.unshift(center(p));
   path.push({...b});return path;
 }
-export function move(body,dx,dy){
-  if(!blocked(body.x+dx,body.y))body.x+=dx;
-  if(!blocked(body.x,body.y+dy))body.y+=dy;
+export function move(body,dx,dy,obstacles=solids){
+  if(!blocked(body.x+dx,body.y,CONFIG.radius,obstacles))body.x+=dx;
+  if(!blocked(body.x,body.y+dy,CONFIG.radius,obstacles))body.y+=dy;
+}
+export function navigation(obstacles){
+  return {
+    blocked:(x,y)=>blocked(x,y,CONFIG.radius,obstacles),
+    clearLine:(a,b)=>clearLine(a,b,obstacles),
+    findPath:(a,b)=>findPath(a,b,obstacles),
+    move:(p,x,y)=>move(p,x,y,obstacles)
+  };
 }

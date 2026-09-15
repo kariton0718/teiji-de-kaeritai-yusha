@@ -23,7 +23,7 @@
     <header class="hud">
       <div class="mobile-vitals" aria-label="スマホ用勇者の状態"><div class="mobile-meter"><b>気力</b><span id="mobile-energy-text">100</span><i><em id="mobile-energy-bar"></em></i></div><div class="mobile-meter ultimate-mini"><b id="mobile-ultimate-name">必殺</b><span id="mobile-ultimate-text">0%</span><i><em id="mobile-ultimate-bar"></em></i></div><small id="mobile-stage">出勤前</small></div>
       <div class="company">魔王商事<small id="clock">17:45 → 18:00</small></div><div class="countdown"><small>定時まで</small><strong id="timer">9:00</strong></div>
-      <div class="hud-buttons"><button id="settings" class="icon-button" aria-label="設定を開く">⚙</button><button id="pause" class="icon-button" aria-label="一時停止">Ⅱ</button></div>
+      <div class="hud-buttons"><button id="settings" class="icon-button" aria-label="設定を開く">⚙</button></div>
     </header>
     <div class="time-track"><div id="time-bar"></div></div>
     <div id="settings-panel" class="settings-panel" hidden role="dialog" aria-label="設定"><div><b>設定</b><button id="settings-close" aria-label="設定を閉じる">×</button></div><button id="sound" class="setting-toggle" aria-label="音を切り替える" aria-pressed="true">音 ON</button><label>BGM <input id="bgm-volume" type="range" min="0" max="100" value="38"></label><label>効果音 <input id="sfx-volume" type="range" min="0" max="100" value="65"></label><button id="shake" class="setting-toggle" aria-label="画面揺れを切り替える" aria-pressed="true">画面揺れ ON</button><button id="story-replay" class="setting-toggle">物語を見る</button></div>
@@ -37,6 +37,7 @@
       <div id="story-overlay" class="story-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="story-heading"><section class="story-card"><div id="story-art" class="story-art"><img id="story-image" src="assets/title-art.png" alt="物語の場面"><span id="story-symbol"></span></div><div class="story-count" id="story-count">1 / 4</div><h2 id="story-heading">魔王商事、17時45分。</h2><p id="story-text"></p><div class="story-buttons"><button id="story-next" class="primary">次へ</button><button id="story-skip" class="secondary">スキップ</button></div><label class="story-auto"><input id="story-disable" type="checkbox"> 次回から自動表示しない</label><small>タップまたはEnterで進む</small></section></div>
     </div>
     <div class="status" id="status" role="status">画面を触って移動。攻撃は自動です。</div>
+    <nav class="pause-dock" aria-label="ゲームの休憩"><button id="pause" aria-label="一時停止">Ⅱ 一時停止</button></nav>
   </section>
   <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>AUTO BATTLE STORY EDITION</span></footer>
 </main>

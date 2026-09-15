@@ -1,58 +1,23 @@
-// Procedural original soundtrack and effects. No downloaded assets are used.
+// Web Audio only: all music and effects are original procedural synthesis.
 const SONGS={
-  title:{tempo:118,root:57,progression:[0,5,3,4],melody:[0,4,7,12,9,7,4,2],wave:'triangle'},
-  battle:{tempo:142,root:55,progression:[0,3,5,4],melody:[0,7,5,7,10,7,5,3],wave:'square'},
-  late:{tempo:158,root:57,progression:[0,5,7,3],melody:[0,7,12,10,7,5,9,12],wave:'sawtooth'},
-  boss:{tempo:166,root:43,progression:[0,1,5,4],melody:[0,3,7,6,3,10,7,6],wave:'sawtooth'},
-  final:{tempo:180,root:41,progression:[0,6,1,5],melody:[0,7,12,13,12,10,7,6],wave:'square'}
+  opening:{tempo:104,root:50,progression:[0,5,3,7,0,8,5,7],melody:[0,4,7,12,11,7,9,14,12,9,7,4,5,7,11,12],wave:'sawtooth',epic:1},
+  title:{tempo:112,root:50,progression:[0,5,3,7,0,8,5,7],melody:[0,7,12,11,9,7,4,5,7,12,14,12,11,9,7,12],wave:'triangle',epic:.85},
+  battle:{tempo:142,root:55,progression:[0,3,5,4],melody:[0,7,5,7,10,7,5,3],wave:'square'},late:{tempo:158,root:57,progression:[0,5,7,3],melody:[0,7,12,10,7,5,9,12],wave:'sawtooth'},boss:{tempo:166,root:43,progression:[0,1,5,4],melody:[0,3,7,6,3,10,7,6],wave:'sawtooth'},final:{tempo:180,root:41,progression:[0,6,1,5],melody:[0,7,12,13,12,10,7,6],wave:'square'},
+  ending:{tempo:92,root:53,progression:[0,5,3,4,0,3,5,0],melody:[0,4,7,9,7,5,4,2,0,7,9,12,11,9,7,12],wave:'triangle',warm:1}
 };
 const hz=m=>440*Math.pow(2,(m-69)/12);
-
 export class AudioCues{
-  constructor(){
-    this.context=null;this.muted=true;this.bgmVolume=.34;this.sfxVolume=.62;
-    this.master=null;this.bgmGain=null;this.sfxGain=null;this.scene='pause';this.step=0;this.nextNote=0;this.timer=0;
-  }
-  async unlock(){
-    if(this.muted)return;
-    try{
-      this.context??=new (window.AudioContext||window.webkitAudioContext)();
-      if(!this.master){
-        this.master=this.context.createGain();this.bgmGain=this.context.createGain();this.sfxGain=this.context.createGain();
-        this.bgmGain.gain.value=this.bgmVolume;this.sfxGain.gain.value=this.sfxVolume;
-        this.bgmGain.connect(this.master);this.sfxGain.connect(this.master);this.master.connect(this.context.destination);
-      }
-      await this.context.resume();this.startClock();this.fadeBgm();
-    }catch{this.muted=true;}
-  }
+  constructor(){this.context=null;this.muted=false;this.bgmVolume=.34;this.sfxVolume=.62;this.master=null;this.bgmGain=null;this.sfxGain=null;this.scene='pause';this.step=0;this.nextNote=0;this.timer=0;this.tension=0;this.lastWarning=0;}
+  async unlock(){if(this.muted)return;try{this.context??=new (window.AudioContext||window.webkitAudioContext)();if(!this.master){this.master=this.context.createGain();this.bgmGain=this.context.createGain();this.sfxGain=this.context.createGain();this.bgmGain.gain.value=this.bgmVolume;this.sfxGain.gain.value=this.sfxVolume;this.bgmGain.connect(this.master);this.sfxGain.connect(this.master);this.master.connect(this.context.destination);}await this.context.resume();this.startClock();this.fadeBgm();}catch{this.muted=true;}}
   startClock(){if(this.timer)return;this.timer=setInterval(()=>this.schedule(),35);}
   setMuted(value){this.muted=value;if(value)this.context?.suspend();else this.unlock();}
-  setBgmVolume(value){this.bgmVolume=Math.max(0,Math.min(1,value));if(this.bgmGain)this.bgmGain.gain.setTargetAtTime(this.bgmVolume,this.context.currentTime,.04);}
-  setSfxVolume(value){this.sfxVolume=Math.max(0,Math.min(1,value));if(this.sfxGain)this.sfxGain.gain.setTargetAtTime(this.sfxVolume,this.context.currentTime,.04);}
-  setScene(scene){
-    if(scene===this.scene)return;this.scene=scene;this.step=0;this.nextNote=this.context?.currentTime||0;
-    this.fadeBgm();if(scene==='victory')this.play('success');
-  }
-  fadeBgm(){if(!this.bgmGain||!this.context)return;const t=this.context.currentTime,g=this.scene==='pause'||this.scene==='victory'?0:this.bgmVolume;this.bgmGain.gain.cancelScheduledValues(t);this.bgmGain.gain.setTargetAtTime(g,t,.12);}
-  schedule(){
-    if(this.muted||!this.context||this.context.state!=='running'||!SONGS[this.scene])return;
-    const song=SONGS[this.scene],unit=60/song.tempo/2;
-    if(this.nextNote<this.context.currentTime)this.nextNote=this.context.currentTime+.03;
-    while(this.nextNote<this.context.currentTime+.16){this.songStep(song,this.step,this.nextNote,unit);this.step++;this.nextNote+=unit;}
-  }
-  tone(freq,time,duration,volume,type='triangle',bus=this.bgmGain){
-    if(!this.context||!bus)return;const o=this.context.createOscillator(),g=this.context.createGain();o.type=type;o.frequency.setValueAtTime(freq,time);g.gain.setValueAtTime(.0001,time);g.gain.exponentialRampToValueAtTime(Math.max(.001,volume),time+.012);g.gain.exponentialRampToValueAtTime(.0001,time+duration);o.connect(g);g.connect(bus);o.start(time);o.stop(time+duration+.03);o.onended=()=>{o.disconnect();g.disconnect();};
-  }
-  songStep(song,step,time,unit){
-    const s=step%16,bar=Math.floor(step/8),chord=song.progression[bar%song.progression.length];
-    if(s%2===0)this.tone(hz(song.root-12+chord),time,unit*1.7,.045,'triangle');
-    if(s%4===0)[0,4,7].forEach(n=>this.tone(hz(song.root+chord+n),time,unit*3.5,.012,'sine'));
-    const note=song.melody[s%song.melody.length]+chord;this.tone(hz(song.root+12+note),time,unit*.78,.025,song.wave);
-    this.tone(s%4===0?92:145,time,.045,s%4===0?.035:.012,'square');
-  }
-  play(event){
-    if(this.muted||!this.context||this.context.state!=='running'||!this.sfxGain)return;
-    const notes={attack:[420],hit:[720,560],defeat:[620,830],wave:[392,523],upgrade:[523,659,784],ultimate:[330,523,784,1047],heal:[659,784],warn:[260,220],shoot:[440],hurt:[180,145],danger:[294,220],stun:[190,260],boss:[196,247,294],bossPhase:[220,277,330,440],summon:[247,196,247],thunder:[988,659],meteor:[330,440],impact:[165,220],burst:[523,784,1047],bossDown:[294,392,523,784],success:[523,659,784,1047,1319],failure:[330,294,196]}[event];
-    if(!notes)return;notes.forEach((f,i)=>this.tone(f,this.context.currentTime+i*.1,.17,.07,'triangle',this.sfxGain));
-  }
+  setBgmVolume(value){this.bgmVolume=Math.max(0,Math.min(1,value));if(this.bgmGain&&this.context)this.bgmGain.gain.setTargetAtTime(this.bgmVolume,this.context.currentTime,.04);}
+  setSfxVolume(value){this.sfxVolume=Math.max(0,Math.min(1,value));if(this.sfxGain&&this.context)this.sfxGain.gain.setTargetAtTime(this.sfxVolume,this.context.currentTime,.04);}
+  setTension(level){this.tension=level;}
+  setScene(scene){if(scene===this.scene)return;this.scene=scene;this.step=0;this.nextNote=this.context?.currentTime||0;this.fadeBgm();}
+  fadeBgm(){if(!this.bgmGain||!this.context)return;const t=this.context.currentTime,g=this.scene==='pause'?0:this.bgmVolume;this.bgmGain.gain.cancelScheduledValues(t);this.bgmGain.gain.setTargetAtTime(g,t,.28);}
+  schedule(){if(this.muted||!this.context||this.context.state!=='running'||!SONGS[this.scene])return;const song=SONGS[this.scene],unit=60/song.tempo/2;if(this.nextNote<this.context.currentTime)this.nextNote=this.context.currentTime+.03;while(this.nextNote<this.context.currentTime+.16){this.songStep(song,this.step,this.nextNote,unit);this.step++;this.nextNote+=unit;}}
+  tone(freq,time,duration,volume,type='triangle',bus=this.bgmGain,detune=0){if(!this.context||!bus)return;const o=this.context.createOscillator(),g=this.context.createGain(),filter=this.context.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(freq,time);o.detune.value=detune;filter.type='lowpass';filter.frequency.value=type==='sawtooth'?1700:2600;g.gain.setValueAtTime(.0001,time);g.gain.exponentialRampToValueAtTime(Math.max(.001,volume),time+.018);g.gain.exponentialRampToValueAtTime(.0001,time+duration);o.connect(filter);filter.connect(g);g.connect(bus);o.start(time);o.stop(time+duration+.04);o.onended=()=>{o.disconnect();filter.disconnect();g.disconnect();};}
+  songStep(song,step,time,unit){const s=step%16,bar=Math.floor(step/8),chord=song.progression[bar%song.progression.length],rise=song.epic?(.55+(step%64)/128):1;if(s%2===0){this.tone(hz(song.root-24+chord),time,unit*1.7,.045*rise,'triangle');if(song.epic)this.tone(hz(song.root-12+chord),time,unit*1.8,.025*rise,'sawtooth');}if(s%4===0)[0,4,7].forEach((n,i)=>{this.tone(hz(song.root+chord+n),time,unit*3.7,.013*rise,'sine',this.bgmGain,i?5:-5);if(song.epic)this.tone(hz(song.root+12+chord+n),time+.03*i,unit*2.8,.009*rise,'triangle');});const note=song.melody[s%song.melody.length]+chord;this.tone(hz(song.root+12+note),time,unit*.82,.024*rise,song.wave);if(song.epic&&s%4===2)this.tone(hz(song.root+19+note),time,unit*.7,.012*rise,'square');if(song.warm&&s%2===0)this.tone(hz(song.root+12+note),time+.06,unit*1.4,.012,'sine');this.tone(s%4===0?82:132,time,.05,s%4===0?.032:.009,'square');if(this.tension===2&&s%2===1)this.tone(176,time,.08,.012,'sawtooth');}
+  play(event){if(this.muted||!this.context||this.context.state!=='running'||!this.sfxGain)return;const notes={attack:[420],hit:[720,560],defeat:[620,830],wave:[392,523],upgrade:[523,659,784],ultimate:[330,523,784,1047],heal:[659,784,988],warn:[260,220],warning:[247,196],critical:[220,165,220],shoot:[440],hurt:[180,145],danger:[294,220],stun:[190,260],boss:[196,247,294],bossPhase:[220,277,330,440],summon:[247,196,247],thunder:[988,659],meteor:[330,440],impact:[165,220],burst:[523,784,1047],bossDown:[294,392,523,784],success:[523,659,784,1047,1319],failure:[330,294,196],reorg:[196,262,330]}[event];if(!notes)return;if((event==='warning'||event==='critical')&&this.context.currentTime-this.lastWarning<1.2)return;if(event==='warning'||event==='critical')this.lastWarning=this.context.currentTime;notes.forEach((f,i)=>this.tone(f,this.context.currentTime+i*.1,.18,.07,'triangle',this.sfxGain));}
 }

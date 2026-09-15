@@ -4,6 +4,7 @@ function toward(g,target){const h=g.hero;if(g.nav.clearLine(h,target))return uni
 export function pilot(g){
   const h=g.hero,input={x:0,y:0,attack:false,ultimate:false};if(g.ultimate>=C.ultimate.max&&g.ultimateEffectLeft<=0)input.ultimate=true;
   if(g.phase==='escape'&&g.objectivePoint)return {...input,...toward(g,g.objectivePoint)};
+  if(g.pickups.length&&h.energy<C.hero.energy*.72){const item=g.pickups.reduce((a,b)=>Math.hypot(h.x-a.pos.x,h.y-a.pos.y)<Math.hypot(h.x-b.pos.x,h.y-b.pos.y)?a:b);return {...input,...toward(g,item.pos)};}
   const boss=g.boss&&!g.boss.dead?g.boss:null;
   const area=g.enemyAreas.filter(a=>a.kind!=='laser'&&!a.fired&&Math.hypot(h.x-a.pos.x,h.y-a.pos.y)<a.radius+22).sort((a,b)=>a.left-b.left)[0];if(area&&area.left<.9){Object.assign(input,unit(h.x-area.pos.x,h.y-area.pos.y));return input;}
   if(boss?.state==='attackWarn'&&['charge','multi','beam','crossLaser'].includes(boss.attackKind)){Object.assign(input,unit(-boss.dir.y,boss.dir.x));return input;}
@@ -13,8 +14,8 @@ export function pilot(g){
   const ghost=g.activeEnemies.find(e=>e.type==='ghost'&&e.state==='warn'&&Math.abs((h.x-e.pos.x)*e.dir.y-(h.y-e.pos.y)*e.dir.x)<42);if(ghost){Object.assign(input,unit(-ghost.dir.y,ghost.dir.x));return input;}
   const brute=g.activeEnemies.find(e=>e.type==='brute'&&e.state==='areaWarn'&&Math.hypot(h.x-e.pos.x,h.y-e.pos.y)<C.enemies.brute.areaRadius+20);if(brute){Object.assign(input,unit(h.x-brute.pos.x,h.y-brute.pos.y));return input;}
   const shot=g.enemyProjectiles.filter(p=>Math.hypot(h.x-p.pos.x,h.y-p.pos.y)<78).sort((a,b)=>Math.hypot(h.x-a.pos.x,h.y-a.pos.y)-Math.hypot(h.x-b.pos.x,h.y-b.pos.y))[0];if(shot){Object.assign(input,unit(-shot.dir.y,shot.dir.x));return input;}
-  const crowd=g.activeEnemies.filter(e=>!g.isBoss(e)&&Math.hypot(h.x-e.pos.x,h.y-e.pos.y)<58);if(crowd.length>=4){const c=crowd.reduce((p,e)=>({x:p.x+e.pos.x,y:p.y+e.pos.y}),{x:0,y:0});Object.assign(input,unit(h.x-c.x/crowd.length,h.y-c.y/crowd.length));input.attack=true;return input;}
+  const crowd=g.activeEnemies.filter(e=>!g.isBoss(e)&&Math.hypot(h.x-e.pos.x,h.y-e.pos.y)<58);if(crowd.length>=4){const c=crowd.reduce((p,e)=>({x:p.x+e.pos.x,y:p.y+e.pos.y}),{x:0,y:0});Object.assign(input,unit(h.x-c.x/crowd.length,h.y-c.y/crowd.length));return input;}
   const enemies=g.activeEnemies;if(!enemies.length)return input;const target=boss&&(boss.weak||(g.skills.slash>=2&&g.bossMinionCount()<12))?boss:enemies.reduce((a,b)=>Math.hypot(h.x-a.pos.x,h.y-a.pos.y)<Math.hypot(h.x-b.pos.x,h.y-b.pos.y)?a:b),d=Math.hypot(h.x-target.pos.x,h.y-target.pos.y),reach=(g.ultimateChoice==='rush'&&g.ultimateEffectLeft>0?C.ultimate.rush.range:g.attackRange)+target.radius-6;
-  if(d<=reach&&g.nav.clearLine(h,target.pos)){input.attack=true;const dot=h.facing.x*(target.pos.x-h.x)/(d||1)+h.facing.y*(target.pos.y-h.y)/(d||1);if(dot<Math.cos(g.attackArc/2)*.9)Object.assign(input,unit(target.pos.x-h.x,target.pos.y-h.y));}
+  if(d<=reach&&g.clearStrikeLine(h,target)){const dot=h.facing.x*(target.pos.x-h.x)/(d||1)+h.facing.y*(target.pos.y-h.y)/(d||1);if(dot<Math.cos(g.attackArc/2)*.9)Object.assign(input,unit(target.pos.x-h.x,target.pos.y-h.y));}
   else Object.assign(input,toward(g,target.pos));return input;
 }

@@ -1,63 +1,44 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#142934"><title>定時で帰りたい勇者 | Six Ranks Action RPG</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#142934"><title>定時で帰りたい勇者 | Auto Battle Story Edition</title>
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="title-art.css"><link rel="icon" href="data:,">
 </head>
-<body>
+<body data-screen="menu">
 <main class="layout">
   <aside class="intro">
-    <div class="eyebrow">魔王商事 / SIX RANKS ACTION RPG</div>
+    <div class="eyebrow">魔王商事 / AUTO BATTLE STORY EDITION</div>
     <h1 class="sr-only">定時で帰りたい勇者</h1><img class="title-logo" src="assets/title-logo.svg" alt="定時で帰りたい勇者">
-    <p class="pitch">技を重ねて大量撃破。<br>リーダーから社長まで6役職を突破せよ。</p>
-    <section class="side-card" aria-label="勇者の状態">
+    <p class="pitch">移動に集中して仕事をまとめ、自動攻撃で一斉処理。<br>6役職を突破し、物語の結末へ。</p>
+    <section class="side-card desktop-vitals" aria-label="勇者の状態">
       <div class="meter-label"><b>気力</b><span id="energy-text">100 / 100</span></div><div class="meter energy"><i id="energy-bar"></i></div>
       <div class="meter-label"><b id="ultimate-name">未選択</b><span id="ultimate-text">0%</span></div><div class="meter ultimate"><i id="ultimate-bar"></i></div>
-      <div class="stats"><span id="wave-text">出勤前</span><span>移動・攻撃・必殺</span></div>
+      <div class="stats"><span id="wave-text">出勤前</span><span>移動＋自動攻撃＋必殺</span></div>
     </section>
     <section class="upgrade-card" aria-label="取得した強化"><b>今回の強化</b><div id="owned-upgrades"><span>まだなし</span></div></section>
-    <div class="instructions">
-      <p><b>移動</b>　WASD / 方向キー</p><p><b>J / Space</b>　タスク斬り</p><p><b>K / I</b>　選択した必殺技</p>
-      <small>赤・紫の予告から歩いて離れます。音OFFでも判断できます。</small>
-    </div>
-    <section class="audio-settings" aria-label="音量設定"><label>BGM <input id="bgm-volume" type="range" min="0" max="100" value="38"></label><label>効果音 <input id="sfx-volume" type="range" min="0" max="100" value="65"></label></section>
+    <div class="instructions"><p><b>移動</b>　WASD / 方向キー</p><p><b>通常攻撃</b>　近い敵へ自動攻撃</p><p><b>K / I</b>　選択した必殺技</p><small>赤・紫の予告から歩いて離れ、回復アイテムを拾います。</small></div>
   </aside>
-
   <section class="game-shell" aria-label="定時退勤アクションRPG">
     <header class="hud">
-      <div class="company">魔王商事<small id="clock">17:45 → 18:00</small></div>
-      <div class="countdown"><small>定時まで</small><strong id="timer">9:00</strong></div>
-      <div class="hud-buttons"><button id="sound" class="small-button" aria-label="音を有効にする" aria-pressed="false">音 OFF</button><button id="shake" class="small-button" aria-label="画面揺れを切る" aria-pressed="true">揺れ ON</button><button id="pause" class="small-button" aria-label="一時停止">Ⅱ</button></div>
+      <div class="mobile-vitals" aria-label="スマホ用勇者の状態"><div class="mobile-meter"><b>気力</b><span id="mobile-energy-text">100</span><i><em id="mobile-energy-bar"></em></i></div><div class="mobile-meter ultimate-mini"><b id="mobile-ultimate-name">必殺</b><span id="mobile-ultimate-text">0%</span><i><em id="mobile-ultimate-bar"></em></i></div><small id="mobile-stage">出勤前</small></div>
+      <div class="company">魔王商事<small id="clock">17:45 → 18:00</small></div><div class="countdown"><small>定時まで</small><strong id="timer">9:00</strong></div>
+      <div class="hud-buttons"><button id="settings" class="icon-button" aria-label="設定を開く">⚙</button><button id="pause" class="icon-button" aria-label="一時停止">Ⅱ</button></div>
     </header>
     <div class="time-track"><div id="time-bar"></div></div>
+    <div id="settings-panel" class="settings-panel" hidden role="dialog" aria-label="設定"><div><b>設定</b><button id="settings-close" aria-label="設定を閉じる">×</button></div><button id="sound" class="setting-toggle" aria-label="音を切り替える" aria-pressed="true">音 ON</button><label>BGM <input id="bgm-volume" type="range" min="0" max="100" value="38"></label><label>効果音 <input id="sfx-volume" type="range" min="0" max="100" value="65"></label><button id="shake" class="setting-toggle" aria-label="画面揺れを切り替える" aria-pressed="true">画面揺れ ON</button><button id="story-replay" class="setting-toggle">物語を見る</button></div>
     <div id="boss-hud" class="boss-hud" hidden><span id="boss-name">魔王部長</span><div><i id="boss-bar"></i></div><b id="boss-hp">500</b></div>
-    <div class="board">
-      <canvas id="game" width="480" height="640" tabindex="0" aria-label="勇者を移動しながら攻撃します。技を習得・進化し、6役職の魔王を倒して退勤ゲートへ進みます。"></canvas>
+    <div class="board" id="board">
+      <canvas id="game" width="480" height="640" tabindex="0" aria-label="画面のどこかに触れて移動します。通常攻撃は近い敵へ自動発動します。"></canvas>
+      <div id="joystick-base" class="joystick-base" hidden aria-hidden="true"><div id="joystick-knob" class="joystick-knob"></div></div>
+      <button data-input="ultimate" class="ultimate-button" aria-label="必殺技"><b>必殺</b><small id="ultimate-short">K / I</small></button>
       <div id="battle-banner" class="battle-banner" hidden><b></b><span></span></div>
-      <div id="overlay" class="overlay">
-        <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading">
-          <img id="dialog-logo" class="dialog-logo" src="assets/title-logo.svg" alt="定時で帰りたい勇者"><img id="title-art" class="title-art" src="assets/title-art.png" alt="青いマントの勇者と玉座機械に乗る魔王社長"><img id="title-cast" class="title-cast" src="assets/boss-lineup.svg" alt="リーダー、係長、課長、部長、専務、社長">
-          <div id="badge" class="badge">魔王商事 / 17:45</div><h2 id="heading">定時で帰りたい勇者</h2>
-          <p id="message">小さな斬撃から、新しい攻撃を育てよう。</p>
-          <div id="upgrade-choices" class="upgrade-choices" hidden></div>
-          <dl id="result-stats" class="result-stats" hidden></dl>
-          <button id="action" class="primary">冒険を始める</button>
-          <button id="to-title" class="secondary" hidden>タイトルへ</button>
-          <small id="hint">Enterで決定</small>
-        </section>
-      </div>
+      <div id="overlay" class="overlay"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading"><img id="dialog-logo" class="dialog-logo" src="assets/title-logo.svg" alt="定時で帰りたい勇者"><img id="title-art" class="title-art" src="assets/title-art.png" alt="青いマントの勇者と玉座機械に乗る魔王社長"><img id="title-cast" class="title-cast" src="assets/boss-lineup.svg" alt="リーダー、係長、課長、部長、専務、社長"><div id="badge" class="badge">魔王商事 / 17:45</div><h2 id="heading">定時で帰りたい勇者</h2><p id="message">移動に集中し、自動攻撃で仕事を切り開こう。</p><div id="upgrade-choices" class="upgrade-choices" hidden></div><dl id="result-stats" class="result-stats" hidden></dl><button id="action" class="primary">冒険を始める</button><button id="story-action" class="secondary">物語を見る</button><div id="result-actions" class="result-actions" hidden><button data-result="retry">同じ必殺技でもう一度</button><button data-result="ultimate">別の必殺技で挑戦</button><button data-result="story">物語をもう一度見る</button><button data-result="title">タイトルへ戻る</button></div><small id="hint">Enterで決定</small></section></div>
+      <div id="story-overlay" class="story-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="story-heading"><section class="story-card"><div id="story-art" class="story-art"><img id="story-image" src="assets/title-art.png" alt="物語の場面"><span id="story-symbol"></span></div><div class="story-count" id="story-count">1 / 4</div><h2 id="story-heading">魔王商事、17時45分。</h2><p id="story-text"></p><div class="story-buttons"><button id="story-next" class="primary">次へ</button><button id="story-skip" class="secondary">スキップ</button></div><label class="story-auto"><input id="story-disable" type="checkbox"> 次回から自動表示しない</label><small>タップまたはEnterで進む</small></section></div>
     </div>
-    <div class="status" id="status" role="status">出現予告から離れて敵を全滅させよう。</div>
-    <div class="controls" aria-label="画面の操作ボタン">
-      <div id="joystick-zone" class="joystick-zone" aria-label="触れた位置から移動する仮想スティック">
-        <span class="joystick-hint">ここに触れて移動</span>
-        <div id="joystick-base" class="joystick-base" hidden><div id="joystick-knob" class="joystick-knob"></div></div>
-      </div>
-      <div class="skills"><button data-input="ultimate" class="ultimate-button" aria-label="必殺技 本日は退勤します"><b>必殺</b><small>K / I</small></button><button data-input="attack" class="attack" aria-label="タスク斬り"><b>斬る</b><small>長押し / J / Space</small></button></div>
-    </div>
+    <div class="status" id="status" role="status">画面を触って移動。攻撃は自動です。</div>
   </section>
-  <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>LOCAL SIX RANKS ACTION RPG</span></footer>
+  <footer>定時は守る。仕事の魔物はまとめて斬る。 <span>AUTO BATTLE STORY EDITION</span></footer>
 </main>
 <script type="module" src="src/main.js"></script>
 </body></html>

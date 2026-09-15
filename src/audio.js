@@ -7,7 +7,12 @@ export class AudioCues {
   }
   play(event){
     if(this.muted||!this.context||this.context.state!=='running')return;
-    const notes={complete:[523,659],dash:[523,659,784,1047],success:[523,659,784,1047,1319],failure:[330,294,196],encounter:[220,233],danger:[294,220],shield:[659,988]}[event];
+    const notes={
+      attack:[420],hit:[720,560],defeat:[620,830],wave:[392,523],upgrade:[523,659,784],
+      dash:[640,880],shield:[659,988],ultimate:[330,523,784,1047],heal:[659,784],
+      warn:[260,220],shoot:[440],hurt:[180,145],danger:[294,220],stun:[190,260],
+      boss:[196,247,294],bossDown:[294,392,523,784],success:[523,659,784,1047,1319],failure:[330,294,196]
+    }[event];
     if(!notes)return;
     notes.forEach((f,i)=>{
       const osc=this.context.createOscillator(),gain=this.context.createGain();

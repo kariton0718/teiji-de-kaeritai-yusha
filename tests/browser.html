@@ -1,16 +1,8 @@
-<!doctype html>
-<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>0.3 ブラウザー結合テスト</title>
-<style>body{background:#182b35;color:#eee;font:14px sans-serif;margin:16px}iframe{width:390px;height:844px;border:1px solid #aaa;float:right}li{margin:10px}button{padding:12px;margin:5px}pre{white-space:pre-wrap}.panel{max-width:550px} @media(max-width:850px){iframe{float:none;max-width:100%}}</style>
-<div class="panel"><h1>0.3 ブラウザー結合テスト</h1><p>下の実ゲームを操作するローカル確認ページです。結合テストは状態設定を含みます。通しプレイは位置・進捗・時計を変更せず、合成キー入力で3ステージを順に遊びます。</p><button id="run">結合テストを実行</button><button id="play">通しプレイを実行</button><ol id="results"></ol></div>
-<iframe src="/?test=1" title="テスト対象ゲーム"></iframe>
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Action RPG ブラウザー検証</title>
+<style>body{background:#142934;color:#eee;font:14px sans-serif;margin:16px}.panel{max-width:560px}iframe{width:390px;height:844px;border:1px solid #aaa;float:right}li{margin:9px}button{padding:11px;margin:4px}@media(max-width:850px){iframe{float:none;max-width:100%}}</style>
+<div class="panel"><h1>Action RPG ブラウザー検証</h1><p>390×844の実ゲームを操作します。結合確認は状態設定を含み、通しプレイは位置・気力・時計・敵を変更せず、ゲームへのキー入力だけで最後まで進みます。</p><button id="checks">結合確認</button><button id="play">通しプレイ</button><ol id="results"></ol></div>
+<iframe src="/" title="テスト対象ゲーム"></iframe>
 <script type="module">
-const frame=document.querySelector('iframe');
-function run(mode){
-  document.querySelectorAll('button').forEach(b=>b.disabled=true);
-  const script=document.createElement('script');script.type='module';script.src='/tests/browser-check.js?mode='+mode;
-  frame.contentDocument.body.append(script);
-}
-document.querySelector('#run').onclick=()=>run('checks');
-document.querySelector('#play').onclick=()=>run('play');
+const frame=document.querySelector('iframe');function run(mode){document.querySelectorAll('button').forEach(b=>b.disabled=true);const s=document.createElement('script');s.type='module';s.src='/tests/browser-check.js?mode='+mode;frame.contentDocument.body.append(s);}document.querySelector('#checks').onclick=()=>run('checks');document.querySelector('#play').onclick=()=>run('play');
 </script></html>

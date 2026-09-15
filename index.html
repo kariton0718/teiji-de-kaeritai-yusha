@@ -1,76 +1,58 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#182b35"><title>定時で帰りたい勇者 | 試作版0.3</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#142934"><title>定時で帰りたい勇者 | Action RPG Prototype</title>
   <link rel="stylesheet" href="styles.css"><link rel="icon" href="data:,">
 </head>
 <body>
 <main class="layout">
   <aside class="intro">
-    <div class="eyebrow">魔王商事 / 試作版 0.3</div>
+    <div class="eyebrow">魔王商事 / ACTION RPG PROTOTYPE</div>
     <h1>定時で帰りたい<span>勇者 ✦</span></h1>
-    <p class="pitch">あと少しだけ、仕事する？<br>それとも、今は逃げる？</p>
-    <section class="task-panel" aria-label="業務の進捗">
-      <div class="section-label">本日の業務 <b id="job-count">0 / 3</b></div>
-      <div id="jobs"></div>
-      <div id="extras" class="extras">追加業務なし</div>
+    <p class="pitch">仕事の魔物を斬り、能力を選び、<br>魔王部長を倒して定時退勤せよ。</p>
+    <section class="side-card" aria-label="勇者の状態">
+      <div class="meter-label"><b>気力</b><span id="energy-text">100 / 100</span></div><div class="meter energy"><i id="energy-bar"></i></div>
+      <div class="meter-label"><b>必殺技</b><span id="ultimate-text">0%</span></div><div class="meter ultimate"><i id="ultimate-bar"></i></div>
+      <div class="stats"><span id="wave-text">第1ラッシュ</span><span id="shield-text">有給の盾 ×2</span></div>
     </section>
-    <div class="office-stats"><span id="shield-status">有給の盾 ×1</span><span id="boss-status">上司の怒り 0 / 3</span></div>
-    <div id="stage-label" class="stage-label">月曜 / いつもの魔王商事</div>
+    <section class="upgrade-card" aria-label="取得した強化"><b>今回の強化</b><div id="owned-upgrades"><span>まだなし</span></div></section>
     <div class="instructions">
-      <p><b>① 光る作業場所へ移動</b><br>報告書 → 印刷 → 引き継ぎ。順番は自由。</p>
-      <p><b>② E / Space を押し続けて作業</b><br>作業中は動けません。離して逃げても進捗は保存。</p>
-      <p><b>③ 全部終えたら、退勤ダッシュ！</b><br>追加業務も終えると出口が開きます。</p>
-      <p class="quiet">移動：WASD / 方向キー<br>スマホ：下の方向ボタン ＋ 作業ボタン</p>
+      <p><b>移動</b>　WASD / 方向キー</p><p><b>J / Space</b>　タスク斬り</p><p><b>K</b>　既読スルーダッシュ</p><p><b>L</b>　有給の盾</p><p><b>I</b>　本日は退勤します</p>
+      <small>敵の色と予告を見て回避。音OFFでもすべて判断できます。</small>
     </div>
-    <p class="version">音は右上でONにできます。音なしでも遊べます。</p>
   </aside>
-  <section class="game-shell" aria-label="退勤ゲーム">
+
+  <section class="game-shell" aria-label="定時退勤アクションRPG">
     <header class="hud">
       <div class="company">魔王商事<small id="clock">17:45 → 18:00</small></div>
-      <div class="countdown"><small>定時まで</small><strong id="timer">75.0</strong><span>秒</span></div>
-      <div class="hud-buttons"><button id="sound" class="small-button" aria-label="音を有効にする" aria-pressed="false">音 OFF</button><button id="pause" class="small-button" aria-label="一時停止">Ⅱ</button></div>
+      <div class="countdown"><small>定時まで</small><strong id="timer">5:00</strong></div>
+      <div class="hud-buttons"><button id="sound" class="small-button" aria-label="音を有効にする" aria-pressed="false">音 OFF</button><button id="shake" class="small-button" aria-label="画面揺れを切る" aria-pressed="true">揺れ ON</button><button id="pause" class="small-button" aria-label="一時停止">Ⅱ</button></div>
     </header>
     <div class="time-track"><div id="time-bar"></div></div>
+    <div id="boss-hud" class="boss-hud" hidden><span id="boss-name">魔王部長</span><div><i id="boss-bar"></i></div><b id="boss-hp">500</b></div>
     <div class="board">
-      <canvas id="game" width="480" height="640" tabindex="0" aria-label="青い勇者を操作します。番号付きの作業場所に立ち、EまたはSpaceを長押し。全業務完了後、右上の出口へ。"></canvas>
-      <div id="celebration" class="celebration" hidden><b>業務完了！</b><span>出口へ！ 退勤ダッシュ</span></div>
+      <canvas id="game" width="480" height="640" tabindex="0" aria-label="勇者を移動し、向いている方向へ攻撃します。敵の予告を見て回避し、魔王部長撃破後に右上の退勤ゲートへ進みます。"></canvas>
+      <div id="battle-banner" class="battle-banner" hidden><b></b><span></span></div>
       <div id="overlay" class="overlay">
         <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="heading">
-          <div id="badge" class="badge">魔王商事、17:45。</div>
-          <h2 id="heading">仕事を終えて、帰ろう。</h2>
-          <p id="message">報告書・印刷・引き継ぎの3つ。<br>上司が来るまで、あと何秒粘る？</p>
-          <div id="stage-select" class="stage-select"></div>
-          <div id="timing-panel" hidden>
-            <div class="timing-track" aria-label="緑の範囲で決定"><div id="timing-zone"></div><div id="timing-cursor"></div></div>
-            <p id="timing-help">緑の範囲でSpace／Enter、または下をタップ</p>
-            <button id="judge" class="primary">今だ！ 判定する</button>
-          </div>
-          <div id="choices" class="choices" hidden>
-            <button data-choice="accept"><b>承知しました</b><small id="accept-detail">追加業務＋1</small></button>
-            <button data-choice="tomorrow"><b>明日やります</b><small id="tomorrow-detail">追加なし / 上司が速くなる</small></button>
-            <button data-choice="deflect"><b>担当は部長です</b><small id="deflect-detail">タイミングで回避 / 失敗で長い追加業務</small></button>
-            <button data-choice="shield"><b>有給の盾</b><small id="shield-detail">1プレイ1回、完全回避</small></button>
-          </div>
+          <div id="badge" class="badge">魔王商事 / 17:45</div><h2 id="heading">定時で帰りたい勇者</h2>
+          <p id="message">仕事の魔物を倒して、魔王部長から退勤を勝ち取ろう。</p>
+          <div id="upgrade-choices" class="upgrade-choices" hidden></div>
           <dl id="result-stats" class="result-stats" hidden></dl>
-          <button id="next-stage" class="primary" hidden>次のステージへ</button>
-          <button id="action" class="primary">業務を始める →</button>
-          <button id="to-title" class="secondary" hidden>ステージ選択へ</button>
-          <button id="reset-save" class="secondary" hidden>保存データをリセット</button>
-          <div id="reset-confirm" hidden><p>解放状況と最高称号を消しますか？</p><button id="confirm-reset" class="secondary">消して最初から</button><button id="cancel-reset" class="secondary">キャンセル</button></div>
-          <small id="save-status"></small>
-          <small id="hint">移動：WASD / 矢印　作業：E / Space 長押し</small>
+          <button id="action" class="primary">冒険を始める</button>
+          <button id="to-title" class="secondary" hidden>タイトルへ</button>
+          <small id="hint">Enterで決定</small>
         </section>
       </div>
     </div>
-    <div class="status" id="status" role="status">3つの仕事を終えて、定時退勤を目指そう。</div>
+    <div class="status" id="status" role="status">仕事の魔物をすべて倒そう。</div>
     <div class="controls" aria-label="画面の操作ボタン">
-      <div class="dpad"><button data-dir="left" aria-label="左へ移動">◀</button><div class="vertical"><button data-dir="up" aria-label="上へ移動">▲</button><button data-dir="down" aria-label="下へ移動">▼</button></div><button data-dir="right" aria-label="右へ移動">▶</button></div>
-      <button data-dir="action" class="work-button" aria-label="作業を長押し"><b>作業</b><small>E / Space 長押し</small></button>
+      <div class="dpad"><button data-input="left" aria-label="左へ移動">◀</button><div class="vertical"><button data-input="up" aria-label="上へ移動">▲</button><button data-input="down" aria-label="下へ移動">▼</button></div><button data-input="right" aria-label="右へ移動">▶</button></div>
+      <div class="skills"><button data-input="attack" class="attack" aria-label="タスク斬り"><b>斬</b><small>J / Space</small></button><button data-input="dash" aria-label="既読スルーダッシュ"><b>避</b><small>K</small></button><button data-input="shield" aria-label="有給の盾"><b>盾</b><small>L</small></button><button data-input="ultimate" class="ultimate-button" aria-label="必殺技 本日は退勤します"><b>必</b><small>I</small></button></div>
     </div>
   </section>
-  <footer>定時は守る。仕事は…できるだけ。 <span>LOCAL PROTOTYPE 0.3</span></footer>
+  <footer>定時は守る。仕事の魔物は斬る。 <span>LOCAL ACTION RPG PROTOTYPE</span></footer>
 </main>
 <script type="module" src="src/main.js"></script>
 </body></html>

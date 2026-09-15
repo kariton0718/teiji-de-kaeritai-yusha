@@ -1,4 +1,4 @@
-import {CONFIG as C} from './config.js';
+import {CONFIG as C,ULTIMATE_IDS} from './config.js';
 import {Game} from './game.js';
 import {createInput} from './input.js';
 import {render} from './render.js';
@@ -6,38 +6,31 @@ import {AudioCues} from './audio.js';
 
 const $=id=>document.getElementById(id),game=new Game(),audio=new AudioCues(),canvas=$('game'),ctx=canvas.getContext('2d');
 let last=performance.now(),visualTime=0,previousState='',selection=0,resultSelection=0,effects=C.screenShake;
-
 const input=createInput(()=>game.state==='playing',togglePause,command);
 function transition(){input.clear();previousState='';last=performance.now();ui();}
 function togglePause(){if(game.state==='playing')game.pause();else if(game.state==='paused')game.resume();transition();}
 function action(){
-  audio.unlock();
-  if(game.state==='title')game.showInstructions();
-  else if(game.state==='instructions')game.startRun();
-  else if(game.state==='paused')game.resume();
-  else if(game.state==='stageIntro')game.enterStage();
-  else if(game.state==='bossIntro')game.spawnBoss();
-  else if(game.state==='result'){game.reset();game.showInstructions();}
+  audio.unlock();if(game.state==='title')game.showInstructions();else if(game.state==='instructions')game.startRun();else if(game.state==='paused')game.resume();else if(game.state==='stageIntro')game.enterStage();else if(game.state==='bossIntro')game.spawnBoss('manager');else if(game.state==='presidentIntro')game.spawnBoss('president');else if(game.state==='result'){game.reset();game.showInstructions();}
   transition();canvas.focus({preventScroll:true});
 }
 function chooseUpgrade(index){if(game.chooseUpgrade(index)){transition();canvas.focus({preventScroll:true});}}
-function paintSelection(){document.querySelectorAll('[data-upgrade]').forEach((b,i)=>{b.classList.toggle('selected',i===selection);b.setAttribute('aria-current',String(i===selection));});}
+function chooseUltimate(index){if(game.selectUltimate(index)){transition();canvas.focus({preventScroll:true});}}
+function choiceCount(){return game.state==='ultimateSelect'?3:game.offers.length;}
+function paintSelection(){document.querySelectorAll('[data-choice]').forEach((b,i)=>{b.classList.toggle('selected',i===selection);b.setAttribute('aria-current',String(i===selection));});}
+function moveSelection(delta){const count=choiceCount();if(!count)return;selection=(selection+delta+count)%count;paintSelection();document.querySelector(`[data-choice="${selection}"]`)?.focus({preventScroll:true});}
 function paintResultSelection(){[$('action'),$('to-title')].forEach((b,i)=>{b.classList.toggle('menu-selected',i===resultSelection);b.setAttribute('aria-current',String(i===resultSelection));});}
 function command(code){
   const enter=code==='Enter'||code==='NumpadEnter';
-  if(game.state==='upgrade'){
-    const digit=/^(?:Digit|Numpad)([1-3])$/.exec(code);if(digit){chooseUpgrade(Number(digit[1])-1);return true;}
-    if(['ArrowLeft','KeyA','ArrowUp','KeyW'].includes(code)){selection=(selection+2)%3;paintSelection();document.querySelector(`[data-upgrade="${selection}"]`)?.focus({preventScroll:true});return true;}
-    if(['ArrowRight','KeyD','ArrowDown','KeyS'].includes(code)){selection=(selection+1)%3;paintSelection();document.querySelector(`[data-upgrade="${selection}"]`)?.focus({preventScroll:true});return true;}
-    if(enter){chooseUpgrade(selection);return true;}return false;
+  if(['upgrade','ultimateSelect'].includes(game.state)){
+    const digit=/^(?:Digit|Numpad)([1-3])$/.exec(code);if(digit){const i=Number(digit[1])-1;if(i<choiceCount())game.state==='upgrade'?chooseUpgrade(i):chooseUltimate(i);return true;}
+    if(['ArrowLeft','KeyA','ArrowUp','KeyW'].includes(code)){moveSelection(-1);return true;}if(['ArrowRight','KeyD','ArrowDown','KeyS'].includes(code)){moveSelection(1);return true;}
+    if(enter){game.state==='upgrade'?chooseUpgrade(selection):chooseUltimate(selection);return true;}return false;
   }
   if(game.state==='result'){
-    if(['ArrowLeft','ArrowUp','KeyA','KeyW'].includes(code)){resultSelection=(resultSelection+1)%2;paintResultSelection();[$('action'),$('to-title')][resultSelection].focus({preventScroll:true});return true;}
-    if(['ArrowRight','ArrowDown','KeyD','KeyS'].includes(code)){resultSelection=(resultSelection+1)%2;paintResultSelection();[$('action'),$('to-title')][resultSelection].focus({preventScroll:true});return true;}
+    if(['ArrowLeft','ArrowUp','KeyA','KeyW','ArrowRight','ArrowDown','KeyD','KeyS'].includes(code)){resultSelection=(resultSelection+1)%2;paintResultSelection();[$('action'),$('to-title')][resultSelection].focus({preventScroll:true});return true;}
     if(enter){if(resultSelection===0)action();else{game.reset();transition();}return true;}return false;
   }
-  if(enter&&['title','instructions','paused','stageIntro','bossIntro'].includes(game.state)){action();return true;}
-  return false;
+  if(enter&&['title','instructions','paused','stageIntro','bossIntro','presidentIntro'].includes(game.state)){action();return true;}return false;
 }
 
 $('action').onclick=action;$('action').onfocus=()=>{if(game.state==='result'){resultSelection=0;paintResultSelection();}};$('to-title').onclick=()=>{game.reset();transition();};$('to-title').onfocus=()=>{if(game.state==='result'){resultSelection=1;paintResultSelection();}};$('pause').onclick=togglePause;
@@ -45,46 +38,36 @@ $('sound').onclick=async()=>{audio.muted=!audio.muted;await audio.unlock();$('so
 $('shake').onclick=()=>{effects=!effects;$('shake').textContent=effects?'揺れ ON':'揺れ OFF';$('shake').setAttribute('aria-pressed',String(effects));$('shake').setAttribute('aria-label',effects?'画面揺れを切る':'画面揺れを入れる');};
 
 function upgradeButton(id,i){
-  const current=game.skillLevel(id),next=current+1,s=C.skills[id],b=document.createElement('button');b.dataset.upgrade=i;
-  b.innerHTML=`<span class="upgrade-level">${current===0?'NEW':`Lv.${current} → Lv.${next}`}</span><b>${i+1}. ${s.name}</b><small>現在：${s.levels[current]}</small><em>選択後：${s.levels[next]}</em>`;
+  const b=document.createElement('button');b.dataset.choice=i;
+  if(id==='heal'||id==='gauge'){const heal=id==='heal';b.innerHTML=`<span class="upgrade-level">補給</span><b>${i+1}. ${heal?'気力回復':'必殺技補充'}</b><small>進化できる技がない場合の代替報酬</small><em>${heal?'気力を40回復':'必殺技ゲージを100%にする'}</em>`;}
+  else{const current=game.skillLevel(id),next=current+1,s=C.skills[id],label=current===0&&id!=='slash'?'NEW':current===0?'初期 → Lv.1':`Lv.${current} → Lv.${next}`;b.innerHTML=`<span class="upgrade-level">${label}</span><b>${i+1}. ${s.name}</b><small>現在：${s.levels[current]}</small><em>選択後：${s.levels[next]}</em>`;}
   b.onclick=()=>chooseUpgrade(i);b.onfocus=()=>{selection=i;paintSelection();};return b;
 }
+function ultimateButton(id,i){const d=C.ultimate[id],info={exit:'画面内を一掃＋敵弾消去。瞬間的に立て直す。',clones:'8秒間、分身2体が斬撃と一斉返信を50%威力で再現。',rush:'6秒間、高速全周斬撃。移動可能・被害50%軽減。'}[id],b=document.createElement('button');b.dataset.choice=i;b.innerHTML=`<span class="upgrade-level">ULTIMATE</span><b>${i+1}. ${d.name}</b><small>${info}</small><em>${id==='exit'?'瞬間一掃':id==='clones'?'継続火力':'近接乱戦'}タイプ</em>`;b.onclick=()=>chooseUltimate(i);b.onfocus=()=>{selection=i;paintSelection();};return b;}
 function menu(){
-  $('upgrade-choices').hidden=game.state!=='upgrade';$('result-stats').hidden=game.state!=='result';$('to-title').hidden=game.state!=='result';$('action').hidden=game.state==='upgrade';
-  if(game.state==='title'){$('badge').textContent='魔王商事 / 17:45';$('heading').textContent='定時で帰りたい勇者';$('message').textContent='広い斬撃と自動技で仕事をまとめて処理。\n移動・攻撃・必殺技だけで3フロアを突破しよう。';$('action').textContent='冒険を始める';$('hint').textContent='Enterで操作説明へ';}
-  else if(game.state==='instructions'){$('badge').textContent='操作説明 / 3つだけ';$('heading').textContent='移動しながら、まとめて斬る。';$('message').textContent='移動：WASD / 方向キー\n攻撃：J / Space（押し続けて連続攻撃）\n全画面必殺：K / I（満タン時）\n赤・紫の予告は通常移動で避けられます。';$('action').textContent='営業フロアへ';$('hint').textContent='時計は停止中 / Enterで開始';}
-  else if(game.state==='paused'){$('badge').textContent='一時停止';$('heading').textContent='休憩中';$('message').textContent='時計・敵・弾・予告・自動技はすべて停止しています。';$('action').textContent='戦闘へ戻る';$('hint').textContent='EnterまたはEscで再開 / 移動キーは押し直してください';}
-  else if(game.state==='stageIntro'){$('badge').textContent=`STAGE ${game.stage} / 全3フロア`;$('heading').textContent=game.stageName;$('message').textContent=`フロア移動で気力を${Math.round(game.transitionHeal)}回復！\n${game.stageConfig.rule}\n取得した強化はそのまま引き継ぎます。`;$('action').textContent=`${game.stageName}へ進む`;$('hint').textContent='Enterで開始 / 時計は停止中';}
-  else if(game.state==='upgrade'){
-    $('badge').textContent=`STAGE ${game.stage}・WAVE ${game.wave} 突破 / 強化 ${game.upgradeCount+1}回目`;$('heading').textContent='技を取得・進化';$('message').textContent='同じ技を選ぶとLv.3まで進化。取得直後から見た目と攻撃範囲が変わります。';$('hint').textContent='1〜3で即決 / ←→・A D＋Enterで選択';
-    $('upgrade-choices').replaceChildren(...game.offers.map(upgradeButton));selection=0;paintSelection();
-  }else if(game.state==='bossIntro'){$('badge').textContent='FINAL / 6回の強化を持って決戦';$('heading').textContent='魔王部長、三段変身';$('message').textContent='第1形態：突進と円形会議\n第2形態：扇状書類弾と増援\n第3形態：連続突進と順番に爆発する床\n攻撃後や机への激突で弱点が露出します。';$('action').textContent='最終確認を始める';$('hint').textContent='撃破後、右上の退勤ゲート到達でクリア';}
-  else if(game.state==='result'){
-    const success=game.outcome==='success';$('badge').textContent=success?'定時退勤！':'残業発生';$('heading').textContent=success?'魔王商事から脱出成功':'今日は帰れなかった…';
-    $('message').textContent=success?'違う技を重ねれば、次はさらに派手な退勤になります。':game.reason==='energy'?'気力が尽きました。赤紫の予告を見て歩いて離れよう。':'18:00になりました。広域技と必殺技で敵集団を早く処理しよう。';
-    const skills=game.skillSummary().join('、')||'タスク斬り（初期）';$('result-stats').innerHTML=`<div><dt>結果</dt><dd>${success?'成功':'失敗'}</dd></div><div><dt>経過時間</dt><dd>${Math.floor(game.elapsed/60)}:${String(Math.floor(game.elapsed%60)).padStart(2,'0')}</dd></div><div><dt>倒した敵</dt><dd>${game.kills}体</dd></div><div><dt>被弾</dt><dd>${game.hitsTaken}回</dd></div><div class="wide"><dt>取得・進化した技</dt><dd>${skills}</dd></div>`;
-    $('action').textContent='もう一度';$('hint').textContent='←→／↑↓＋Enterで選択';resultSelection=0;paintResultSelection();
-  }
-  const target=game.state==='upgrade'?document.querySelector('[data-upgrade="0"]'):$('action');target?.focus({preventScroll:true});
+  const choiceState=['upgrade','ultimateSelect'].includes(game.state);$('upgrade-choices').hidden=!choiceState;$('result-stats').hidden=game.state!=='result';$('to-title').hidden=game.state!=='result';$('action').hidden=choiceState;
+  if(game.state==='title'){$('badge').textContent='魔王商事 / 17:45';$('heading').textContent='定時で帰りたい勇者';$('message').textContent='小さな斬撃から技を増やし、5フロアと2人の魔王を突破しよう。';$('action').textContent='冒険を始める';$('hint').textContent='Enterで操作説明へ';}
+  else if(game.state==='instructions'){$('badge').textContent='操作説明 / 3つだけ';$('heading').textContent='移動しながら、仕事を斬る。';$('message').textContent='移動：WASD / 方向キー\n攻撃：J / Space（長押し連続攻撃）\n必殺技：K / I（満タン時）\n赤・紫の予告は通常移動で避けられます。';$('action').textContent='必殺技を選ぶ';$('hint').textContent='時計は停止中 / Enterで選択へ';}
+  else if(game.state==='ultimateSelect'){$('badge').textContent='今回の必殺技';$('heading').textContent='切り札を1つ選択';$('message').textContent='瞬間一掃、分身による継続火力、高速全周斬撃から選びます。再挑戦時に選び直せます。';$('hint').textContent='1〜3で即決 / 方向キー＋Enter';$('upgrade-choices').replaceChildren(...ULTIMATE_IDS.map(ultimateButton));selection=0;paintSelection();}
+  else if(game.state==='paused'){$('badge').textContent='一時停止';$('heading').textContent='休憩中';$('message').textContent='時計・敵・弾・予告・自動技・必殺効果は停止しています。';$('action').textContent='戦闘へ戻る';$('hint').textContent='EnterまたはEscで再開';}
+  else if(game.state==='stageIntro'){$('badge').textContent=`STAGE ${game.stage} / 全5ステージ`;$('heading').textContent=game.stageName;$('message').textContent=`${game.stage>1?`フロア移動で気力を${Math.round(game.transitionHeal)}回復！\n`:''}${game.stageConfig.rule}\n取得済みの技は引き継ぎます。`;$('action').textContent=`${game.stageName}へ進む`;$('hint').textContent='Enterで開始 / 時計は停止中';}
+  else if(game.state==='upgrade'){$('badge').textContent=`STAGE ${game.stage} 報酬 / ${game.upgradeType==='evolution'?'進化':'新技'}`;$('heading').textContent=game.upgradeType==='evolution'?'取得済み技を進化':'新しい技を習得';$('message').textContent=game.upgradeType==='evolution'?'進化できる技だけを表示します。候補が少ない場合は2択以下になります。':'未取得の技だけを表示します。新しい攻撃が次の戦闘から加わります。';$('hint').textContent='1〜3で即決 / 方向キー＋Enter';$('upgrade-choices').replaceChildren(...game.offers.map(upgradeButton));selection=0;paintSelection();}
+  else if(game.state==='bossIntro'){$('badge').textContent='STAGE 3 BOSS';$('heading').textContent='魔王部長、三段変身';$('message').textContent='攻撃間隔が短くなった魔王部長。突進、会議、書類弾、増援、連続突進を避け、反撃時間を狙います。\n撃破後はエレベーターで後半へ。';$('action').textContent='最終確認を始める';$('hint').textContent='Enterでボス戦開始';}
+  else if(game.state==='presidentIntro'){$('badge').textContent='STAGE 5 FINAL BOSS';$('heading').textContent='魔王社長';$('message').textContent='稟議レーザー、組織再編、緊急招集。\n地形が切り替わっても、必ず移動経路は残ります。';$('action').textContent='最終決裁へ';$('hint').textContent='撃破後、退勤ゲート到達でクリア';}
+  else if(game.state==='result'){const success=game.outcome==='success';$('badge').textContent=success?'定時退勤！':'残業発生';$('heading').textContent=success?'魔王商事から脱出成功':'今日は帰れなかった…';$('message').textContent=success?'違う必殺技と技構成で、次の退勤を試そう。':game.reason==='energy'?'気力が尽きました。予告を見て歩いて離れよう。':'18:00になりました。新技と必殺技で処理速度を上げよう。';const skills=game.skillSummary().join('、');$('result-stats').innerHTML=`<div><dt>結果</dt><dd>${success?'成功':'失敗'}</dd></div><div><dt>経過時間</dt><dd>${Math.floor(game.elapsed/60)}:${String(Math.floor(game.elapsed%60)).padStart(2,'0')}</dd></div><div><dt>倒した敵</dt><dd>${game.kills}体</dd></div><div><dt>被弾</dt><dd>${game.hitsTaken}回</dd></div><div class="wide"><dt>必殺技</dt><dd>${game.selectedUltimate?.name||'未選択'}</dd></div><div class="wide"><dt>取得・進化した技</dt><dd>${skills}</dd></div>`;$('action').textContent='もう一度';$('hint').textContent='方向キー＋Enterで選択';resultSelection=0;paintResultSelection();}
+  const target=choiceState?document.querySelector('[data-choice="0"]'):$('action');target?.focus({preventScroll:true});
 }
-
 function ui(){
-  const h=game.hero;$('timer').textContent=game.timeText;$('clock').textContent=`${game.clock} → 18:00`;$('time-bar').style.transform=`scaleX(${game.remaining/C.timeLimit})`;
-  $('energy-text').textContent=`${Math.ceil(h.energy)} / ${C.hero.energy}`;$('energy-bar').style.transform=`scaleX(${h.energy/C.hero.energy})`;
-  $('ultimate-text').textContent=game.ultimate>=100?'使用可能！':`${Math.floor(game.ultimate)}%`;$('ultimate-bar').style.transform=`scaleX(${game.ultimate/C.ultimate.max})`;
-  $('wave-text').textContent=game.phase==='boss'||game.phase==='escape'?'魔王部長戦':game.wave?`${game.stageName} ${game.wave}/2`:'出勤前';
-  const skillRows=Object.keys(C.skills).filter(id=>id==='slash'||game.skills[id]>0).map(id=>`<span>${C.skills[id].name} <b>${game.skills[id]?`Lv.${game.skills[id]}`:'初期'}</b></span>`);$('owned-upgrades').innerHTML=skillRows.join('');
-  const boss=game.boss&&!game.boss.dead?game.boss:null;$('boss-hud').hidden=!boss;if(boss){$('boss-bar').style.transform=`scaleX(${boss.hp/boss.maxHp})`;$('boss-hp').textContent=`${Math.ceil(boss.hp)} / ${boss.maxHp}`;$('boss-name').textContent=`魔王部長・第${boss.bossPhase}形態`;}
-  $('pause').disabled=game.state!=='playing';document.querySelector('.ultimate-button').classList.toggle('ready',game.ultimate>=100);
+  const h=game.hero;$('timer').textContent=game.timeText;$('clock').textContent=`${game.clock} → 18:00`;$('time-bar').style.transform=`scaleX(${game.remaining/C.timeLimit})`;$('energy-text').textContent=`${Math.ceil(h.energy)} / ${C.hero.energy}`;$('energy-bar').style.transform=`scaleX(${h.energy/C.hero.energy})`;
+  const effect=game.ultimateEffectLeft>0?` 発動中 ${game.ultimateEffectLeft.toFixed(1)}秒`:game.ultimate>=100?' 使用可能！':` ${Math.floor(game.ultimate)}%`;$('ultimate-name').textContent=game.selectedUltimate?.name||'未選択';$('ultimate-text').textContent=effect;$('ultimate-bar').style.transform=`scaleX(${game.ultimate/C.ultimate.max})`;
+  $('wave-text').textContent=game.boss&&!game.boss.dead?`${game.boss.type==='president'?'魔王社長':'魔王部長'}戦`:game.wave?`${game.stageName} ${game.wave}/2`:game.stageName;
+  $('owned-upgrades').innerHTML=Object.keys(C.skills).filter(id=>id==='slash'||game.skills[id]>0).map(id=>`<span>${C.skills[id].name} <b>${game.skills[id]?`Lv.${game.skills[id]}`:'初期'}</b></span>`).join('');
+  const boss=game.boss&&!game.boss.dead?game.boss:null;$('boss-hud').hidden=!boss;if(boss){$('boss-bar').style.transform=`scaleX(${boss.hp/boss.maxHp})`;$('boss-hp').textContent=`${Math.ceil(boss.hp)} / ${boss.maxHp}`;$('boss-name').textContent=`${boss.type==='president'?'魔王社長':'魔王部長'}・第${boss.bossPhase}形態`;}
+  $('pause').disabled=game.state!=='playing';document.querySelector('.ultimate-button').classList.toggle('ready',game.ultimate>=100&&game.ultimateEffectLeft<=0);document.querySelector('.ultimate-button b').textContent=game.ultimateEffectLeft>0?game.ultimateEffectLeft.toFixed(1):'必殺';document.querySelector('.ultimate-button').setAttribute('aria-label',`必殺技 ${game.selectedUltimate?.name||'未選択'}`);
   $('battle-banner').hidden=!game.banner;if(game.banner){$('battle-banner').querySelector('b').textContent=game.banner.title;$('battle-banner').querySelector('span').textContent=game.banner.detail;}
-  let status=game.notice||'出現予告から離れて敵を全滅させよう';if(game.state==='playing'){
-    if(game.phase==='escape')status='魔王部長撃破！ 右上の退勤ゲートへ';
-    else if(game.boss?.state==='stunned'||game.boss?.state==='recover')status=`弱点露出 ${Math.max(0,game.boss.left).toFixed(1)}秒：攻撃のチャンス！`;
-  }
-  $('status').textContent=status;$('status').className='status '+(h.hurtFlash>0?'danger':game.phase==='escape'?'clear':'');
+  let status=game.notice||'出現予告から離れて敵を全滅させよう';if(game.state==='playing'&&game.boss?.weak)status=`反撃時間 ${Math.max(0,game.boss.left).toFixed(1)}秒：攻撃のチャンス！`;$('status').textContent=status;$('status').className='status '+(h.hurtFlash>0?'danger':['escape','elevator'].includes(game.phase)?'clear':'');
   if(previousState===game.state)return;previousState=game.state;input.clear();$('overlay').hidden=game.state==='playing';if(game.state!=='playing')menu();
 }
-
 function frame(now){const dt=Math.min((now-last)/1000,C.maxDelta);last=now;game.update(dt,input.read());visualTime+=dt;render(ctx,game,visualTime,effects);ui();for(const e of game.events.splice(0))audio.play(e);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
-export {game,input,ui,action,chooseUpgrade};
+export {game,input,ui,action,chooseUpgrade,chooseUltimate};

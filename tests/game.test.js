@@ -1,134 +1,98 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../src/game.js';
-import {CONFIG as C,center,solids,SKILL_IDS} from '../src/config.js';
-import {blocked,clearLine} from '../src/pathfinding.js';
+import {CONFIG as C,center,SKILL_IDS} from '../src/config.js';
 
-const fresh=()=>{const g=new Game(()=>.25);g.showInstructions();g.startRun();g.spawnQueue=[];g.spawnWarnings=[];g.enemies=[];g.phase='test';return g;};
 const step=(g,seconds,input={})=>{let left=seconds;while(left>1e-9&&g.state==='playing'){const dt=Math.min(1/120,left);g.update(dt,input);left-=dt;}};
+const fresh=(ultimate='exit')=>{const g=new Game(()=>.25);g.showInstructions();g.startRun();g.selectUltimate(ultimate);g.enterStage();g.spawnQueue=[];g.spawnWarnings=[];g.enemies=[];g.phase='test';return g;};
 const add=(g,type,pos)=>g.createEnemy(type,pos);
-const openBoss=g=>{g.state='bossIntro';g.phase='bossIntro';g.spawnBoss();return g.boss;};
+const manager=()=>{const g=fresh();g.loadStage(3,true);g.state='bossIntro';g.phase='bossIntro';g.spawnBoss('manager');return [g,g.boss];};
+const president=()=>{const g=fresh();g.loadStage(5,true);g.state='presidentIntro';g.phase='presidentIntro';g.spawnBoss('president');return [g,g.boss];};
 
-test('menus pause the five-minute 17:45 clock and play advances it',()=>{
-  const g=new Game();g.update(30);assert.equal(g.timeText,'5:00');assert.equal(g.clock,'17:45');
-  g.showInstructions();g.update(30);assert.equal(g.remaining,300);g.startRun();g.update(.1);assert.ok(Math.abs(g.remaining-299.9)<1e-6);
-  g.elapsed=150;assert.equal(g.clock,'17:52');g.elapsed=300;assert.equal(g.clock,'18:00');
+test('eight-minute clock and all menu states freeze combat time',()=>{
+  const g=new Game();assert.equal(g.timeText,'8:00');g.update(20);assert.equal(g.remaining,480);g.showInstructions();g.startRun();assert.equal(g.state,'ultimateSelect');g.update(10);assert.equal(g.remaining,480);g.selectUltimate(0);assert.equal(g.state,'stageIntro');g.enterStage();g.update(.1);assert.ok(Math.abs(g.remaining-479.9)<1e-6);
 });
 
-test('movement keeps facing, normalizes diagonals and respects walls/desks',()=>{
-  const g=fresh(),p={...g.hero};step(g,.5,{x:1,y:-1});assert.ok(Math.abs(Math.hypot(g.hero.x-p.x,g.hero.y-p.y)-85)<1);assert.ok(g.hero.facing.x>.7&&g.hero.facing.y<-.7);
-  g.hero={...g.hero,x:60,y:220};step(g,1,{x:1});assert.equal(blocked(g.hero.x,g.hero.y,C.radius,solids),false);assert.ok(g.hero.x<68.1);
+test('initial slash is 64px by 100 degrees, deals 24 and matches a single arc hit',()=>{
+  const g=fresh();assert.equal(g.attackRange,64);assert.ok(Math.abs(g.attackArc*180/Math.PI-100)<1e-6);g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};
+  const front=add(g,'slime',{x:255,y:300}),behind=add(g,'slime',{x:145,y:300});g.swing();assert.equal(front.hp,16);assert.equal(behind.hp,40);step(g,.1);assert.equal(front.hp,16);
 });
 
-test('one slash hits each target once, knocks groups back and cannot cross a desk',()=>{
-  const g=fresh();g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};const a=add(g,'slime',{x:245,y:290}),b=add(g,'slime',{x:246,y:310}),x=a.pos.x;
-  g.swing();assert.equal(a.hp,16);assert.equal(b.hp,16);assert.ok(a.pos.x>x);step(g,.12);assert.equal(a.hp,16);g.hero.attackCd=0;g.swing();assert.equal(a.dead,true);assert.equal(b.dead,true);
-  const w=fresh();w.hero={...w.hero,x:140,y:220,facing:{x:1,y:0}};const hidden=add(w,'slime',{x:220,y:220});assert.equal(clearLine(w.hero,hidden.pos,solids),false);w.swing();assert.equal(hidden.hp,40);
+test('slash cannot pass a desk and keeps moving while held attack repeats',()=>{
+  const g=fresh();g.hero={...g.hero,x:140,y:220,facing:{x:1,y:0}};const hidden=add(g,'slime',{x:220,y:220});g.swing();assert.equal(hidden.hp,40);
+  const moving=fresh(),x=moving.hero.x;step(moving,.8,{x:1,attack:true});assert.ok(moving.hero.x>x+100);assert.ok(moving.hero.attackCount>=2);
 });
 
-test('task slash evolves through range, follow-up and periodic full-circle levels',()=>{
-  const g=fresh(),baseRange=g.attackRange,baseArc=g.attackArc;g.skills.slash=1;assert.ok(g.attackRange>baseRange&&g.attackArc>baseArc);
-  g.skills.slash=2;g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};const e=add(g,'ghost',{x:250,y:300});g.swing();step(g,.14);assert.equal(e.hp,12);
-  const all=fresh();all.skills.slash=3;all.hero={...all.hero,x:240,y:320,facing:{x:1,y:0},attackCount:3};const behind=add(all,'slime',{x:190,y:320});all.swing();assert.ok(behind.hp<40);assert.ok(all.attacks.some(a=>a.kind==='circle'));
+test('wave one offers evolutions and wave two offers only unlearned new skills',()=>{
+  const g=fresh();g.skills.reply=1;g.skills.slash=1;g.openUpgrade({kind:'wave',stage:1,wave:2},'evolution');assert.ok(g.offers.every(id=>g.skills[id]>0&&g.skills[id]<3));
+  g.state='playing';g.openUpgrade({kind:'stage',stage:2},'new');assert.ok(g.offers.includes('reply')===false);assert.ok(g.offers.every(id=>!['slash','heal','gauge'].includes(id)&&g.skills[id]===0));
 });
 
-test('reply evolves from one to three to five projectiles and level 3 pierces',()=>{
-  const g=fresh();g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};
-  for(const level of [1,2,3]){g.skills.reply=level;g.heroProjectiles=[];g.swing();assert.equal(g.heroProjectiles.length,[0,1,3,5][level]);g.hero.attackCd=0;}
-  const p=g.heroProjectiles[2];assert.equal(p.pierce,4);
+test('evolution candidate shortage is allowed and empty evolution gives recovery choices',()=>{
+  const g=fresh();g.skills={slash:2,reply:3,shredder:0,thunder:0,meteor:0,boomerang:0,drone:0};g.openUpgrade({kind:'wave',stage:1,wave:2},'evolution');assert.deepEqual(g.offers,['slash']);
+  g.skills.slash=3;g.state='playing';g.openUpgrade({kind:'wave',stage:1,wave:2},'evolution');assert.deepEqual(g.offers,['heal','gauge']);g.hero.energy=50;g.chooseUpgrade(0);assert.equal(g.hero.energy,90);
 });
 
-test('shredder uses per-blade hit cooldown instead of damaging every frame',()=>{
-  const g=fresh();g.skills.shredder=1;g.hero={...g.hero,x:240,y:320};const b=g.orbitPositions()[0],e=add(g,'brute',{x:b.x,y:b.y});g.updateShredder(.01);const once=e.hp;g.updateShredder(.01);assert.equal(e.hp,once);g.updateShredder(C.shredder.hitInterval+.01);assert.ok(e.hp<once);
-  g.skills.shredder=3;assert.equal(g.orbitPositions().length,4);assert.equal(C.shredder.radius[3],74);
+test('boomerang hits once outbound and once returning without per-frame damage',()=>{
+  const g=fresh();g.skills.boomerang=1;g.hero={...g.hero,x:180,y:300,facing:{x:1,y:0}};const e=add(g,'brute',{x:260,y:300});g.fireBoomerang();const p=g.heroProjectiles[0];for(let i=0;i<240&&p.life>0;i++)g.updateProjectiles(1/120);assert.equal(p.outHits.has(e.id),true);assert.equal(p.backHits.has(e.id),true);assert.equal(e.hp,C.enemies.brute.hp-C.boomerang.damage[1]*2);
 });
 
-test('thunder chains to distinct targets and meteor is aerial with expanded multi-sites',()=>{
-  const g=fresh();g.hero={...g.hero,x:200,y:300};const list=[add(g,'slime',{x:230,y:300}),add(g,'slime',{x:260,y:300}),add(g,'slime',{x:290,y:300}),add(g,'slime',{x:320,y:300})];
-  g.castThunder(3);const struck=new Set(g.thunders.map(t=>`${t.to.x},${t.to.y}`));assert.equal(struck.size,g.thunders.length);assert.ok(g.thunders.length>=3);
-  g.skills.meteor=3;g.castMeteor(3);assert.equal(g.meteors.length,3);for(const m of g.meteors)m.left=0;g.updateMeteors(.01);assert.ok(list.some(e=>e.hp<40));assert.equal(g.meteors.every(m=>m.fired),true);
+test('friendly drones follow the hero and gain count and fire rate by level',()=>{
+  const g=fresh();g.skills.drone=1;let p=g.dronePositions()[0];g.hero.x+=30;assert.notEqual(g.dronePositions()[0].x,p.x);const e=add(g,'slime',{x:g.hero.x+100,y:g.hero.y});g.fireDrone(1);assert.equal(g.heroProjectiles.some(x=>x.kind==='drone'),true);assert.equal(C.drone.count[2],2);assert.ok(C.drone.interval[3]<C.drone.interval[1]);
 });
 
-test('ultimate reaches the screen, clears bullets, preserves warnings and does limited boss damage',()=>{
-  const g=fresh(),mob=add(g,'brute',{x:90,y:90}),boss=openBoss(g);boss.state='recover';boss.weak=true;g.enemyProjectiles=[{life:4}];g.enemyAreas=[{pos:{x:80,y:80},radius:20,left:2,fired:false,effect:0,damage:1}];g.ultimate=100;g.useUltimate();
-  assert.equal(g.enemyProjectiles.length,0);assert.equal(g.enemyAreas.length,1);assert.equal(mob.hp,30);assert.equal(boss.hp,C.boss.hp-C.ultimate.bossDamage);assert.equal(g.ultimate,0);
+test('screen-clear ultimate affects only the current camera and clears visible bullets',()=>{
+  const g=fresh('exit');g.loadStage(4,true);const cam=g.camera(),near=add(g,'brute',{x:cam.x+100,y:cam.y+100}),far=add(g,'brute',{x:900,y:100});g.enemyProjectiles=[{pos:{x:cam.x+50,y:cam.y+50}},{pos:{x:900,y:100}}];g.ultimate=100;g.useUltimate();assert.equal(near.hp,C.enemies.brute.hp-C.ultimate.exit.mobDamage);assert.equal(far.hp,C.enemies.brute.hp);assert.equal(g.enemyProjectiles.length,1);assert.ok(g.hero.invulnerable>=.69);
 });
 
-test('bat fans scale by stage, ghost locks its charge and dangerous rushes do not start together',()=>{
-  const g=fresh(),bat=add(g,'bat',{x:100,y:300});g.stage=3;bat.state='warn';bat.left=.001;bat.dir={x:1,y:0};g.updateBat(bat,.01);assert.equal(g.enemyProjectiles.length,5);
-  const ghost=add(g,'ghost',{x:100,y:420});g.hero={...g.hero,x:300,y:420};ghost.left=.001;g.updateGhost(ghost,.01);assert.equal(ghost.state,'warn');const dir={...ghost.dir};g.hero.y=550;g.updateGhost(ghost,.2);assert.deepEqual(ghost.dir,dir);
-  const brute=add(g,'brute',{x:300,y:500});brute.left=.001;g.updateBrute(brute,.01);assert.equal(brute.state,'move');assert.ok(brute.left>.3);
-  const clear=fresh(),only=add(clear,'brute',{x:300,y:500});only.left=.001;clear.updateBrute(only,.01);assert.equal(only.state,'warn');assert.ok(only.left>1.2);
+test('clone ultimate creates two intangible followers and repeats slash and reply at half damage',()=>{
+  const g=fresh('clones');g.skills.reply=1;g.ultimate=100;g.useUltimate();assert.equal(g.clonePositions().length,2);const p=g.clonePositions()[0],e=add(g,'slime',{x:p.x+35,y:p.y});g.hero.facing={x:1,y:0};g.swing();assert.ok(e.hp<40);assert.ok(g.heroProjectiles.some(x=>x.kind==='cloneReply'));const before=g.ultimate;g.killEnemy(add(g,'slime',{x:80,y:80}));assert.equal(g.ultimate,before);step(g,C.ultimate.clones.duration+.1);assert.equal(g.clonePositions().length,0);
 });
 
-test('spawns are warned away from the hero and all entity/effect caps hold',()=>{
-  const g=fresh();g.beginWave(3,2);step(g,.2);assert.ok(g.spawnWarnings.length);assert.ok(g.spawnWarnings.every(w=>Math.hypot(w.pos.x-g.hero.x,w.pos.y-g.hero.y)>100));
-  for(let i=0;i<50;i++)g.createEnemy('slime',{x:80+i,y:80});assert.ok(g.activeEnemies.length<=C.limits.enemies);
-  g.enemyProjectiles=Array.from({length:70},()=>({pos:{x:80,y:80},dir:{x:0,y:0},life:4,radius:7}));g.updateProjectiles(.01);assert.ok(g.enemyProjectiles.length<=C.projectile.maxEnemy);
+test('rush ultimate uses bounded fast full-circle attacks and halves incoming damage',()=>{
+  const g=fresh('rush');g.ultimate=100;g.useUltimate();const e=add(g,'slime',{x:g.hero.x+50,y:g.hero.y});g.swing();assert.ok(e.hp<40);assert.ok(g.hero.attackCd>=C.ultimate.rush.minCooldown&&g.hero.attackCd<C.attack.cooldown);step(g,C.ultimate.invulnerability+.02);const hp=g.hero.energy;g.damageHero(20,{x:0,y:0});assert.equal(g.hero.energy,hp-10);step(g,C.ultimate.rush.duration+.1);assert.equal(g.ultimateEffectLeft,0);
 });
 
-test('six wave clears lead through three stages and six retained upgrades to the boss',()=>{
-  const g=new Game(()=>.25);g.showInstructions();g.startRun();const visited=[],offers=[];
-  for(let n=0;n<6;n++){
-    g.spawnQueue=[];g.spawnWarnings=[];g.enemies=[];step(g,C.waveCompleteDelay+.02);assert.equal(g.state,'upgrade');visited.push([g.stage,g.wave]);offers.push([...g.offers]);assert.equal(g.offers.length,3);assert.ok(g.offers.every(id=>g.skills[id]<3));
-    assert.equal(g.chooseUpgrade(0),true);
-    if(g.state==='stageIntro')g.enterStage();
+test('large enemy attacks sooner, changes action by distance and resists knockback',()=>{
+  const g=fresh(),b=add(g,'brute',{x:g.hero.x+220,y:g.hero.y});b.left=0;g.updateBrute(b,.01);assert.equal(b.state,'rangedWarn');assert.equal(b.left,C.enemies.brute.rangedWarning);b.state='move';b.left=0;b.pos={x:g.hero.x+55,y:g.hero.y};g.updateBrute(b,.01);assert.equal(b.state,'areaWarn');assert.ok(C.enemies.brute.areaInterval<3.85);const x=b.pos.x;g.damageEnemy(b,1,{x:1,y:0},24);assert.ok(b.pos.x-x<7);
+});
+
+test('manager attacks more often while preserving warnings and all three phases',()=>{
+  const [g,b]=manager();assert.ok(C.boss.intervals[1]<=3.1*.85);g.startManagerAttack(b);assert.equal(b.state,'chargeWarn');assert.equal(b.left,1.25);b.phaseDone=new Set(['charge','meeting']);b.hp=400;b.state='chase';b.left=0;g.updateManager(b,.01);assert.equal(b.bossPhase,2);b.phaseDone=new Set(['fan','summon']);b.hp=200;b.state='chase';b.left=0;g.updateManager(b,.01);assert.equal(b.bossPhase,3);
+});
+
+test('wide stages use a clamped camera, guided arenas and dynamic collision',()=>{
+  const g=fresh();g.loadStage(4,true);assert.deepEqual([g.worldWidth,g.worldHeight],[960,1280]);g.state='stageIntro';g.enterStage();assert.equal(g.phase,'travel');assert.ok(g.objectivePoint);g.hero={...g.hero,x:900,y:1200};assert.deepEqual(g.camera(),{x:480,y:640});assert.equal(g.isBlocked(0,0),true);
+});
+
+test('off-camera ranged enemies do not begin attacks in wide maps',()=>{
+  const g=fresh();g.loadStage(4,true);g.hero={...g.hero,x:100,y:1150};const e=add(g,'sentry',{x:850,y:100});e.left=0;g.updateSentry(e,.01);assert.equal(e.state,'move');assert.ok(e.left>.3);
+});
+
+test('president laser can be walked out of and reorganization never leaves actors trapped',()=>{
+  const [g,b]=president();g.hero={...g.hero,x:b.pos.x+180,y:b.pos.y};b.state='laserWarn';b.left=C.president.laserWarning;b.dir={x:1,y:0};step(g,C.president.laserWarning+.05,{y:1});assert.equal(g.hitsTaken,0);
+  g.hero={...g.hero,x:450,y:940};const minion=add(g,'slime',{x:460,y:940});g.reorganize();assert.equal(g.isBlocked(g.hero.x,g.hero.y),false);assert.equal(g.isBlocked(minion.pos.x,minion.pos.y),false);assert.ok(g.nav.findPath(g.hero,center(g.stageConfig.gate)).length>0);
+});
+
+test('president uses laser, reorganization and capped summons before changing phase',()=>{
+  const [g,b]=president(),states=[];for(let i=0;i<3;i++){b.state='chase';g.startPresidentAttack(b);states.push(b.state);}assert.deepEqual(states,['laserWarn','reorgWarn','summonWarn']);
+  b.hp=C.president.hp*.49;b.state='chase';b.left=0;g.updatePresident(b,.01);assert.equal(b.bossPhase,2);assert.equal(b.state,'phaseShift');
+  g.enemies=g.enemies.filter(e=>e===b);b.state='summonWarn';b.left=0;g.updatePresident(b,.01);assert.ok(g.spawnWarnings.length<=C.president.summonCap);
+});
+
+test('all five stages, manager elevator, president and final gate form one run',()=>{
+  const g=new Game(()=>.25);g.showInstructions();g.startRun();g.selectUltimate('exit');const visited=new Set(),types=[];let managerSeen=false,presidentSeen=false,elevatorSeen=false;
+  for(let guard=0;guard<100&&g.state!=='result';guard++){
+    if(g.state==='stageIntro'){g.enterStage();continue;}if(g.state==='upgrade'){types.push(g.upgradeType);g.chooseUpgrade(0);continue;}if(g.state==='bossIntro'){managerSeen=true;const b=g.spawnBoss('manager');g.killEnemy(b);continue;}if(g.state==='presidentIntro'){presidentSeen=true;const b=g.spawnBoss('president');g.killEnemy(b);continue;}
+    if(g.state==='playing'&&g.phase==='travel'){visited.add(g.stage);g.hero={...g.hero,...g.travelTarget};g.update(.01);continue;}if(g.state==='playing'&&g.phase==='wave'){visited.add(g.stage);g.spawnQueue=[];g.spawnWarnings=[];g.enemies=[];step(g,C.waveCompleteDelay+.02);continue;}if(g.state==='playing'&&g.phase==='elevator'){elevatorSeen=true;g.hero={...g.hero,...center(g.stageConfig.gate)};g.update(.01);continue;}if(g.state==='playing'&&g.phase==='escape'){g.hero={...g.hero,...center(g.stageConfig.gate)};g.update(.01);continue;}
   }
-  assert.deepEqual(visited,[[1,1],[1,2],[2,1],[2,2],[3,1],[3,2]]);assert.ok(offers[0].includes('reply'));assert.equal(g.upgradeCount,6);assert.equal(g.state,'bossIntro');assert.equal(Object.values(g.skills).reduce((a,b)=>a+b,0),6);
+  assert.equal(g.outcome,'success');assert.deepEqual([...visited],[1,2,3,4,5]);assert.ok(managerSeen&&presidentSeen&&elevatorSeen);assert.equal(types.filter(x=>x==='evolution').length,5);assert.equal(types.filter(x=>x==='new').length,6);assert.equal(g.clearedWaves,10);
 });
 
-test('stage transition restores exactly 30 percent of maximum energy without overflow',()=>{
-  const g=fresh();g.hero.energy=50;g.openUpgrade({kind:'stage',stage:2});g.chooseUpgrade(0);assert.equal(g.hero.energy,80);assert.equal(g.transitionHeal,30);assert.equal(g.state,'stageIntro');assert.ok(g.notice.includes('30'));
-  g.state='upgrade';g.offers=['slash'];g.afterUpgrade={kind:'stage',stage:3};g.hero.energy=90;g.chooseUpgrade(0);assert.equal(g.hero.energy,100);assert.equal(g.transitionHeal,10);
+test('energy depletion and eight-minute timeout both end the run',()=>{
+  let g=fresh();g.hero.energy=1;g.damageHero(2,{x:0,y:0});assert.equal(g.reason,'energy');g=fresh();g.remaining=.001;g.update(.01);assert.equal(g.reason,'timeout');
 });
 
-test('offers include an available evolution and omit maximum skills without stalling',()=>{
-  const g=fresh();g.upgradeCount=2;g.skills={slash:3,reply:2,shredder:3,thunder:0,meteor:0};const offers=g.buildOffers();assert.equal(offers.length,3);assert.ok(offers.includes('reply'));assert.ok(!offers.includes('slash')&&!offers.includes('shredder'));
-  g.skills={slash:3,reply:3,shredder:3,thunder:2,meteor:2};assert.deepEqual(new Set(g.buildOffers()),new Set(['thunder','meteor']));
-});
-
-test('all five skill families operate at level 3 together',()=>{
-  const g=fresh();for(const id of SKILL_IDS)g.skills[id]=3;g.hero={...g.hero,x:240,y:320,facing:{x:1,y:0},attackCount:3};for(let i=0;i<8;i++)add(g,'brute',{x:205+i*10,y:290+(i%2)*55});
-  g.swing();g.updateAutomaticSkills(.01);assert.equal(g.heroProjectiles.length,5);assert.equal(g.orbitPositions().length,4);assert.ok(g.thunders.length);assert.equal(g.meteors.length,3);assert.ok(g.attacks.some(a=>a.kind==='circle'));
-});
-
-test('pause and upgrade freeze enemies, bullets, warnings, automatic skills and clock',()=>{
-  for(const state of ['upgrade','paused']){const g=fresh(),e=add(g,'slime',{x:100,y:100});g.skills.thunder=1;g.enemyProjectiles=[{pos:{x:100,y:100},dir:{x:1,y:0},life:4,radius:7}];g.spawnWarnings=[{type:'slime',pos:{x:200,y:200},left:.8}];g.state=state;const before={time:g.remaining,x:e.pos.x,life:g.enemyProjectiles[0].life,w:g.spawnWarnings[0].left,auto:g.auto.thunder};g.update(2,{x:1,attack:true});assert.deepEqual({time:g.remaining,x:e.pos.x,life:g.enemyProjectiles[0].life,w:g.spawnWarnings[0].left,auto:g.auto.thunder},before);}
-});
-
-test('ultimate grants short invulnerability and 1.2 second hit immunity prevents burst damage',()=>{
-  const g=fresh();assert.equal('dashLeft' in g.hero,false);assert.equal('shieldLeft' in g.hero,false);g.ultimate=100;g.useUltimate();assert.ok(g.hero.invulnerable>=.69);assert.equal(g.damageHero(50,{x:0,y:0}),false);
-  step(g,.71);assert.equal(g.damageHero(10,{x:0,y:0}),true);assert.equal(g.damageHero(50,{x:0,y:0}),false);assert.ok(g.hero.invulnerable>1.19);assert.equal(g.hitsTaken,1);
-});
-
-test('floor, charge and fan attacks leave routes that normal movement can use',()=>{
-  const floor=fresh();floor.hero={...floor.hero,x:240,y:320};floor.enemyAreas=[{kind:'bossFloor',pos:{x:240,y:320},radius:C.boss.floorRadius,left:C.boss.floorWarning,order:1,damage:C.boss.damage,fired:false,effect:0}];step(floor,C.boss.floorWarning+.02,{x:1});assert.equal(floor.hitsTaken,0);assert.ok(Math.hypot(floor.hero.x-240,floor.hero.y-320)>C.boss.floorRadius+C.radius);
-  const rush=fresh(),ghost=add(rush,'ghost',{x:100,y:300});rush.hero={...rush.hero,x:230,y:300};ghost.state='warn';ghost.left=C.enemies.ghost.warning;ghost.dir={x:1,y:0};step(rush,C.enemies.ghost.warning+C.enemies.ghost.chargeDuration,{y:1});assert.equal(rush.hitsTaken,0);assert.deepEqual(ghost.dir,{x:1,y:0});
-  const batGap=2*C.enemies.bat.desired*Math.sin(C.enemies.bat.spread*Math.PI/360);assert.ok(batGap>2*(C.radius+7));
-  const bossGap=2*C.enemies.bat.desired*Math.sin(C.boss.fanSpread*Math.PI/360);assert.ok(bossGap>2*(C.radius+8));
-});
-
-test('stage 1 enemy rewards charge the ultimate before the floor ends',()=>{
-  const g=fresh();for(let i=0;i<10;i++){const e=add(g,'slime',{x:80+i*20,y:100});g.damageEnemy(e,100,{x:1,y:0});}assert.equal(g.ultimate,100);
-});
-
-test('boss has three phase-specific patterns and keeps readable warning times',()=>{
-  const g=fresh(),b=openBoss(g);assert.equal(b.bossPhase,1);g.startBossAttack(b);assert.equal(b.state,'chargeWarn');assert.equal(b.left,C.boss.chargeWarning);
-  b.phaseDone=new Set(['charge','meeting']);b.hp=C.boss.hp*.6;b.state='chase';b.left=0;g.updateBoss(b,.01);assert.equal(b.bossPhase,2);b.state='chase';const states=new Set();for(let i=0;i<4;i++){g.startBossAttack(b);states.add(b.state);b.state='chase';}assert.ok(states.has('fanWarn')&&states.has('summonWarn'));
-  b.phaseDone=new Set(['fan','summon']);b.hp=C.boss.hp*.3;b.state='chase';b.left=0;g.updateBoss(b,.01);assert.equal(b.bossPhase,3);b.state='chase';const late=new Set();for(let i=0;i<5;i++){g.startBossAttack(b);late.add(b.state);b.state='chase';}assert.ok(late.has('multiWarn')&&late.has('floorSequence'));assert.equal(C.boss.multiWarning>=.7,true);assert.equal(C.boss.floorWarning>=1,true);
-});
-
-test('boss charge can be routed into a desk, exposing a full-damage weak window',()=>{
-  const g=fresh(),b=openBoss(g);b.pos={x:180,y:300};b.state='charge';b.left=1;b.dir={x:0,y:-1};for(let i=0;i<300&&b.state!=='stunned';i++)g.updateBoss(b,.01);assert.equal(b.state,'stunned');assert.ok(b.left>1.4);
-  const hp=b.hp;b.weak=true;g.damageEnemy(b,20,{x:1,y:0});assert.equal(b.hp,hp-20);b.weak=false;const hp2=b.hp;g.damageEnemy(b,20,{x:1,y:0});assert.equal(b.hp,hp2-12);
-});
-
-test('boss defeat opens the gate; only arrival wins; energy and timeout lose',()=>{
-  const g=fresh(),b=openBoss(g);b.bossPhase=3;b.phaseDone=new Set(['multi','floor']);b.state='stunned';b.weak=true;g.damageEnemy(b,C.boss.hp,{x:1,y:0});assert.equal(g.phase,'escape');assert.equal(g.outcome,null);g.hero={...g.hero,...center(C.gate)};g.update(.01);assert.equal(g.outcome,'success');
-  let x=fresh();x.hero.energy=1;x.damageHero(2,{x:0,y:0});assert.equal(x.reason,'energy');x=fresh();x.remaining=.001;x.update(.01);assert.equal(x.reason,'timeout');
-});
-
-test('retry completely resets stages, skills, projectiles, boss and statistics',()=>{
-  const g=fresh();g.stage=3;g.skills={slash:3,reply:3,shredder:1,thunder:1,meteor:1};g.upgradeCount=6;g.enemyProjectiles.push({});g.kills=99;g.boss={};g.finish('energy');g.reset();
-  assert.equal(g.state,'title');assert.equal(g.stage,1);assert.equal(g.wave,0);assert.deepEqual(g.skills,{slash:0,reply:0,shredder:0,thunder:0,meteor:0});assert.deepEqual(g.enemyProjectiles,[]);assert.equal('shields' in g.hero,false);assert.equal(g.kills,0);assert.equal(g.boss,null);assert.equal(g.remaining,300);
+test('pause and retry clear projectiles, effects, skills, bosses and selected ultimate',()=>{
+  const g=fresh('clones');g.ultimate=100;g.useUltimate();g.pause();const before=g.ultimateEffectLeft;g.update(5);assert.equal(g.ultimateEffectLeft,before);g.finish('energy');g.reset();assert.equal(g.ultimateChoice,null);assert.equal(g.ultimateEffectLeft,0);assert.equal(g.stage,1);assert.equal(g.boss,null);assert.deepEqual(g.heroProjectiles,[]);assert.ok(SKILL_IDS.every(id=>g.skills[id]===0));assert.equal(g.remaining,480);
 });

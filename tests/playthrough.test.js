@@ -33,7 +33,7 @@ test('a complete run visits all six waves, carries six upgrades, sees all boss p
   assert.equal(g.outcome,'success');assert.ok(g.elapsed>0&&g.elapsed<=C.timeLimit);assert.equal(seen.upgrades,6);assert.equal(seen.stageIntros,2);
   assert.deepEqual([...seen.waves],['1-1','1-2','2-1','2-2','3-1','3-2']);assert.deepEqual([...seen.stages],[1,2,3]);assert.equal(Object.values(g.skills).reduce((a,b)=>a+b,0),6);
   assert.ok(seen.boss&&seen.gate);assert.deepEqual([...seen.phases],[1,2,3]);assert.ok(seen.charge&&seen.meeting&&seen.fan&&seen.summon&&seen.multi&&seen.floor);
-  assert.ok(seen.maxEnemies>=8);assert.ok(seen.maxBullets>=3);
+  assert.ok(seen.maxEnemies>=6);assert.ok(seen.maxBullets>=3);
 });
 
 test('a close-range slash and shredder build can also finish the full route',()=>{

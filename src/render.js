@@ -23,12 +23,11 @@ export function render(ctx,g,time=0,effects=true){
   for(const t of g.thunders){ctx.globalAlpha=Math.max(.25,t.left/C.thunder.effect);ctx.strokeStyle='#bff5ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(t.from.x,t.from.y);const mx=(t.from.x+t.to.x)/2+Math.sin(t.to.x)*10;ctx.lineTo(mx,(t.from.y+t.to.y)/2);ctx.lineTo(t.to.x,t.to.y);ctx.stroke();ctx.strokeStyle='#f7d96e';ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
 
   for(const p of g.heroProjectiles)drawHeroShot(p);for(const p of g.enemyProjectiles)drawEnemyShot(p);
-  for(const a of g.afterimages){ctx.globalAlpha=a.left/.26*.3;drawHero(a.pos,a.facing,'#5ebbd6');ctx.globalAlpha=1;}
   for(const e of [...g.activeEnemies].sort((a,b)=>a.pos.y-b.pos.y))drawEnemy(e);
 
   for(const b of g.orbitPositions()){ctx.save();ctx.translate(b.x,b.y);ctx.rotate(time*8+b.index);rect(-8,-5,16,10,'#f7f1db');ctx.strokeStyle='#5ab5cc';ctx.lineWidth=2;ctx.strokeRect(-8,-5,16,10);ctx.restore();}
   if(!(g.hero.invulnerable>0&&Math.floor(g.hero.invulnerable*18)%2))drawHero(g.hero,g.hero.facing,g.hero.hurtFlash?'#fff0a0':'#317fab');
-  if(g.hero.shieldLeft>0){circle(g.hero.x,g.hero.y,25+Math.sin(time*11)*2,'#8cdae543','#d9fbff',3);text('有給',g.hero.x,g.hero.y-32,'#24586d',10);}
+  if(g.hero.invulnerable>0)circle(g.hero.x,g.hero.y,24+Math.sin(time*11)*2,null,'#fff0a8',2);
   for(const a of g.attacks)drawAttack(a);
   for(const p of g.particles){ctx.globalAlpha=Math.min(1,p.left*2);rect(p.pos.x,p.pos.y,5,8,p.color);ctx.globalAlpha=1;}
   if(g.outcome==='success'&&effects){const colors=['#f5c85f','#70c4a0','#e98296','#77aee0','#fff0ae'];for(let i=0;i<58;i++)rect((i*83+Math.sin(time*2+i)*18)%C.width,(i*47+time*72)%C.height,5+(i%2)*3,9,colors[i%colors.length]);}
@@ -46,7 +45,7 @@ export function render(ctx,g,time=0,effects=true){
     if(e.state==='fanWarn'){const n=C.boss.fanCount;for(let i=0;i<n;i++){const d=rotate(e.dir,(i-(n-1)/2)*C.boss.fanSpread);ctx.strokeStyle='#9d2053';ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(e.pos.x,e.pos.y);ctx.lineTo(e.pos.x+d.x*190,e.pos.y+d.y*190);ctx.stroke();}ctx.setLineDash([]);text('書類弾！',e.pos.x,e.pos.y-52,'#8c1645',13);}
     if(e.state==='summonWarn')text('増援を要請中！',e.pos.x,e.pos.y-52,'#8d1a49',13);
   }
-  function drawHeroShot(p){ctx.save();ctx.translate(p.pos.x,p.pos.y);ctx.rotate(Math.atan2(p.dir.y,p.dir.x));circle(0,0,8,'#88dbea88','#eafcff',2);rect(-4,-2,13,4,'#fff0a8');ctx.restore();}
+  function drawHeroShot(p){ctx.save();ctx.translate(p.pos.x,p.pos.y);ctx.rotate(Math.atan2(p.dir.y,p.dir.x));circle(0,0,11,'#88dbea88','#eafcff',3);rect(-6,-3,18,6,'#fff0a8');ctx.restore();}
   function drawEnemyShot(p){ctx.save();ctx.translate(p.pos.x,p.pos.y);ctx.rotate(Math.atan2(p.dir.y,p.dir.x));const boss=p.kind==='boss';rect(-8,-5,16,10,boss?'#e387b4':'#f3d9df');ctx.strokeStyle=boss?'#7c1e5a':'#9f355e';ctx.lineWidth=2;ctx.strokeRect(-8,-5,16,10);ctx.beginPath();ctx.moveTo(-8,-5);ctx.lineTo(0,1);ctx.lineTo(8,-5);ctx.stroke();ctx.restore();}
   function drawHero(p,facing,color){const walk=Math.floor(time*9)%2;rect(p.x-13,p.y+13,26,5,'#9c927f');rect(p.x-10,p.y-3,20,17,color);rect(p.x-13,p.y,5,13,'#65b7d0');rect(p.x+9,p.y,5,13,'#65b7d0');rect(p.x-8,p.y+12,6,7+walk,'#273f4c');rect(p.x+3,p.y+12,6,8-walk,'#273f4c');rect(p.x-9,p.y-19,18,17,'#f0c99a');rect(p.x-12,p.y-21,24,6,'#d2d9d1');rect(p.x-3,p.y-25,7,10,'#73b9b2');rect(p.x-5,p.y-11,3,3,'#283d49');rect(p.x+4,p.y-11,3,3,'#283d49');ctx.strokeStyle='#fff1bc';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(p.x+facing.x*14,p.y+facing.y*14);ctx.lineTo(p.x+facing.x*25,p.y+facing.y*25);ctx.stroke();}
   function hp(e,w){rect(e.pos.x-w/2,e.pos.y-e.radius-17,w,5,'#49383d');rect(e.pos.x-w/2,e.pos.y-e.radius-17,w*e.hp/e.maxHp,5,e.type==='boss'&&e.bossPhase===3?'#f04c5d':'#64bf7b');}

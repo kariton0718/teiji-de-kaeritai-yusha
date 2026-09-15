@@ -22,13 +22,13 @@ test('movement keeps facing, normalizes diagonals and respects walls/desks',()=>
 
 test('one slash hits each target once, knocks groups back and cannot cross a desk',()=>{
   const g=fresh();g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};const a=add(g,'slime',{x:245,y:290}),b=add(g,'slime',{x:246,y:310}),x=a.pos.x;
-  g.swing();assert.equal(a.hp,20);assert.equal(b.hp,20);assert.ok(a.pos.x>x);step(g,.12);assert.equal(a.hp,20);
+  g.swing();assert.equal(a.hp,16);assert.equal(b.hp,16);assert.ok(a.pos.x>x);step(g,.12);assert.equal(a.hp,16);g.hero.attackCd=0;g.swing();assert.equal(a.dead,true);assert.equal(b.dead,true);
   const w=fresh();w.hero={...w.hero,x:140,y:220,facing:{x:1,y:0}};const hidden=add(w,'slime',{x:220,y:220});assert.equal(clearLine(w.hero,hidden.pos,solids),false);w.swing();assert.equal(hidden.hp,40);
 });
 
 test('task slash evolves through range, follow-up and periodic full-circle levels',()=>{
   const g=fresh(),baseRange=g.attackRange,baseArc=g.attackArc;g.skills.slash=1;assert.ok(g.attackRange>baseRange&&g.attackArc>baseArc);
-  g.skills.slash=2;g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};const e=add(g,'ghost',{x:250,y:300});g.swing();step(g,.14);assert.equal(e.hp,18);
+  g.skills.slash=2;g.hero={...g.hero,x:200,y:300,facing:{x:1,y:0}};const e=add(g,'ghost',{x:250,y:300});g.swing();step(g,.14);assert.equal(e.hp,12);
   const all=fresh();all.skills.slash=3;all.hero={...all.hero,x:240,y:320,facing:{x:1,y:0},attackCount:3};const behind=add(all,'slime',{x:190,y:320});all.swing();assert.ok(behind.hp<40);assert.ok(all.attacks.some(a=>a.kind==='circle'));
 });
 
@@ -40,7 +40,7 @@ test('reply evolves from one to three to five projectiles and level 3 pierces',(
 
 test('shredder uses per-blade hit cooldown instead of damaging every frame',()=>{
   const g=fresh();g.skills.shredder=1;g.hero={...g.hero,x:240,y:320};const b=g.orbitPositions()[0],e=add(g,'brute',{x:b.x,y:b.y});g.updateShredder(.01);const once=e.hp;g.updateShredder(.01);assert.equal(e.hp,once);g.updateShredder(C.shredder.hitInterval+.01);assert.ok(e.hp<once);
-  g.skills.shredder=3;assert.equal(g.orbitPositions().length,4);assert.equal(C.shredder.radius[3],56);
+  g.skills.shredder=3;assert.equal(g.orbitPositions().length,4);assert.equal(C.shredder.radius[3],74);
 });
 
 test('thunder chains to distinct targets and meteor is aerial with expanded multi-sites',()=>{
@@ -54,10 +54,11 @@ test('ultimate reaches the screen, clears bullets, preserves warnings and does l
   assert.equal(g.enemyProjectiles.length,0);assert.equal(g.enemyAreas.length,1);assert.equal(mob.hp,30);assert.equal(boss.hp,C.boss.hp-C.ultimate.bossDamage);assert.equal(g.ultimate,0);
 });
 
-test('bat fans scale by stage, ghost locks its charge and brute has warned area pressure',()=>{
+test('bat fans scale by stage, ghost locks its charge and dangerous rushes do not start together',()=>{
   const g=fresh(),bat=add(g,'bat',{x:100,y:300});g.stage=3;bat.state='warn';bat.left=.001;bat.dir={x:1,y:0};g.updateBat(bat,.01);assert.equal(g.enemyProjectiles.length,5);
   const ghost=add(g,'ghost',{x:100,y:420});g.hero={...g.hero,x:300,y:420};ghost.left=.001;g.updateGhost(ghost,.01);assert.equal(ghost.state,'warn');const dir={...ghost.dir};g.hero.y=550;g.updateGhost(ghost,.2);assert.deepEqual(ghost.dir,dir);
-  const brute=add(g,'brute',{x:300,y:500});brute.left=.001;g.updateBrute(brute,.01);assert.equal(brute.state,'warn');assert.ok(brute.left>.9);
+  const brute=add(g,'brute',{x:300,y:500});brute.left=.001;g.updateBrute(brute,.01);assert.equal(brute.state,'move');assert.ok(brute.left>.3);
+  const clear=fresh(),only=add(clear,'brute',{x:300,y:500});only.left=.001;clear.updateBrute(only,.01);assert.equal(only.state,'warn');assert.ok(only.left>1.2);
 });
 
 test('spawns are warned away from the hero and all entity/effect caps hold',()=>{
@@ -76,6 +77,11 @@ test('six wave clears lead through three stages and six retained upgrades to the
   assert.deepEqual(visited,[[1,1],[1,2],[2,1],[2,2],[3,1],[3,2]]);assert.ok(offers[0].includes('reply'));assert.equal(g.upgradeCount,6);assert.equal(g.state,'bossIntro');assert.equal(Object.values(g.skills).reduce((a,b)=>a+b,0),6);
 });
 
+test('stage transition restores exactly 30 percent of maximum energy without overflow',()=>{
+  const g=fresh();g.hero.energy=50;g.openUpgrade({kind:'stage',stage:2});g.chooseUpgrade(0);assert.equal(g.hero.energy,80);assert.equal(g.transitionHeal,30);assert.equal(g.state,'stageIntro');assert.ok(g.notice.includes('30'));
+  g.state='upgrade';g.offers=['slash'];g.afterUpgrade={kind:'stage',stage:3};g.hero.energy=90;g.chooseUpgrade(0);assert.equal(g.hero.energy,100);assert.equal(g.transitionHeal,10);
+});
+
 test('offers include an available evolution and omit maximum skills without stalling',()=>{
   const g=fresh();g.upgradeCount=2;g.skills={slash:3,reply:2,shredder:3,thunder:0,meteor:0};const offers=g.buildOffers();assert.equal(offers.length,3);assert.ok(offers.includes('reply'));assert.ok(!offers.includes('slash')&&!offers.includes('shredder'));
   g.skills={slash:3,reply:3,shredder:3,thunder:2,meteor:2};assert.deepEqual(new Set(g.buildOffers()),new Set(['thunder','meteor']));
@@ -90,8 +96,20 @@ test('pause and upgrade freeze enemies, bullets, warnings, automatic skills and 
   for(const state of ['upgrade','paused']){const g=fresh(),e=add(g,'slime',{x:100,y:100});g.skills.thunder=1;g.enemyProjectiles=[{pos:{x:100,y:100},dir:{x:1,y:0},life:4,radius:7}];g.spawnWarnings=[{type:'slime',pos:{x:200,y:200},left:.8}];g.state=state;const before={time:g.remaining,x:e.pos.x,life:g.enemyProjectiles[0].life,w:g.spawnWarnings[0].left,auto:g.auto.thunder};g.update(2,{x:1,attack:true});assert.deepEqual({time:g.remaining,x:e.pos.x,life:g.enemyProjectiles[0].life,w:g.spawnWarnings[0].left,auto:g.auto.thunder},before);}
 });
 
-test('dash and shield block damage, and hit invulnerability prevents burst damage',()=>{
-  const g=fresh();g.update(.01,{dash:true});assert.equal(g.damageHero(50,{x:0,y:0}),false);step(g,.2);g.update(.01,{shield:true});assert.equal(g.hero.shields,1);assert.equal(g.damageHero(50,{x:0,y:0}),false);step(g,1.51);assert.equal(g.damageHero(10,{x:0,y:0}),true);assert.equal(g.damageHero(50,{x:0,y:0}),false);assert.equal(g.hitsTaken,1);
+test('ultimate grants short invulnerability and 1.2 second hit immunity prevents burst damage',()=>{
+  const g=fresh();assert.equal('dashLeft' in g.hero,false);assert.equal('shieldLeft' in g.hero,false);g.ultimate=100;g.useUltimate();assert.ok(g.hero.invulnerable>=.69);assert.equal(g.damageHero(50,{x:0,y:0}),false);
+  step(g,.71);assert.equal(g.damageHero(10,{x:0,y:0}),true);assert.equal(g.damageHero(50,{x:0,y:0}),false);assert.ok(g.hero.invulnerable>1.19);assert.equal(g.hitsTaken,1);
+});
+
+test('floor, charge and fan attacks leave routes that normal movement can use',()=>{
+  const floor=fresh();floor.hero={...floor.hero,x:240,y:320};floor.enemyAreas=[{kind:'bossFloor',pos:{x:240,y:320},radius:C.boss.floorRadius,left:C.boss.floorWarning,order:1,damage:C.boss.damage,fired:false,effect:0}];step(floor,C.boss.floorWarning+.02,{x:1});assert.equal(floor.hitsTaken,0);assert.ok(Math.hypot(floor.hero.x-240,floor.hero.y-320)>C.boss.floorRadius+C.radius);
+  const rush=fresh(),ghost=add(rush,'ghost',{x:100,y:300});rush.hero={...rush.hero,x:230,y:300};ghost.state='warn';ghost.left=C.enemies.ghost.warning;ghost.dir={x:1,y:0};step(rush,C.enemies.ghost.warning+C.enemies.ghost.chargeDuration,{y:1});assert.equal(rush.hitsTaken,0);assert.deepEqual(ghost.dir,{x:1,y:0});
+  const batGap=2*C.enemies.bat.desired*Math.sin(C.enemies.bat.spread*Math.PI/360);assert.ok(batGap>2*(C.radius+7));
+  const bossGap=2*C.enemies.bat.desired*Math.sin(C.boss.fanSpread*Math.PI/360);assert.ok(bossGap>2*(C.radius+8));
+});
+
+test('stage 1 enemy rewards charge the ultimate before the floor ends',()=>{
+  const g=fresh();for(let i=0;i<10;i++){const e=add(g,'slime',{x:80+i*20,y:100});g.damageEnemy(e,100,{x:1,y:0});}assert.equal(g.ultimate,100);
 });
 
 test('boss has three phase-specific patterns and keeps readable warning times',()=>{
@@ -111,6 +129,6 @@ test('boss defeat opens the gate; only arrival wins; energy and timeout lose',()
 });
 
 test('retry completely resets stages, skills, projectiles, boss and statistics',()=>{
-  const g=fresh();g.stage=3;g.skills={slash:3,reply:3,shredder:1,thunder:1,meteor:1};g.upgradeCount=6;g.hero.shields=0;g.enemyProjectiles.push({});g.kills=99;g.boss={};g.finish('energy');g.reset();
-  assert.equal(g.state,'title');assert.equal(g.stage,1);assert.equal(g.wave,0);assert.deepEqual(g.skills,{slash:0,reply:0,shredder:0,thunder:0,meteor:0});assert.deepEqual(g.enemyProjectiles,[]);assert.equal(g.hero.shields,2);assert.equal(g.kills,0);assert.equal(g.boss,null);assert.equal(g.remaining,300);
+  const g=fresh();g.stage=3;g.skills={slash:3,reply:3,shredder:1,thunder:1,meteor:1};g.upgradeCount=6;g.enemyProjectiles.push({});g.kills=99;g.boss={};g.finish('energy');g.reset();
+  assert.equal(g.state,'title');assert.equal(g.stage,1);assert.equal(g.wave,0);assert.deepEqual(g.skills,{slash:0,reply:0,shredder:0,thunder:0,meteor:0});assert.deepEqual(g.enemyProjectiles,[]);assert.equal('shields' in g.hero,false);assert.equal(g.kills,0);assert.equal(g.boss,null);assert.equal(g.remaining,300);
 });

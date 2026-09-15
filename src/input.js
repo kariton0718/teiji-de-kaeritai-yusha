@@ -1,6 +1,6 @@
 export function createInput(active,onPause,onCommand=()=>false){
   const held=new Set(),pressed=new Set(),physical=new Set(),quarantined=new Set(),pointers=new Map(),consumed=new Set();
-  const mapping={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyJ:'attack',Space:'attack',KeyK:'dash',KeyL:'shield',KeyI:'ultimate'};
+  const mapping={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyJ:'attack',Space:'attack',KeyK:'ultimate',KeyI:'ultimate'};
   const commands=new Set(['Digit1','Digit2','Digit3','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD','Enter','NumpadEnter','Escape','Space']);
   const clear=()=>{
     for(const code of physical)quarantined.add(code);
@@ -27,7 +27,7 @@ export function createInput(active,onPause,onCommand=()=>false){
   const loseFocus=()=>{clear();physical.clear();quarantined.clear();consumed.clear();onPause();};
   window.addEventListener('blur',loseFocus);document.addEventListener('visibilitychange',()=>{if(document.hidden)loseFocus();});
   return {clear,read(){
-    const result={x:Number(held.has('right'))-Number(held.has('left')),y:Number(held.has('down'))-Number(held.has('up')),attack:held.has('attack'),dash:pressed.has('dash'),shield:pressed.has('shield'),ultimate:pressed.has('ultimate')};
-    pressed.delete('dash');pressed.delete('shield');pressed.delete('ultimate');return result;
+    const result={x:Number(held.has('right'))-Number(held.has('left')),y:Number(held.has('down'))-Number(held.has('up')),attack:held.has('attack'),ultimate:pressed.has('ultimate')};
+    pressed.delete('ultimate');return result;
   },debug(){return {held:new Set(held),pressed:new Set(pressed),quarantined:new Set(quarantined)};}};
 }

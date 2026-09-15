@@ -11,12 +11,12 @@ export class Game{
   reset(){
     this.state='title';this.resumeState='playing';this.phase='title';this.outcome=null;this.reason=null;
     this.remaining=C.timeLimit;this.elapsed=0;this.stage=1;this.wave=0;this.waveElapsed=0;this.waveClearLeft=0;this.clearedWaves=0;this.upgradeCount=0;
-    this.hero={...center(C.heroStart),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,dashCd:0,dashLeft:0,dashDir:{x:0,y:-1},shieldLeft:0,shields:C.shield.charges,invulnerable:0,slowLeft:0,hurtFlash:0};
+    this.hero={...center(C.heroStart),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,invulnerable:0,slowLeft:0,hurtFlash:0};
     this.skills={slash:0,reply:0,shredder:0,thunder:0,meteor:0};this.offers=[];this.afterUpgrade=null;
     this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];
-    this.particles=[];this.afterimages=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();
+    this.particles=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();
     this.auto={thunder:0,meteor:0};this.kills=0;this.hitsTaken=0;this.ultimate=0;this.coffee=null;this.gateOpen=false;
-    this.banner=null;this.notice='Enterで操作説明へ';this.events=[];this.nextEnemyId=1;this.shake=0;this.boss=null;
+    this.banner=null;this.notice='Enterで操作説明へ';this.events=[];this.nextEnemyId=1;this.shake=0;this.boss=null;this.transitionHeal=0;
   }
   get stageConfig(){return C.stages[this.stage-1];}
   get stageName(){return this.stageConfig.name;}
@@ -54,20 +54,17 @@ export class Game{
   }
 
   update(delta,input={}){
-    input={x:0,y:0,attack:false,dash:false,shield:false,ultimate:false,...input};
+    input={x:0,y:0,attack:false,ultimate:false,...input};
     if(this.state!=='playing')return;let left=Math.min(Math.max(delta,0),C.maxDelta);
-    while(left>1e-9&&this.state==='playing'){const dt=Math.min(left,C.step);this.tick(dt,input);left-=dt;input={...input,dash:false,shield:false,ultimate:false};}
+    while(left>1e-9&&this.state==='playing'){const dt=Math.min(left,C.step);this.tick(dt,input);left-=dt;input={...input,ultimate:false};}
   }
   tick(dt,input){
     this.remaining=Math.max(0,this.remaining-dt);this.elapsed+=dt;if(this.remaining<=0){this.finish('timeout');return;}
-    const h=this.hero;for(const k of ['attackCd','dashCd','dashLeft','shieldLeft','invulnerable','slowLeft','hurtFlash'])h[k]=Math.max(0,h[k]-dt);
+    const h=this.hero;for(const k of ['attackCd','invulnerable','slowLeft','hurtFlash'])h[k]=Math.max(0,h[k]-dt);
     if(this.banner){this.banner.left-=dt;if(this.banner.left<=0)this.banner=null;}this.shake=Math.max(0,this.shake-dt);
     const facing=norm(input.x||0,input.y||0,h.facing);if(input.x||input.y)h.facing=facing;
-    if(input.shield&&h.shields>0&&h.shieldLeft===0){h.shields--;h.shieldLeft=C.shield.duration;this.notice='有給の盾！ 1.5秒ダメージ無効';this.events.push('shield');}
-    if(input.dash&&h.dashCd===0){h.dashLeft=C.dash.duration;h.dashCd=C.dash.cooldown;h.dashDir=facing;this.afterimages.push({pos:copy(h),facing:copy(h.facing),left:.26});this.events.push('dash');}
     if(input.ultimate&&this.ultimate>=C.ultimate.max)this.useUltimate();
-    if(h.dashLeft>0){this.nav.move(h,h.dashDir.x*C.dash.speed*dt,h.dashDir.y*C.dash.speed*dt);if(this.random()<.1&&this.afterimages.length<C.limits.afterimages)this.afterimages.push({pos:copy(h),facing:copy(h.facing),left:.2});}
-    else{const m=Math.hypot(input.x||0,input.y||0);if(m)this.nav.move(h,input.x/m*C.hero.speed*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt,input.y/m*C.hero.speed*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt);if(input.attack&&h.attackCd===0)this.swing();}
+    const m=Math.hypot(input.x||0,input.y||0);if(m)this.nav.move(h,input.x/m*C.hero.speed*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt,input.y/m*C.hero.speed*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt);if(input.attack&&h.attackCd===0)this.swing();
     this.updateSpawns(dt);this.updateFollowups(dt);this.updateProjectiles(dt);this.updateAutomaticSkills(dt);this.updateMeteors(dt);this.updateEnemyAreas(dt);this.updateEnemies(dt);this.separateEnemies();this.collectCoffee();this.updateEffects(dt);
     if(this.phase==='wave')this.checkWaveClear(dt);if(this.phase==='escape'&&dist(h,center(C.gate))<25)this.finish('success');
   }
@@ -87,7 +84,7 @@ export class Game{
     if(this.heroProjectiles.length>C.reply.max)this.heroProjectiles.splice(0,this.heroProjectiles.length-C.reply.max);
   }
   useUltimate(){
-    this.ultimate=0;this.enemyProjectiles=[];this.pushAttack({kind:'ultimate',pos:copy(this.hero),range:Math.hypot(C.width,C.height),left:C.ultimate.duration,total:C.ultimate.duration});
+    this.ultimate=0;this.hero.invulnerable=Math.max(this.hero.invulnerable,C.ultimate.invulnerability);this.enemyProjectiles=[];this.pushAttack({kind:'ultimate',pos:copy(this.hero),range:Math.hypot(C.width,C.height),left:C.ultimate.duration,total:C.ultimate.duration});
     for(const e of [...this.activeEnemies])this.damageEnemy(e,e.type==='boss'?C.ultimate.bossDamage:C.ultimate.mobDamage,norm(e.pos.x-this.hero.x,e.pos.y-this.hero.y),22);
     this.banner={title:'本日は退勤します！',detail:'画面内の仕事と敵弾を一斉処理！',left:1.35};this.shake=C.screenShake?0.16:0;this.events.push('ultimate');
   }
@@ -122,7 +119,7 @@ export class Game{
   }
   offscreen(p){return p.x<-20||p.x>C.width+20||p.y<-20||p.y>C.height+20;}
   shootFan(pos,dir,count,spread,kind='mail',damage=C.projectile.enemyDamage){
-    const start=-(count-1)*spread/2;for(let i=0;i<count&&this.enemyProjectiles.length<C.projectile.maxEnemy;i++)this.enemyProjectiles.push({kind,pos:copy(pos),dir:rotate(dir,start+i*spread),life:C.projectile.enemyLife,radius:kind==='boss'?8:7,damage,speed:kind==='boss'?185:C.projectile.enemySpeed});this.events.push('shoot');
+    const start=-(count-1)*spread/2;for(let i=0;i<count&&this.enemyProjectiles.length<C.projectile.maxEnemy;i++)this.enemyProjectiles.push({kind,pos:copy(pos),dir:rotate(dir,start+i*spread),life:C.projectile.enemyLife,radius:kind==='boss'?8:7,damage,speed:kind==='boss'?C.projectile.bossSpeed:C.projectile.enemySpeed});this.events.push('shoot');
   }
 
   moveEnemy(e,target,speed,dt){e.repath-=dt;if(clearLine(e.pos,target,solids)){const d=norm(target.x-e.pos.x,target.y-e.pos.y);this.nav.move(e.pos,d.x*speed*dt,d.y*speed*dt);return;}if(e.repath<=0){e.path=this.nav.findPath(e.pos,target);e.repath=.32;}while(e.path.length&&dist(e.pos,e.path[0])<10)e.path.shift();const p=e.path[0];if(p){const d=norm(p.x-e.pos.x,p.y-e.pos.y);this.nav.move(e.pos,d.x*speed*dt,d.y*speed*dt);}}
@@ -131,14 +128,15 @@ export class Game{
   updateBat(e,dt){
     const d=C.enemies.bat,range=dist(e.pos,this.hero);e.left-=dt;if(e.state==='warn'){if(e.left<=0){this.shootFan(e.pos,e.dir,d.fanByStage[this.stage],d.spread);e.state='move';e.left=d.shootInterval-Math.max(0,this.stage-1)*.15;}return;}
     if(range<d.desired-28)this.moveEnemy(e,{x:e.pos.x-(this.hero.x-e.pos.x),y:e.pos.y-(this.hero.y-e.pos.y)},d.speed,dt);else if(range>d.desired+35)this.moveEnemy(e,this.hero,d.speed,dt);
-    if(e.left<=0){e.state='warn';e.left=d.warning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);this.events.push('warn');}
+    if(e.left<=0){if(this.dangerBusy(e))e.left=.35;else{e.state='warn';e.left=d.warning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);this.events.push('warn');}}
   }
   updateGhost(e,dt){
-    const d=C.enemies.ghost;e.left-=dt;if(e.state==='warn'){if(e.left<=0){e.state='charge';e.left=d.chargeDuration;}return;}if(e.state==='charge'){const x=e.pos.x+e.dir.x*d.chargeSpeed*dt,y=e.pos.y+e.dir.y*d.chargeSpeed*dt;if(blocked(x,y,e.radius,solids)){e.state='recover';e.left=d.recovery;}else{e.pos.x=x;e.pos.y=y;this.contactHero(e,d.damage,true);}if(e.left<=0){e.state='recover';e.left=d.recovery;}return;}if(e.state==='recover'){if(e.left<=0){e.state='move';e.left=d.chargeInterval;}return;}this.moveEnemy(e,this.hero,d.speed,dt);this.contactHero(e,d.damage,true);if(e.left<=0){e.state='warn';e.left=d.warning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);this.events.push('warn');}
+    const d=C.enemies.ghost;e.left-=dt;if(e.state==='warn'){if(e.left<=0){e.state='charge';e.left=d.chargeDuration;}return;}if(e.state==='charge'){const x=e.pos.x+e.dir.x*d.chargeSpeed*dt,y=e.pos.y+e.dir.y*d.chargeSpeed*dt;if(blocked(x,y,e.radius,solids)){e.state='recover';e.left=d.recovery;}else{e.pos.x=x;e.pos.y=y;this.contactHero(e,d.damage,true);}if(e.left<=0){e.state='recover';e.left=d.recovery;}return;}if(e.state==='recover'){if(e.left<=0){e.state='move';e.left=d.chargeInterval;}return;}this.moveEnemy(e,this.hero,d.speed,dt);this.contactHero(e,d.damage,true);if(e.left<=0){if(this.dangerBusy(e))e.left=.35;else{e.state='warn';e.left=d.warning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);this.events.push('warn');}}
   }
   updateBrute(e,dt){
-    const d=C.enemies.brute;e.left-=dt;if(e.state==='warn'){if(e.left<=0){if(dist(e.pos,this.hero)<=d.areaRadius)this.damageHero(d.damage,e.pos);e.state='recover';e.left=d.recovery;this.events.push('danger');}return;}if(e.state==='recover'){if(e.left<=0){e.state='move';e.left=d.areaInterval;}return;}this.moveEnemy(e,this.hero,d.speed,dt);this.contactHero(e,d.damage);if(e.left<=0){e.state='warn';e.left=d.warning;this.events.push('warn');}
+    const d=C.enemies.brute;e.left-=dt;if(e.state==='warn'){if(e.left<=0){if(dist(e.pos,this.hero)<=d.areaRadius)this.damageHero(d.damage,e.pos);e.state='recover';e.left=d.recovery;this.events.push('danger');}return;}if(e.state==='recover'){if(e.left<=0){e.state='move';e.left=d.areaInterval;}return;}this.moveEnemy(e,this.hero,d.speed,dt);this.contactHero(e,d.damage);if(e.left<=0){if(this.dangerBusy(e))e.left=.35;else{e.state='warn';e.left=d.warning;this.events.push('warn');}}
   }
+  dangerBusy(except){return this.activeEnemies.filter(e=>e.id!==except.id&&((e.type==='ghost'&&['warn','charge'].includes(e.state))||(e.type==='brute'&&e.state==='warn'))).length>=C.danger.maxConcurrent;}
 
   bossPhaseFor(hp){return hp>C.boss.hp*C.boss.phaseAt[1]?1:hp>C.boss.hp*C.boss.phaseAt[2]?2:3;}
   updateBoss(e,dt){
@@ -151,7 +149,7 @@ export class Game{
     if(e.state==='charge'||e.state==='multiCharge'){const kind=e.state==='charge'?'charge':'multi',duration=e.state==='charge'?d.chargeDuration:d.multiDuration,x=e.pos.x+e.dir.x*d.chargeSpeed*dt,y=e.pos.y+e.dir.y*d.chargeSpeed*dt;if(blocked(x,y,e.radius,solids)){e.phaseDone.add(kind);e.state='stunned';e.left=d.stun;e.chargesLeft=0;this.notice='机に激突！ 弱点露出！';this.events.push('stun');return;}e.pos.x=x;e.pos.y=y;this.contactHero(e,d.damage);if(e.left<=0){if(e.state==='multiCharge'&&--e.chargesLeft>0){e.state='multiWarn';e.left=d.multiWarning;e.dir=norm(this.hero.x-e.pos.x,this.hero.y-e.pos.y);}else{e.phaseDone.add(kind);e.state='recover';e.left=duration+.35;}}return;}
     if(e.state==='multiWarn'){if(e.left<=0){e.state='multiCharge';e.left=d.multiDuration;}return;}
     if(e.state==='meetingWarn'){if(e.left<=0){if(dist(e.pos,this.hero)<=d.meetingRadius)this.damageHero(d.damage,e.pos);e.phaseDone.add('meeting');e.state='recover';e.left=d.meetingRecovery;this.events.push('danger');}return;}
-    if(e.state==='fanWarn'){if(e.left<=0){this.shootFan(e.pos,e.dir,d.fanCount,d.fanSpread,'boss',14);e.phaseDone.add('fan');e.state='recover';e.left=.85;}return;}
+    if(e.state==='fanWarn'){if(e.left<=0){this.shootFan(e.pos,e.dir,d.fanCount,d.fanSpread,'boss',11);e.phaseDone.add('fan');e.state='recover';e.left=1;}return;}
     if(e.state==='summonWarn'){if(e.left<=0){for(let i=0;i<d.summonCount;i++)this.addSpawnWarning(i===d.summonCount-1?'bat':'slime','boss');e.phaseDone.add('summon');e.state='recover';e.left=1.05;this.events.push('summon');}return;}
     this.moveEnemy(e,this.hero,d.speed*(1+(e.bossPhase-1)*.1),dt);if(e.left<=0)this.startBossAttack(e);
   }
@@ -171,7 +169,7 @@ export class Game{
   updateEnemyAreas(dt){for(const a of this.enemyAreas){if(!a.fired){a.left-=dt;if(a.left<=0){a.fired=true;a.effect=.32;if(dist(a.pos,this.hero)<=a.radius)this.damageHero(a.damage,a.pos);this.events.push('danger');}}else a.effect-=dt;}this.enemyAreas=this.enemyAreas.filter(a=>!a.fired||a.effect>0);}
 
   contactHero(e,damage,slow=false){const d=C.enemies[e.type];if(e.contactLeft>0||dist(e.pos,this.hero)>=e.radius+C.radius)return;e.contactLeft=e.type==='boss'?0.6:(d.contactCooldown||0.75);if(this.damageHero(damage,e.pos)&&slow)this.hero.slowLeft=C.hero.slowDuration;}
-  damageHero(amount,source){const h=this.hero;if(h.invulnerable>0||h.dashLeft>0||h.shieldLeft>0)return false;h.energy=Math.max(0,h.energy-amount);h.invulnerable=C.hero.hitInvulnerability;h.hurtFlash=.25;this.hitsTaken++;this.shake=C.screenShake?0.12:0;const d=norm(h.x-source.x,h.y-source.y);this.nav.move(h,d.x*16,d.y*16);this.events.push('hurt');if(h.energy===0)this.finish('energy');return true;}
+  damageHero(amount,source){const h=this.hero;if(h.invulnerable>0)return false;h.energy=Math.max(0,h.energy-amount);h.invulnerable=C.hero.hitInvulnerability;h.hurtFlash=.25;this.hitsTaken++;this.shake=C.screenShake?0.12:0;const d=norm(h.x-source.x,h.y-source.y);this.nav.move(h,d.x*16,d.y*16);this.events.push('hurt');if(h.energy===0)this.finish('energy');return true;}
   damageEnemy(e,amount,dir,knock=0){
     if(e.dead||e.state==='phaseShift')return false;
     let floor=0;if(e.type==='boss'){amount*=e.weak?C.boss.weakMultiplier:C.boss.armorMultiplier;if(e.bossPhase===1)floor=C.boss.hp*C.boss.phaseAt[1];else if(e.bossPhase===2)floor=C.boss.hp*C.boss.phaseAt[2];else if(!['multi','floor'].every(kind=>e.phaseDone.has(kind)))floor=1;}
@@ -181,7 +179,7 @@ export class Game{
     if(e.dead)return;e.dead=true;this.kills++;if(e.type!=='boss')this.ultimate=clamp(this.ultimate+C.enemies[e.type].ult,0,C.ultimate.max);for(let i=0;i<(e.type==='boss'?34:9)&&this.particles.length<C.limits.particles;i++)this.particles.push({pos:copy(e.pos),vel:{x:(this.random()-.5)*160,y:(this.random()-.5)*160},left:.65+this.random()*.5,color:e.type==='boss'?'#f4ca62':'#f3ecda'});this.events.push(e.type==='boss'?'bossDown':'defeat');if(e.type==='boss'){this.gateOpen=true;this.phase='escape';this.banner={title:'魔王部長、撃破！',detail:'退勤ゲートへ走れ！',left:3};this.notice='右上の退勤ゲートへ！';}}
   separateEnemies(){const list=this.activeEnemies;for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){const a=list[i],b=list[j],dx=b.pos.x-a.pos.x,dy=b.pos.y-a.pos.y,d=Math.hypot(dx,dy),need=(a.radius+b.radius)*.7;if(d>0&&d<need){const p=(need-d)/2,nx=dx/d,ny=dy/d;this.nav.move(a.pos,-nx*p,-ny*p);this.nav.move(b.pos,nx*p,ny*p);}}}
   collectCoffee(){if(this.coffee&&dist(this.hero,this.coffee)<C.coffee.pickupRange){const before=this.hero.energy;this.hero.energy=Math.min(C.hero.energy,this.hero.energy+C.coffee.heal);this.notice=`コーヒーで気力 ${Math.round(this.hero.energy-before)} 回復`;this.coffee=null;this.events.push('heal');}}
-  updateEffects(dt){for(const p of this.particles){p.left-=dt;p.pos.x+=p.vel.x*dt;p.pos.y+=p.vel.y*dt;p.vel.y+=80*dt;}this.particles=this.particles.filter(p=>p.left>0);for(const a of this.afterimages)a.left-=dt;this.afterimages=this.afterimages.filter(a=>a.left>0);for(const t of this.thunders)t.left-=dt;this.thunders=this.thunders.filter(t=>t.left>0);}
+  updateEffects(dt){for(const p of this.particles){p.left-=dt;p.pos.x+=p.vel.x*dt;p.pos.y+=p.vel.y*dt;p.vel.y+=80*dt;}this.particles=this.particles.filter(p=>p.left>0);for(const t of this.thunders)t.left-=dt;this.thunders=this.thunders.filter(t=>t.left>0);}
 
   checkWaveClear(dt){if(this.spawnQueue.length||this.spawnWarnings.length||this.activeEnemies.length){this.waveClearLeft=0;return;}this.waveClearLeft+=dt;if(this.waveClearLeft<C.waveCompleteDelay)return;this.clearedWaves++;const next=this.wave===1?{kind:'wave',stage:this.stage,wave:2}:this.stage<3?{kind:'stage',stage:this.stage+1}:{kind:'boss'};this.openUpgrade(next);}
   buildOffers(){
@@ -193,7 +191,7 @@ export class Game{
   openUpgrade(next){this.state='upgrade';this.phase='upgrade';this.afterUpgrade=next;this.offers=this.buildOffers();this.banner=null;this.events.push('upgrade');}
   chooseUpgrade(index){
     if(this.state!=='upgrade'||!this.offers[index])return false;const id=this.offers[index];if(this.skills[id]>=3)return false;this.skills[id]++;this.upgradeCount++;this.coffee={...center(C.coffeeSpot)};this.auto.thunder=0;this.auto.meteor=0;const next=this.afterUpgrade;
-    if(next.kind==='wave')this.beginWave(next.stage,next.wave);else if(next.kind==='stage'){this.stage=next.stage;this.wave=0;this.state='stageIntro';this.phase='stageIntro';this.notice=this.stageConfig.rule;}else{this.state='bossIntro';this.phase='bossIntro';this.wave=0;this.notice='魔王部長が待っている';}return true;
+    if(next.kind==='wave')this.beginWave(next.stage,next.wave);else if(next.kind==='stage'){this.transitionHeal=Math.min(C.hero.energy-this.hero.energy,C.hero.energy*C.hero.stageHealRatio);this.hero.energy+=this.transitionHeal;this.stage=next.stage;this.wave=0;this.state='stageIntro';this.phase='stageIntro';this.notice=`フロア移動で気力${Math.round(this.transitionHeal)}回復`;if(this.transitionHeal>0)this.events.push('heal');}else{this.state='bossIntro';this.phase='bossIntro';this.wave=0;this.notice='魔王部長が待っている';}return true;
   }
   skillSummary(){return SKILL_IDS.filter(id=>id==='slash'||this.skills[id]>0).map(id=>this.skills[id]?`${C.skills[id].name} Lv.${this.skills[id]}`:`${C.skills[id].name} 初期`);}
   finish(reason){this.outcome=reason==='success'?'success':'failure';this.reason=reason;this.state='result';this.phase='result';this.events.push(this.outcome);}

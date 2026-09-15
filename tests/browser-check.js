@@ -13,12 +13,13 @@ async function checks(){
   game.reset();ui();tap('Enter');await paint();assert(game.state==='instructions','title enter');tap('Enter');await paint();assert(game.state==='playing','start enter');log('PASS Enterでタイトル→操作説明→営業フロア');
 
   game.spawnQueue=[];game.spawnWarnings=[];game.phase='test';const x=game.hero.x;key('keydown','KeyD');await sleep(100);key('keyup','KeyD');assert(game.hero.x>x,'move');
-  game.enemies=[];game.hero={...game.hero,x:200,y:300,facing:{x:1,y:0},attackCd:0};game.createEnemy('slime',{x:245,y:300});key('keydown','Space');await sleep(45);key('keyup','Space');assert(game.enemies[0].hp===20,'attack once');log('PASS キーボード移動・Space攻撃・一振り一判定');
+  game.enemies=[];game.hero={...game.hero,x:200,y:300,facing:{x:1,y:0},attackCd:0};game.createEnemy('slime',{x:270,y:300});key('keydown','KeyD');key('keydown','Space');await sleep(45);key('keyup','Space');key('keyup','KeyD');assert(game.enemies[0].hp===16&&game.hero.x>200,'attack once');log('PASS キーボードで移動しながらSpace攻撃・一振り一判定');
 
   game.skills={slash:3,reply:3,shredder:3,thunder:3,meteor:3};game.enemies=[];for(let i=0;i<8;i++)game.createEnemy('brute',{x:100+i*35,y:300+(i%2)*50});game.hero={...game.hero,x:240,y:320,facing:{x:1,y:0},attackCd:0,attackCount:3};game.swing();game.castThunder(3);game.castMeteor(3);
   assert(game.heroProjectiles.length===5&&game.orbitPositions().length===4&&game.thunders.length&&game.meteors.length===3,'skills');log('PASS 5系統Lv.3の斬撃・5方向返信・回転刃・落雷・3地点メテオ');
 
-  game.enemyProjectiles=[{kind:'mail',pos:{x:80,y:80},dir:{x:1,y:0},life:4,radius:7,damage:10,speed:0}];game.enemyAreas=[{kind:'bossFloor',pos:{x:80,y:80},radius:30,left:2,order:1,damage:1,fired:false,effect:0}];game.ultimate=100;tap('KeyI');await paint();assert(game.enemyProjectiles.length===0&&game.enemyAreas.length===1,'ultimate');log('PASS 全画面必殺で敵へ攻撃・敵弾消去・危険予告は維持');
+  assert(!document.querySelector('[data-input="dash"]')&&!document.querySelector('[data-input="shield"]'),'old controls removed');
+  game.enemyProjectiles=[{kind:'mail',pos:{x:80,y:80},dir:{x:1,y:0},life:4,radius:7,damage:8,speed:0}];game.enemyAreas=[{kind:'bossFloor',pos:{x:80,y:80},radius:30,left:2,order:1,damage:1,fired:false,effect:0}];game.ultimate=100;key('keydown','KeyK');await paint();assert(game.enemyProjectiles.length===0&&game.enemyAreas.length===1&&game.hero.invulnerable>0,'ultimate K');game.ultimate=100;await sleep(40);assert(game.ultimate===100,'held repeat');key('keyup','KeyK');tap('KeyI');await paint();assert(game.ultimate<100,'ultimate I');log('PASS K／I必殺、敵弾消去、短時間無敵、長押し再発動防止');
 
   const left=document.querySelector('[data-input="left"]'),attack=document.querySelector('[data-input="attack"]');for(const b of [left,attack])b.setPointerCapture=()=>{};
   const ptr=(b,type,id)=>b.dispatchEvent(new PointerEvent(type,{pointerId:id,bubbles:true,clientX:b.getBoundingClientRect().x+5,clientY:b.getBoundingClientRect().y+5}));
@@ -37,7 +38,7 @@ async function checks(){
   b.hp=C.boss.hp*.33;b.phaseDone=new Set(['fan','summon']);b.state='chase';b.left=0;await sleep(30);assert(b.bossPhase===3&&$('boss-name').textContent.includes('第3形態'),'phase3');
   b.state='chase';b.pattern=0;game.startBossAttack(b);await paint();assert(b.state==='multiWarn','multi');b.state='chase';b.pattern=1;game.startBossAttack(b);await paint();assert(b.state==='floorSequence'&&game.enemyAreas.length,'floor');log('PASS 魔王部長の3形態、連続突進予告、番号付き床攻撃');
 
-  b.phaseDone=new Set(['multi','floor']);b.state='stunned';b.weak=true;b.hp=1;game.damageEnemy(b,20,{x:1,y:0});await paint();assert(game.gateOpen&&game.state==='playing','gate only');game.hero={...game.hero,...center(C.gate)};await sleep(30);assert(game.outcome==='success'&&$('result-stats').textContent.includes('取得・進化した技'),'result');tap('Enter');await paint();assert(game.state==='instructions'&&game.upgradeCount===0&&game.hero.shields===2,'retry');log('PASS ボス撃破後ゲート、結果、Enter再挑戦の完全初期化');
+  b.phaseDone=new Set(['multi','floor']);b.state='stunned';b.weak=true;b.hp=1;game.damageEnemy(b,20,{x:1,y:0});await paint();assert(game.gateOpen&&game.state==='playing','gate only');game.hero={...game.hero,...center(C.gate)};await sleep(30);assert(game.outcome==='success'&&$('result-stats').textContent.includes('取得・進化した技'),'result');tap('ArrowRight');assert($('to-title').classList.contains('menu-selected'),'result arrow');tap('ArrowLeft');assert($('action').classList.contains('menu-selected'),'result back');tap('Enter');await paint();assert(game.state==='instructions'&&game.upgradeCount===0&&!('shields' in game.hero),'retry');log('PASS 結果の方向キー＋Enter、再挑戦の完全初期化');
   assert(runtimeErrors.length===0,`console errors: ${runtimeErrors.join(' / ')}`);log('PASS 通常ゲーム画面の実行時エラーなし');log('ALL BROWSER CHECKS PASSED');
 }
 

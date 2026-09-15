@@ -4,6 +4,16 @@ import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../styles.css',import.meta.url),'utf8');
+test('title uses new square key art and readable SVG logo',()=>{
+  const titleCss=readFileSync(new URL('../title-art.css',import.meta.url),'utf8');
+  assert.match(html,/id="title-art"[^>]*src="assets\/title-keyart-v3.webp"/);
+  assert.equal((html.match(/assets\/title-logo-v3.svg/g)||[]).length,2);
+  assert.match(titleCss,/#title-cast\{display:none!important\}/);
+  assert.match(titleCss,/height:auto;aspect-ratio:1;object-fit:contain/);
+  assert.ok(readFileSync(new URL('../assets/title-keyart-v3.webp',import.meta.url)).length>10000);
+  const logo=readFileSync(new URL('../assets/title-logo-v3.svg',import.meta.url),'utf8');
+  assert.match(logo,/>定時で帰りたい<\/text>/);assert.match(logo,/>勇者<\/text>/);
+});
 test('pause is unique and in an external dock after the status strip',()=>{
   assert.equal((html.match(/id="pause"/g)||[]).length,1);
   assert.ok(html.indexOf('class="pause-dock"')>html.indexOf('id="status"'));

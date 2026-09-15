@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-labelledby="title desc">
+<title id="title">定時で帰りたい勇者</title>
+<desc id="desc">黄金の時計の紋章と、銀と金の立体的な題字。装飾は文字の背面に配置。</desc>
+<defs>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff9cc"/><stop offset=".38" stop-color="#f9d678"/><stop offset=".49" stop-color="#fff4b5"/><stop offset=".52" stop-color="#a66a23"/><stop offset="1" stop-color="#f1bc54"/></linearGradient>
+ <linearGradient id="silver" x2="0" y2="1"><stop stop-color="#fffdf0"/><stop offset=".5" stop-color="#e4eef0"/><stop offset="1" stop-color="#83a9b9"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#f6ae3733"/><stop offset="1" stop-color="#e1a24800"/></radialGradient>
+ <filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.5"><feDropShadow dx="0" dy="7" stdDeviation="3" flood-color="#020b13" flood-opacity=".95"/></filter>
+</defs>
+<ellipse cx="450" cy="169" rx="410" ry="166" fill="url(#halo)"/>
+<g fill="none" stroke="#d6ae61"><circle cx="450" cy="157" r="142" opacity=".45" stroke-width="2"/><circle cx="450" cy="157" r="129" opacity=".24" stroke-width="7"/><path d="M450 17v28m0 224v28M310 157h27m226 0h27M350 57l18 18m164 164 18 18M550 57l-18 18M368 239l-18 18" stroke-width="4" opacity=".55"/></g>
+<path d="M38 243l130-34v59zm824 0-130-34v59z" fill="#152f40" stroke="#ac8648" stroke-width="2"/>
+<g font-family="Yu Mincho,Hiragino Mincho ProN,Noto Serif CJK JP,serif" font-weight="900" text-anchor="middle" paint-order="stroke" stroke-linejoin="round" filter="url(#shadow)">
+ <text x="450" y="115" font-size="65" letter-spacing="4" textLength="530" lengthAdjust="spacingAndGlyphs" fill="url(#silver)" stroke="#071725" stroke-width="10">定時で帰りたい</text>
+ <text x="450" y="263" font-size="159" letter-spacing="18" fill="url(#gold)" stroke="#071725" stroke-width="13">勇者</text>
+</g>
+<path d="M187 291h212l51 15 51-15h212M231 298h133m172 0h133" fill="none" stroke="#d6ae61" stroke-width="2"/>
+<path d="m450 293 8 9-8 9-8-9z" fill="#ffe7a6"/>
+<g stroke="#ffe8a6" fill="none"><path d="M208 185v28m-14-14h28M696 218v20m-10-10h20" stroke-width="2"/></g>
+</svg>

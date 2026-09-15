@@ -9,11 +9,13 @@ cd 'C:\Users\owner\Desktop\ゲーム制作\定時で帰りたい勇者'
 node server.mjs
 ```
 
-[ゲームを開く](http://127.0.0.1:8179/)。サーバーは `127.0.0.1` のみで待ち受け、外部公開しません。起動済みの場合は再読み込みしてください。
+ローカル版は[ゲームを開く](http://127.0.0.1:8179/)から確認できます。サーバーは `127.0.0.1` のみで待ち受けます。起動済みの場合は再読み込みしてください。
+
+公開版： [ブラウザですぐ遊ぶ](https://kariton0718.github.io/teiji-de-kaeritai-yusha/)
 
 ## GitHub Pages公開
 
-`.github/workflows/pages.yml` は、`main` ブランチへのpush時にゲーム本体だけをGitHub Pagesへ配信します。テスト、設計資料、ローカルサーバーは公開成果物へ含めません。GitHubでリポジトリの **Settings → Pages → Source** を **GitHub Actions** に設定すると、以後はpushのたびに自動更新されます。
+公開リポジトリは [kariton0718/teiji-de-kaeritai-yusha](https://github.com/kariton0718/teiji-de-kaeritai-yusha) です。`.github/workflows/pages.yml` により、`main` ブランチへのpush時にゲーム本体だけをGitHub Pagesへ配信します。テスト、設計資料、ローカルサーバーは公開成果物へ含めません。
 
 Node.jsがPATHにない場合：
 
@@ -117,4 +119,4 @@ node --test tests/*.test.js
 
 実際に遊び、序盤から中盤の敵密度が上がる手応え、成長後に30〜40体をまとめて倒す爽快感、各ボスの予告と反撃の読みやすさ、特に社長3形態の強さ、5必殺技の使い分け、キャラクターの判別性、BGMの曲調と音量バランス、初見プレイが9分以内に収まるかを見てください。
 
-外部公開、SNS接続・投稿、課金機能はありません。
+GitHub Pagesでゲーム本体を公開しています。SNS接続・投稿、課金機能はありません。

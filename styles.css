@@ -33,3 +33,12 @@
   .story-card p{font-size:14px;padding:0 20px;margin-bottom:16px}
   .story-buttons{margin:0 20px}.story-buttons button{min-height:44px}
 }
+
+/* Four square true-ending panels, preserved without stretching or cropping. */
+.story-art.square-sheet{aspect-ratio:1;height:auto;max-height:none;flex:0 0 auto;border-bottom:0}
+.story-art.square-sheet img{width:200%;height:200%;object-fit:fill;max-width:none;left:0;top:0;transform:none}
+.story-art.square-sheet.q2 img{left:-100%}
+.story-art.square-sheet.q3 img{top:-100%}
+.story-art.square-sheet.q4 img{left:-100%;top:-100%}
+.story-overlay[data-ending="true"] .story-card{background:#f8efd7;border-color:#e5bd68;box-shadow:0 0 35px #e7bd6c55}
+.story-overlay[data-ending="true"] .story-count{color:#886126;font-weight:bold}

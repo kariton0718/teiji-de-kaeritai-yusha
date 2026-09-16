@@ -1,5 +1,6 @@
 // Web Audio only: all music and effects are original procedural synthesis.
 const SONGS={
+  trueEnding:{tempo:86,root:55,progression:[0,5,7,0,3,5,7,0],melody:[0,4,7,12,11,9,7,4,5,9,12,14,12,11,7,0],wave:'triangle',warm:1,epic:.45},
   opening:{tempo:104,root:50,progression:[0,5,3,7,0,8,5,7],melody:[0,4,7,12,11,7,9,14,12,9,7,4,5,7,11,12],wave:'sawtooth',epic:1},
   title:{tempo:112,root:50,progression:[0,5,3,7,0,8,5,7],melody:[0,7,12,11,9,7,4,5,7,12,14,12,11,9,7,12],wave:'triangle',epic:.85},
   battle:{tempo:142,root:55,progression:[0,3,5,4],melody:[0,7,5,7,10,7,5,3],wave:'square'},late:{tempo:158,root:57,progression:[0,5,7,3],melody:[0,7,12,10,7,5,9,12],wave:'sawtooth'},boss:{tempo:166,root:43,progression:[0,1,5,4],melody:[0,3,7,6,3,10,7,6],wave:'sawtooth'},final:{tempo:180,root:41,progression:[0,6,1,5],melody:[0,7,12,13,12,10,7,6],wave:'square'},

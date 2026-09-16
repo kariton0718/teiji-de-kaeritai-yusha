@@ -14,7 +14,7 @@ export class Game{
     this.state='title';this.phase='title';this.outcome=null;this.reason=null;
     this.remaining=C.timeLimit;this.elapsed=0;this.stage=1;this.wave=0;this.waveElapsed=0;this.waveClearLeft=0;this.clearedWaves=0;this.upgradeCount=0;
     this.skills=Object.fromEntries(SKILL_IDS.map(id=>[id,0]));this.ultimateChoice=null;this.ultimate=0;this.ultimateEffectLeft=0;this.ultimateRechargeLeft=0;this.blackholes=[];this.cannon=null;
-    this.hero={...center(C.stages[0].start),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,invulnerable:0,slowLeft:0,hurtFlash:0};
+    this.hero={...center(C.stages[0].start),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,invulnerable:0,slowLeft:0,smogSlowLeft:0,hurtFlash:0};
     this.offers=[];this.upgradeType=null;this.afterUpgrade=null;this.layoutIndex=0;this.loadStage(1,false);
     this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];
     this.particles=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();this.auto={thunder:0,meteor:0,boomerang:0,drone:0};
@@ -24,7 +24,7 @@ export class Game{
   }
   loadStage(stageId,moveHero=true){
     this.stage=stageId;this.layoutIndex=0;const s=this.stageConfig;this.worldWidth=s.size[0];this.worldHeight=s.size[1];this.solids=makeSolids(stageId,0);this.nav=navigation(this.solids,this.worldWidth,this.worldHeight);
-    if(moveHero)this.hero={...this.hero,...center(s.start),facing:{x:0,y:-1},attackCd:0,invulnerable:0,slowLeft:0};
+    if(moveHero)this.hero={...this.hero,...center(s.start),facing:{x:0,y:-1},attackCd:0,invulnerable:0,slowLeft:0,smogSlowLeft:0};
   }
   get stageConfig(){return C.stages[this.stage-1];}
   get bossDefinition(){return C.rankBosses[this.secretBossTriggered&&!this.secretBossDefeated?6:this.stage-1];}
@@ -90,12 +90,12 @@ export class Game{
   tick(dt,input){
     if(this.healFreeze>0){this.healFreeze=Math.max(0,this.healFreeze-dt);return;}
     this.remaining=Math.max(0,this.remaining-dt);this.elapsed+=dt;if(this.remaining<=0){this.finish('timeout');return;}
-    const h=this.hero;for(const k of ['attackCd','invulnerable','slowLeft','hurtFlash'])h[k]=Math.max(0,h[k]-dt);for(const k of Object.keys(this.auto))this.auto[k]=Math.max(0,this.auto[k]-dt);
+    const h=this.hero;for(const k of ['attackCd','invulnerable','slowLeft','smogSlowLeft','hurtFlash'])h[k]=Math.max(0,h[k]-dt);for(const k of Object.keys(this.auto))this.auto[k]=Math.max(0,this.auto[k]-dt);
     this.ultimateRechargeLeft=Math.max(0,this.ultimateRechargeLeft-dt);
     if(this.ultimateEffectLeft>0)this.ultimateEffectLeft=Math.max(0,this.ultimateEffectLeft-dt);
     if(this.banner){this.banner.left-=dt;if(this.banner.left<=0)this.banner=null;}this.shake=Math.max(0,this.shake-dt);
     const facing=norm(input.x||0,input.y||0,h.facing);if(input.x||input.y)h.facing=facing;if(input.ultimate&&this.ultimate>=C.ultimate.max&&this.ultimateEffectLeft<=0)this.useUltimate();
-    const m=Math.hypot(input.x||0,input.y||0),cannonSlow=this.cannon?C.ultimate.cannon.moveMultiplier:1;h.moveX=input.x||0;h.moveY=input.y||0;if(m)this.nav.move(h,input.x/m*C.hero.speed*cannonSlow*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt,input.y/m*C.hero.speed*cannonSlow*(h.slowLeft>0?C.hero.slowMultiplier:1)*dt);
+    const m=Math.hypot(input.x||0,input.y||0),cannonSlow=this.cannon?C.ultimate.cannon.moveMultiplier:1;h.moveX=input.x||0;h.moveY=input.y||0;if(m)this.nav.move(h,input.x/m*C.hero.speed*cannonSlow*Math.min(h.slowLeft>0?C.hero.slowMultiplier:1,h.smogSlowLeft>0?ENEMIES.smog.slowMultiplier:1)*dt,input.y/m*C.hero.speed*cannonSlow*Math.min(h.slowLeft>0?C.hero.slowMultiplier:1,h.smogSlowLeft>0?ENEMIES.smog.slowMultiplier:1)*dt);
     if((this.phase==='wave'||this.phase==='boss')&&h.attackCd===0)this.autoSwing();
     if(this.phase==='travel'&&this.travelTarget&&dist(h,this.travelTarget)<48)this.beginWave(this.stage,this.wave);
     this.updateSpawns(dt);this.updateFollowups(dt);this.updateProjectiles(dt);this.updateAutomaticSkills(dt);this.updateUltimateEffects(dt);this.updateMeteors(dt);this.updateEnemyAreas(dt);this.updateEnemies(dt);this.separateEnemies();this.updateAllies(dt);this.updateRecovery(dt);this.updateEffects(dt);
@@ -151,7 +151,7 @@ export class Game{
       const cam=this.camera();this.enemyProjectiles=this.enemyProjectiles.filter(p=>!this.inCamera(p.pos));this.pushAttack({kind:'ultimate',pos:{x:cam.x+C.width/2,y:cam.y+C.height/2},range:Math.hypot(C.width,C.height)/2,left:d.duration,total:d.duration});
       for(const e of [...this.activeEnemies].filter(e=>this.inCamera(e.pos)))this.damageEnemy(e,this.isBoss(e)?d.bossDamage:d.mobDamage,norm(e.pos.x-this.hero.x,e.pos.y-this.hero.y),22);
     }else{this.ultimateEffectLeft=d.duration;if(id==='blackhole')this.blackholes=[{pos:{x:this.hero.x+this.hero.facing.x*105,y:this.hero.y+this.hero.facing.y*105},left:d.duration,tick:0,hits:new Map(),exploded:false}];if(id==='cannon')this.cannon={dir:copy(this.hero.facing),left:d.duration,tick:0,hits:new Map()};}
-    const details={exit:'画面内の仕事と敵弾を一斉処理！',clones:'8秒間、分身2体が攻撃を再現！',rush:'6秒間、高速全周斬撃＋被害半減！',blackhole:'前方の敵を吸い寄せ、最後に爆発！',cannon:'向いている方向へ太い貫通ビーム！'};
+    const details={exit:'画面内の仕事と敵弾を一斉処理！',clones:'9秒間、分身2体が攻撃を再現！',rush:'6秒間、高速全周斬撃＋被害半減！',blackhole:'前方の敵を吸い寄せ、最後に爆発！',cannon:'向いている方向へ太い貫通ビーム！'};
     this.banner={title:`${d.name}！`,detail:details[id],left:1.35};this.shake=C.screenShake?0.16:0;this.events.push('ultimate');return true;
   }
   updateUltimateEffects(dt){
@@ -332,7 +332,7 @@ export class Game{
     this.hero=Object.assign(this.hero,this.findSafePosition(this.hero,C.radius));for(const e of this.activeEnemies)Object.assign(e.pos,this.findSafePosition(e.pos,e.radius,e===this.boss?80:22));for(const p of this.pickups)Object.assign(p.pos,this.findSafePosition(p.pos,12,25));for(const a of this.allies){Object.assign(a.pos,this.findSafePosition(a.pos,a.radius));a.path=[];a.repath=0;}
     this.banner={title:'組織再編！',detail:'机が動いた。全員を安全な通路へ移動',left:1.4};this.notice='机の配置変更！ 赤い予告を確認';this.events.push('reorg');
   }
-  updateEnemyAreas(dt){for(const a of this.enemyAreas){if(a.kind==='smogPool'&&dist(a.pos,this.hero)<a.radius+C.radius)this.hero.slowLeft=Math.max(this.hero.slowLeft,.15);if(!a.fired){a.left-=dt;if(a.left<=0){a.fired=true;a.effect=.32;if(dist(a.pos,this.hero)<=a.radius)this.damageHero(a.damage,a.pos);this.events.push('danger');}}else a.effect-=dt;}this.enemyAreas=this.enemyAreas.filter(a=>!a.fired||a.effect>0);}
+  updateEnemyAreas(dt){for(const a of this.enemyAreas){if(a.kind==='smogPool'&&dist(a.pos,this.hero)<a.radius+C.radius){this.hero.slowLeft=Math.max(this.hero.slowLeft,.15);this.hero.smogSlowLeft=Math.max(this.hero.smogSlowLeft,ENEMIES.smog.slowLinger);};if(!a.fired){a.left-=dt;if(a.left<=0){a.fired=true;a.effect=.32;if(dist(a.pos,this.hero)<=a.radius)this.damageHero(a.damage,a.pos);this.events.push('danger');}}else a.effect-=dt;}this.enemyAreas=this.enemyAreas.filter(a=>!a.fired||a.effect>0);}
 
   contactHero(e,damage,slow=false){const d=ENEMIES[e.type];if(e.contactLeft>0||dist(e.pos,this.hero)>=e.radius+C.radius)return;e.contactLeft=this.isBoss(e)?0.6:(d?.contactCooldown||.75);if(this.damageHero(damage,e.pos)&&slow)this.hero.slowLeft=C.hero.slowDuration;}
   damageHero(amount,source,cause='enemy'){const h=this.hero;if(h.invulnerable>0)return false;const multiplier=C.incomingDamage[cause]??C.incomingDamage.enemy;amount*=1+(multiplier-1)*C.incomingDamage.stageStrength[this.stage-1];if(this.ultimateChoice==='rush'&&this.ultimateEffectLeft>0)amount*=C.ultimate.rush.damageReduction;amount=Math.round(amount*10)/10;h.energy=Math.max(0,h.energy-amount);h.invulnerable=this.boss&&!this.boss.dead?C.hero.bossHitInvulnerability:C.hero.hitInvulnerability;h.hurtFlash=.25;this.hitsTaken++;this.telemetry.damageByStage[this.stage-1]+=amount;this.telemetry.minEnergy=Math.min(this.telemetry.minEnergy,h.energy);this.shake=C.screenShake?0.12:0;const d=norm(h.x-source.x,h.y-source.y);this.nav.move(h,d.x*16,d.y*16);this.events.push(h.energy<=C.hero.energy*.25?'critical':h.energy<=C.hero.energy*.5?'warning':'hurt');if(h.energy<=C.hero.energy*C.recovery.emergencyThreshold&&!this.emergencyUsed.has(this.stage)){this.emergencyUsed.add(this.stage);this.spawnRecovery(this.stage>=4?'drink':'coffee',this.findSafePosition({x:h.x+70,y:h.y-45},12,35),true);this.notice='緊急補給が近くに出現！';}if(h.energy===0){this.telemetry.defeatedBy=cause;this.finish('energy');}return true;}

@@ -10,3 +10,6 @@ export function drawCombatSprite(ctx,id,x,y,size,{flip=false,alpha=1}={}){
  ctx.drawImage(atlas,(index%7)*cellW,Math.floor(index/7)*cellH,cellW,cellH,-size/2,-size*.68,size,size);ctx.restore();return true;
 }
 export const BOSS_SPRITES=SPRITE_IDS.slice(14);
+
+const allyImages=Object.fromEntries(['healer','striker'].map(kind=>{const img=typeof Image==='undefined'?null:new Image();if(img){img.decoding='async';img.src=new URL(`../assets/ally-${kind}.webp`,import.meta.url).href;}return [kind,img];}));
+export function drawAllySprite(ctx,kind,x,y,size){const img=allyImages[kind];if(!img?.complete||!img.naturalWidth)return false;ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(img,x-size/2,y-size*.72,size,size);ctx.restore();return true;}

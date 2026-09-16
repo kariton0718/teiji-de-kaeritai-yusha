@@ -1,0 +1,16 @@
+{
+  "prompts": [
+    {
+      "id": "ally-healer",
+      "prompt": "Use case: stylized-concept. Create ONE single full-body game character on a completely flat uniform pure electric blue #0000FF background for chroma-key extraction. Square image. Match the reference's polished hand-painted chibi anime office-fantasy RPG style, bold dark outlines, crisp cel shading and easy-to-read silhouette. 3/4 front view slightly from above, looking toward bottom right. One character only, head-to-toe visible, centered in the central 72% of canvas with 14% blank blue margin every side. No text, lettering, ground, shadows, frames, grids, extra people or background objects. Friendly ally, not a demon. Subject: an unmistakably adult, cute, cheerful female office employee in her late 20s. Warm chestnut shoulder-length hair with a small mint hair clip, bright kind brown eyes, warm smile. Ivory blouse with elegant pink bow, modest mint-green cardigan, navy knee-length office skirt, dark tights and practical loafers, employee ID badge. She carries a small tray with a steaming coffee mug and a heart-shaped golden healing charm. Raised free hand conjures compact mint and gold healing sparkles close to her body. Professional and charming, fully clothed, nonsexual, lovable competent colleague. Main colors mint, cream and peach, no pure electric blue on her outfit."
+    },
+    {
+      "id": "ally-striker",
+      "prompt": "Use case: stylized-concept. Create ONE single full-body game character on a completely flat uniform pure electric blue #0000FF background for chroma-key extraction. Square image. Match the reference's polished hand-painted chibi anime office-fantasy RPG style, bold dark outlines, crisp cel shading and easy-to-read silhouette. 3/4 front view slightly from above, looking toward bottom right. One character only, head-to-toe visible, centered in the central 72% of canvas with 14% blank blue margin every side. No text, lettering, ground, shadows, frames, grids, extra people or background objects. Friendly ally, not a demon. Subject: a rugged handsome male veteran office employee in his late 40s, swept-back salt-and-pepper hair, short neat stubble, narrow confident dark eyes, composed half-smile, strong mature face. Rolled ivory shirt sleeves, charcoal waistcoat and suit trousers, loosened burgundy tie, brown leather shoes, employee ID badge. Carrying a hefty futuristic brass-and-charcoal document launcher shaped like an armored briefcase, held across his body in a calm ready stance; a few compact amber energy-paper sparks at its muzzle. Deep brown coat draped over shoulders. Dignified reliable seasoned professional, not a villain, no smoking. Readable bulky weapon silhouette; charcoal, burgundy and warm gold, no pure electric blue."
+    }
+  ],
+  "assets": [
+    "assets/ally-healer.webp",
+    "assets/ally-striker.webp"
+  ]
+}

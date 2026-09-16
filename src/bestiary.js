@@ -26,12 +26,17 @@ const BOSS_COPY=[
 ];
 export const BOSS_PROFILES=C.stages.map((stage,index)=>({id:`boss-${BOSS_COPY[index][0]}`,name:`魔王${stage.rank}`,quote:BOSS_COPY[index][1],description:BOSS_COPY[index][2],image:`assets/bestiary/boss-${BOSS_COPY[index][0]}.webp`,stages:[stage.id]}));
 
+export const ALLY_PROFILES=[
+ {id:'ally-healer',name:'総務の小春',quote:'「少し休憩しましょう♪」',description:'たまに駆けつける回復役。7秒間ついてきて、気力を12ずつ最大3回回復。差し入れのコーヒーで、もうひと頑張り。'},
+ {id:'ally-striker',name:'営業の黒沢',quote:'「ここは俺に任せろ。先に帰れ。」',description:'渋いベテランの攻撃役。8秒間、書類キャノンの3方向貫通弾で援護。助っ人の撃破では必殺ゲージは増えない。'}
+].map(p=>({...p,image:`assets/${p.id}.webp`,stages:C.stages.map(s=>s.id)}));
+
 export function mountBestiary(root){
  const heading=document.createElement('h2');heading.textContent='魔王商事・社員名鑑';root.append(heading);
- const lead=document.createElement('p');lead.className='bestiary-lead';lead.textContent='仕事の魔物13種と、6人の役職魔王。横にスワイプしてチェック。';root.append(lead);
+ const lead=document.createElement('p');lead.className='bestiary-lead';lead.textContent='頼れる助っ人2人、仕事の魔物13種と、6人の役職魔王。横にスワイプしてチェック。';root.append(lead);
  const filters=document.createElement('div');filters.className='bestiary-filters';filters.setAttribute('aria-label','登場フロアで絞り込み');root.append(filters);
  const cards=[];
- function section(title,profiles){const heading=document.createElement('h3');heading.textContent=title;root.append(heading);const rail=document.createElement('div');rail.className='bestiary-rail';rail.tabIndex=0;rail.setAttribute('aria-label',title);root.append(rail);for(const profile of profiles){const card=document.createElement('article');card.className='bestiary-card';const img=document.createElement('img');img.src=profile.image;img.alt=profile.name;img.width=512;img.height=512;img.loading='lazy';img.decoding='async';const name=document.createElement('h4');name.textContent=profile.name;const quote=document.createElement('p');quote.className='bestiary-quote';quote.textContent=profile.quote;const description=document.createElement('p');description.textContent=profile.description;const stages=document.createElement('small');stages.textContent=profile.stages.map(id=>`${id}F ${C.stages[id-1].name}`).join(' / ');card.append(img,name,quote,description,stages);rail.append(card);cards.push({card,profile,rail});}}
- section('仕事の魔物',MOB_PROFILES);section('立ちはだかる役職魔王',BOSS_PROFILES);
+ function section(title,profiles){const heading=document.createElement('h3');heading.textContent=title;root.append(heading);const rail=document.createElement('div');rail.className='bestiary-rail';rail.tabIndex=0;rail.setAttribute('aria-label',title);root.append(rail);for(const profile of profiles){const card=document.createElement('article');card.className='bestiary-card';const img=document.createElement('img');img.src=profile.image;img.alt=profile.name;img.width=512;img.height=512;img.loading='lazy';img.decoding='async';const name=document.createElement('h4');name.textContent=profile.name;const quote=document.createElement('p');quote.className='bestiary-quote';quote.textContent=profile.quote;const description=document.createElement('p');description.textContent=profile.description;const stages=document.createElement('small');stages.textContent=profile.id.startsWith('ally-')?'全フロアにまれに登場・各階最大1人':profile.stages.map(id=>`${id}F ${C.stages[id-1].name}`).join(' / ');card.append(img,name,quote,description,stages);rail.append(card);cards.push({card,profile,rail});}}
+ section('たまに助けに来る社員',ALLY_PROFILES);section('仕事の魔物',MOB_PROFILES);section('立ちはだかる役職魔王',BOSS_PROFILES);
  for(const id of [0,...C.stages.map(s=>s.id)]){const button=document.createElement('button');button.type='button';button.textContent=id?`${id}F ${C.stages[id-1].rank}`:'全フロア';button.setAttribute('aria-pressed',String(id===0));button.addEventListener('click',()=>{for(const b of filters.children)b.setAttribute('aria-pressed',String(b===button));for(const {card,profile,rail} of cards){card.hidden=!!id&&!profile.stages.includes(id);rail.scrollLeft=0;}});filters.append(button);}
 }

@@ -15,3 +15,26 @@
 .bestiary-card small{display:block;margin:12px 12px 0;font-size:11px;line-height:1.8;color:#91b9c5}
 .bestiary :focus-visible{outline:3px solid #89e3f1;outline-offset:2px}
 .board:has(#bestiary:not([hidden])),.dialog:has(#bestiary:not([hidden])){touch-action:pan-x pan-y}
+
+/* Keep the title's horizontal galleries inside the dialog's grid column. */
+.overlay:has(#bestiary:not([hidden])){min-width:0;grid-template-columns:minmax(0,1fr)}
+.dialog:has(#bestiary:not([hidden])){min-width:0;max-width:100%;overflow-x:hidden}
+.bestiary,.bestiary-rail{min-width:0;max-width:100%;box-sizing:border-box}
+.bestiary-card{box-sizing:border-box;overflow-wrap:anywhere}
+@media(max-width:759px){
+  .board:has(#bestiary:not([hidden])){width:100%;height:calc(100dvh - 175px - env(safe-area-inset-bottom));aspect-ratio:auto}
+  .overlay:has(#bestiary:not([hidden])){padding:8px}
+  .dialog:has(#bestiary:not([hidden])){padding:12px 10px;overscroll-behavior-y:contain}
+  .bestiary{margin-top:22px;padding-top:18px}
+  .bestiary h2{font-size:20px;line-height:1.4;margin:0 0 8px;color:#29434e}
+  .bestiary .bestiary-lead{font-size:12px;margin:0 0 12px;color:#405b64}
+  .bestiary h3{margin:16px 0 10px;color:#405b64}
+  .bestiary-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 12px}
+  .bestiary-filters button{min-width:0;padding:6px 2px;font-size:11px}
+  .bestiary-rail{gap:10px;padding:0 0 12px;scroll-padding-inline:0}
+  .bestiary-card{flex:0 0 100%;max-width:100%;scroll-snap-stop:always;padding-bottom:12px}
+  .bestiary-card img{width:min(100%,34svh);height:auto;aspect-ratio:1;margin-inline:auto;object-fit:contain}
+  .bestiary-card h4{font-size:17px;line-height:1.4;margin:10px 12px 6px}
+  .bestiary .bestiary-card p{font-size:12px;line-height:1.6;margin:6px 12px;white-space:normal}
+  .bestiary-card small{font-size:10px;line-height:1.5;margin:8px 12px 0}
+}

@@ -47,7 +47,7 @@ export function render(ctx,g,time=0,effects=true){
     }
     if(e.type==='rankBoss')drawRankWarning(e);
   }
-  function drawRankWarning(e){if(e.state!=='attackWarn')return;const d=C.rankBosses[e.rankIndex],kind=e.attackKind,label={charge:'突進！',summon:'増援！',slam:'連続ハンコ！',shockwave:'衝撃波！',fan:'書類弾！',clone:'コピー！',sweep:'定規薙ぎ！',multi:'連続突進！',crossLaser:'交差レーザー！',surround:'包囲射撃！',beam:'極太レーザー！',floor:'連続床攻撃！',reorg:'組織再編！',sidestep:'横移動→突進！',jumpSlam:'着地点へハンコ！',copyShift:'分身高速移動！',flank:'外周へ移動！',presidentRush:'社長高速移動！'}[kind];
+  function drawRankWarning(e){if(e.state!=='attackWarn')return;const d=g.bossStats(e),kind=e.attackKind,label={droneBarrage:'ドローン連続爆撃！',charge:'突進！',summon:'増援！',slam:'連続ハンコ！',shockwave:'衝撃波！',fan:'書類弾！',clone:'コピー！',sweep:'定規薙ぎ！',multi:'連続突進！',crossLaser:'交差レーザー！',surround:'包囲射撃！',beam:'極太レーザー！',floor:'連続床攻撃！',reorg:'組織再編！',sidestep:'横移動→突進！',jumpSlam:'着地点へハンコ！',copyShift:'分身高速移動！',flank:'外周へ移動！',presidentRush:'社長高速移動！'}[kind];
     if(['charge','multi','beam','crossLaser'].includes(kind)){const end={x:e.pos.x+e.dir.x*(kind==='beam'||kind==='crossLaser'?C.bossAttack.beamRange:430),y:e.pos.y+e.dir.y*(kind==='beam'||kind==='crossLaser'?C.bossAttack.beamRange:430)};line(e.pos,end,'#d1364c45',kind==='beam'?C.bossAttack.beamWidth*(e.bossPhase===3?1.35:1):kind==='crossLaser'?C.bossAttack.beamWidth:58);line(e.pos,end,'#a71935',3,true);if(kind==='crossLaser'){const p={x:-e.dir.y,y:e.dir.x},end2={x:e.pos.x+p.x*C.bossAttack.beamRange,y:e.pos.y+p.y*C.bossAttack.beamRange};line(e.pos,end2,'#d1364c45',C.bossAttack.beamWidth);line(e.pos,end2,'#a71935',3,true);}}
     if(['slam','sweep','floor'].includes(kind))circle(e.pos.x,e.pos.y,kind==='sweep'?(d.sweepRadius||125):(d.areaRadius||110),'#b6385030','#a51f3c',4);if(kind==='fan')for(let i=0;i<d.fanCount;i++){const v=rotate(e.dir,(i-(d.fanCount-1)/2)*d.fanSpread);line(e.pos,{x:e.pos.x+v.x*200,y:e.pos.y+v.y*200},'#9d2053',2,true);}if(e.moveTarget&&['sidestep','jumpSlam','copyShift','flank','presidentRush'].includes(kind)){line(e.pos,e.moveTarget,'#b8226255',34);line(e.pos,e.moveTarget,'#971747',3,true);circle(e.moveTarget.x,e.moveTarget.y,kind==='jumpSlam'?(d.areaRadius||58):25,'#b6385030','#a51f3c',4);text(kind==='jumpSlam'?'着地':'移動先',e.moveTarget.x,e.moveTarget.y-32,'#94132f',10);}text(label,e.pos.x,e.pos.y-e.radius-35,'#94132f',13);}
   function line(a,b,color,width,dash=false){ctx.strokeStyle=color;ctx.lineWidth=width;if(dash)ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);}
@@ -66,10 +66,12 @@ const moving=Math.abs(g.hero.moveX||0)+Math.abs(g.hero.moveY||0)>0,walk=moving?M
   function drawEnemy(e){const p=e.pos,flash=e.flash>0;
     const boss=g.isBoss(e),id=boss?BOSS_SPRITES[e.rankIndex]:e.type;
     const size=boss?(e.rankIndex===6?78:100+e.rankIndex*4):(e.type==='brute'?88:e.type==='guardian'?74:64);
+    const form=boss&&e.bossPhase>=2?C.rankBosses[e.rankIndex].secondForm:null;
+    if(form){circle(p.x,p.y,e.radius+16+Math.sin(time*7)*4,`${form.color}30`,form.color,3);if(e.rankIndex===3){for(const side of [-1,1])line({x:p.x+side*20,y:p.y-35},{x:p.x+side*48,y:p.y-76},'#ffb65d',6);}else{for(let i=0;i<6;i++){const a=time*1.5+i*Math.PI/3,x=p.x+Math.cos(a)*65,y=p.y+Math.sin(a)*37;circle(x,y,9,'#352655','#c5a6ff',2);rect(x-4,y-2,8,4,'#ecdbff');}}if(e.state==='phaseShift')text('覚醒中',p.x,p.y+size*.44,form.color,17);}
     circle(p.x,p.y+8,e.radius,'#33233342',boss?'#b33059':'#a84a5a',boss?2:1);
     if(drawCombatSprite(ctx,id,p.x,p.y+(e.state==='move'?Math.sin(time*8+e.id)*1.1:0),size,{flip:e.dir?.x<0,alpha:flash?.65:1})){
       if(flash)circle(p.x,p.y,e.radius+3,null,'#fff5b3',2);
-      if(boss){const d=C.rankBosses[e.rankIndex];text(`魔王${d.rank}`,p.x,p.y-size*.59,'#742340',13);if(e.weak)text('★ 反撃時間 ★',p.x,p.y+size*.36,'#805914',11);else circle(p.x,p.y,e.radius+8,null,'#d3a851',2);}
+      if(boss){const d=C.rankBosses[e.rankIndex];text(form?`${form.name}・第2形態`:`魔王${d.rank}`,p.x,p.y-size*.75,'#742340',13);if(e.weak)text('★ 反撃時間 ★',p.x,p.y+size*.36,'#805914',11);else circle(p.x,p.y,e.radius+8,null,'#d3a851',2);}
       else if(e.type==='hyena'&&e.stolen)text('回復を取り返せ！',p.x,p.y-47,'#ad3e48',10);
       if(e.type==='guardian'&&e.state!=='recover')circle(p.x+e.dir.x*18,p.y+e.dir.y*18,12,null,'#f1d27c',3);
       if(e.type==='chameleon')circle(p.x,p.y+8,e.radius+2,null,e.mode==='charge'?'#ed862e':'#40c8dc',3);

@@ -8,6 +8,6 @@ test('loaded sprite rendering covers hero, all mobs and every boss without inval
  const {Game}=await import('../src/game.js');const {render}=await import('../src/render.js');const {ENEMIES}=await import('../src/config.js');
  const g=new Game(()=>.4);g.state='playing';g.phase='test';const calls=[];const ctx=new Proxy({globalAlpha:1},{get:(o,key)=>key==='drawImage'?((...a)=>calls.push(a)):o[key]??((...args)=>{for(const a of args)if(typeof a==='number')assert.ok(Number.isFinite(a),String(key));}),set:(o,key,value)=>{o[key]=value;return true;}});
  for(const type of Object.keys(ENEMIES)){g.clearCombat();g.createEnemy(type,{x:200,y:300});render(ctx,g,1,false);}
- for(let i=0;i<7;i++){g.clearCombat();g.loadStage(Math.min(i+1,6));g.secretBossTriggered=i===6;g.state='bossIntro';g.spawnBoss();render(ctx,g,1,false);}
+ for(let i=0;i<7;i++){g.clearCombat();g.loadStage(Math.min(i+1,6));g.secretBossTriggered=i===6;g.state='bossIntro';const boss=g.spawnBoss();render(ctx,g,1,false);if(i===3||i===4){boss.bossPhase=2;boss.state='phaseShift';render(ctx,g,2,false);boss.state='attackWarn';render(ctx,g,3,false);}}
  assert.ok(calls.length>=40);
 });

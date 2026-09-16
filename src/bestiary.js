@@ -20,8 +20,8 @@ const BOSS_COPY=[
  ['leader','「全員、集合！」','横移動からの突進と小隊の増援。最初の指揮官。'],
  ['chief','「承認印を受けろ！」','巨大ハンコで着地し、連続スタンプと衝撃波を放つ。'],
  ['manager','「複写しておいた！」','コピー分身を残して移動。紙の弾幕を広げる。'],
- ['director','「寸法どおりに働け！」','大定規の薙ぎ払いと連続突進。間合いに注意。'],
- ['executive','「ドローン、包囲しろ！」','外周からの交差レーザーと包囲射撃で追い詰める。'],
+ ['director','「寸法どおりに働け！」','体力半分で鬼神部長へ覚醒。赤いオーラと高速三連突進、巨大定規の薙ぎ払いに注意。'],
+ ['executive','「ドローン、包囲しろ！」','体力半分で機動要塞専務へ変形。6機のドローンを展開し、番号順の連続爆撃と交差レーザーで追い詰める。'],
  ['president','「最終決裁を下す！」','玉座機械から極太レーザー。弾幕、床攻撃、机の再配置を操る。']
 ];
 export const BOSS_PROFILES=C.stages.map((stage,index)=>({id:`boss-${BOSS_COPY[index][0]}`,name:`魔王${stage.rank}`,quote:BOSS_COPY[index][1],description:BOSS_COPY[index][2],image:`assets/bestiary/boss-${BOSS_COPY[index][0]}.webp`,stages:[stage.id]}));

@@ -1,0 +1,101 @@
+{
+  "mode": "built-in image_gen",
+  "reference": "assets/title-keyart-v3.webp",
+  "images": [
+    {
+      "id": "slime",
+      "path": "assets/bestiary/slime.webp",
+      "prompt": "Square painterly anime workplace fantasy bestiary: emerald office document slime with employee badge, golden rim light, teal corporate fortress."
+    },
+    {
+      "id": "bat",
+      "path": "assets/bestiary/bat.webp",
+      "prompt": "Square painterly anime workplace fantasy bestiary: purple folded-envelope bat with wax seal, paper wings, golden rim light, teal corporate fortress."
+    },
+    {
+      "id": "ghost",
+      "path": "assets/bestiary/ghost.webp",
+      "prompt": "Square 1:1 premium painterly anime workplace fantasy RPG bestiary portrait. ONE magenta spectral monster built around an old telephone receiver, coiled cord tail, luminous eyes, ringing spectral sparks, employee badge. Complete creature centered, keep 12% margin around entire silhouette. Midnight teal office fortress softly blurred, warm gold rim light and paper sparks, rich confident cinematic linework matching reference. No hero, no readable text, no logo, no collage. Focus on telephone ghost rather than background."
+    },
+    {
+      "id": "brute",
+      "path": "assets/bestiary/brute.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a muscular terracotta-skinned ogre office worker in torn business shirt and necktie, huge deadline ledger and iron briefcase, imposing full body. Entire subject and equipment visible, 12% margins, centered dominant character. Dark teal corporate fortress softly blurred, warm golden rim light, richly detailed confident linework matching reference. No hero, no text, no logo, no collage. Distinct readable silhouette."
+    },
+    {
+      "id": "sentry",
+      "path": "assets/bestiary/sentry.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a hovering teal corporate surveillance drone, one central red camera eye, four metallic fins, brass employee plate, mechanical office security monster. Entire subject and equipment visible, 12% margins, centered dominant character. Dark teal corporate fortress softly blurred, warm golden rim light, richly detailed confident linework matching reference. No hero, no text, no logo, no collage. Distinct readable silhouette."
+    },
+    {
+      "id": "returnBird",
+      "path": "assets/bestiary/returnBird.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a dynamic red-ink origami bird, curved razor-paper boomerang wings made of corrected office documents, red marks without legible letters, glowing amber eyes. Entire subject and signature equipment visible with margins. Single central character. Dark teal corporate corridor softly blurred, warm golden rim light, richly detailed confident linework matching reference. Playful menace and dynamic movement. No hero, no text, no logo, no collage."
+    },
+    {
+      "id": "chair",
+      "path": "assets/bestiary/chair.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a grinning skeleton office employee in a dark suit racing on a five-caster swivel office chair, leaning into a turn, wheels and whole chair clearly visible. Entire subject and signature equipment visible with margins. Single central character. Dark teal corporate corridor softly blurred, warm golden rim light, richly detailed confident linework matching reference. Playful menace and dynamic movement. No hero, no text, no logo, no collage."
+    },
+    {
+      "id": "cc",
+      "path": "assets/bestiary/cc.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a horned purple paper envelope demon, cream folded envelope torso with red wax seal, two little envelope offspring flying at its sides, mischievous glowing eyes, dynamic pose. Whole creature and signature equipment visible, centered composition with generous margins. Dark teal office fortress corridor softly blurred, warm gold rim lighting, paper sparks, confident intricate linework matching reference. No hero, no lettering, no logo, no collage. Distinct silhouette."
+    },
+    {
+      "id": "bomb",
+      "path": "assets/bestiary/bomb.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of an angry red brass alarm-clock monster with little booted legs and a sparking fuse, luminous clock hands, no numerals, comical but threatening. Whole creature and signature equipment visible, centered composition with generous margins. Dark teal office fortress corridor softly blurred, warm gold rim lighting, paper sparks, confident intricate linework matching reference. No hero, no lettering, no logo, no collage. Distinct silhouette."
+    },
+    {
+      "id": "guardian",
+      "path": "assets/bestiary/guardian.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a brass armored office knight wielding a giant red rubber approval stamp and a broad rectangular document shield, ceremonial business necktie, full body, sentinel pose. Complete subject and equipment visible, generous margins, central strong silhouette. Dark teal office fortress softly blurred, warm gold rim light, detailed confident linework matching reference. No hero, no text, no logo, no collage."
+    },
+    {
+      "id": "smog",
+      "path": "assets/bestiary/smog.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a sinister dark violet smoke monster wearing a red necktie and employee badge, luminous lilac eyes, curling oily fog body with a pool of purple mist beneath, no legs. Complete subject and equipment visible, generous margins, central strong silhouette. Dark teal office fortress softly blurred, warm gold rim light, detailed confident linework matching reference. No hero, no text, no logo, no collage."
+    },
+    {
+      "id": "hyena",
+      "path": "assets/bestiary/hyena.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a sly anthropomorphic spotted hyena in disheveled charcoal business suit carrying a leather briefcase and a stolen coffee bottle, grinning as it runs, full body. Whole creature and equipment visible, central readable silhouette with margins. Dark teal corporate corridor softly blurred, amber gold rim light, intricate confident linework matching reference. Stylish, playful menace. No hero, no lettering, no logo, no collage."
+    },
+    {
+      "id": "chameleon",
+      "path": "assets/bestiary/chameleon.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG bestiary illustration of a turquoise and orange chameleon office monster with white shirt collar and employee badge, curling tail and floating paper darts, prismatic changing scales, full body. Whole creature and equipment visible, central readable silhouette with margins. Dark teal corporate corridor softly blurred, amber gold rim light, intricate confident linework matching reference. Stylish, playful menace. No hero, no lettering, no logo, no collage."
+    },
+    {
+      "id": "boss-leader",
+      "path": "assets/bestiary/boss-leader.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of a confident young horned demon team leader in tailored dark green business suit and crimson tie, wielding a large ornate brass megaphone, leaning forward commanding troops, full body. One imposing central character with complete signature weapon and body visible, generous margins. Midnight teal corporate fortress office, gold rim light, sparks and drifting papers. Mature high-detail cinematic anime illustration matching reference. Distinct silhouette, no hero, no text, no logo, no collage."
+    },
+    {
+      "id": "boss-chief",
+      "path": "assets/bestiary/boss-chief.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of a stocky middle-aged horned demon section chief in ochre business suit and waistcoat, wielding an enormous red rubber approval stamp as a two-handed hammer, stubborn scowl, full body. One imposing central character with complete signature weapon and body visible, generous margins. Midnight teal corporate fortress office, gold rim light, sparks and drifting papers. Mature high-detail cinematic anime illustration matching reference. Distinct silhouette, no hero, no text, no logo, no collage."
+    },
+    {
+      "id": "boss-manager",
+      "path": "assets/bestiary/boss-manager.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of an elegant horned demon manager in a violet tailored business suit fused at one arm with a menacing brass copier machine, translucent paper duplicates behind him, calculating smile, full body. Entire main character and equipment visible, generous margins, striking readable silhouette. Midnight teal corporate fortress softly blurred, dramatic amber rim light, flying office papers. Mature cinematic confident detailed linework matching reference. No hero, no readable text, no logo, no collage."
+    },
+    {
+      "id": "boss-director",
+      "path": "assets/bestiary/boss-director.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of a powerful middle-aged horned demon director in a dark burgundy business suit, wielding a gigantic golden metal measuring ruler as a greatsword, fierce warrior stance, full body. Entire main character and equipment visible, generous margins, striking readable silhouette. Midnight teal corporate fortress softly blurred, dramatic amber rim light, flying office papers. Mature cinematic confident detailed linework matching reference. No hero, no readable text, no logo, no collage."
+    },
+    {
+      "id": "boss-executive",
+      "path": "assets/bestiary/boss-executive.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of a stern older horned demon executive with silver slicked-back hair in a tailored midnight navy suit, commanding two teal surveillance drones hovering beside him, composed strategic pose, full body. Single main character and signature equipment completely visible with margins, dramatic readable silhouette. Midnight teal office fortress interior softly blurred, amber gold rim light, glowing machinery, drifting paper. Mature richly detailed confident cinematic linework matching reference. No hero, no readable text, no logo, no collage."
+    },
+    {
+      "id": "boss-president",
+      "path": "assets/bestiary/boss-president.webp",
+      "prompt": "ONE square 1:1 premium painterly anime workplace fantasy RPG boss portrait of an imposing mature horned demon president in black and crimson executive suit seated on an elaborate golden mechanical throne with twin laser emitters, immense corporate authority, full seated body and throne visible. Single main character and signature equipment completely visible with margins, dramatic readable silhouette. Midnight teal office fortress interior softly blurred, amber gold rim light, glowing machinery, drifting paper. Mature richly detailed confident cinematic linework matching reference. No hero, no readable text, no logo, no collage."
+    }
+  ]
+}

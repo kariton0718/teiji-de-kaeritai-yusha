@@ -16,6 +16,17 @@ export const CONFIG=Object.freeze({
   drone:{damage:[0,10,12,15],count:[0,1,2,2],interval:[0,1.15,.9,.62],range:220,shotSpeed:310,radius:7,maxShots:24},projectile:{enemySpeed:132,bossSpeed:152,enemyDamage:11,enemyLife:4,maxEnemy:60,maxWorldRange:580},
   limits:{enemies:64,particles:220,enemyAreas:20},spawnWarning:.68,waveCompleteDelay:.5,groupGap:.12,
   enemies:{slime:{name:'書類束スライム',hp:40,speed:76,damage:16,radius:16,contactCooldown:.82,ult:8},bat:{name:'封筒バット',hp:30,speed:64,damage:15,radius:13,desired:150,shootInterval:2.7,warning:.8,fanByStage:[1,1,2,3,3,4,5],spread:23,ult:10},ghost:{name:'電話ゴースト',hp:50,speed:48,damage:18,radius:18,chargeInterval:3.2,warning:1,chargeSpeed:240,chargeDuration:.58,recovery:.85,ult:12},brute:{name:'締切オーガ',hp:140,speed:41,damage:25,radius:22,areaInterval:2.9,warning:1.25,areaRadius:86,recovery:.8,rangedDistance:150,rangedCount:3,rangedSpread:23,rangedWarning:1,knockResistance:.25,ult:18},sentry:{name:'監視ドローン',hp:58,speed:56,damage:16,radius:15,desired:185,shootInterval:2.25,warning:.9,fanCount:3,spread:30,ult:12}},
+  newEnemies:{
+    returnBird:{name:'差し戻しブーメラン鳥',hp:38,speed:70,damage:16,radius:14,interval:3.1,warning:.85,ult:10},
+    chair:{name:'会議イスライダー',hp:48,speed:65,damage:18,radius:16,interval:3,warning:.95,chargeSpeed:285,ult:10},
+    cc:{name:'CC増殖メール',hp:68,speed:45,damage:13,radius:18,interval:4,warning:1.1,ult:13},
+    bomb:{name:'締切ボム',hp:32,speed:83,damage:24,radius:14,interval:0,warning:1.45,areaRadius:88,ult:9},
+    guardian:{name:'承認待ちガーディアン',hp:100,speed:44,damage:24,radius:20,interval:3.2,warning:1.1,areaRadius:80,ult:15},
+    smog:{name:'残業スモッグ',hp:45,speed:58,damage:12,radius:17,interval:3.8,warning:.9,areaRadius:48,ult:11},
+    hyena:{name:'横取りハイエナ',hp:52,speed:105,damage:15,radius:15,interval:2.4,warning:.8,ult:12},
+    chameleon:{name:'仕様変更カメレオン',hp:72,speed:67,damage:18,radius:17,interval:2.8,warning:1,chargeSpeed:260,ult:14}
+  },
+  horde:{basicMultiplier:1.5,extraByStage:[[{type:'chair',count:3},{type:'bomb',count:3}],[{type:'guardian',count:3},{type:'returnBird',count:3}],[{type:'cc',count:3},{type:'returnBird',count:4},{type:'bomb',count:3}],[{type:'smog',count:3},{type:'chair',count:4},{type:'guardian',count:3}],[{type:'hyena',count:3},{type:'cc',count:3},{type:'smog',count:3}],[{type:'chameleon',count:4},{type:'hyena',count:3},{type:'guardian',count:3},{type:'bomb',count:4}]]},
   danger:{maxConcurrent:3,activeMargin:80},
   secretBoss:{unlockSeconds:240,company:'ノーリターン・コンサルティング'},
   rankBosses:[
@@ -38,6 +49,8 @@ export const CONFIG=Object.freeze({
     {id:6,name:'社長決裁フロア',rank:'社長',rule:'玉座機械の極太レーザーと弾幕を突破せよ。',size:[720,960],start:[8,17],gate:[16,2],desks:[{from:3,to:6,row:13},{from:11,to:14,row:13},{from:7,to:10,row:8},{from:4,to:6,row:19},{from:12,to:14,row:19}],altDesks:[{from:4,to:7,row:11},{from:10,to:13,row:15},{from:4,to:6,row:20},{from:12,to:14,row:7}],waves:[[{type:'slime',count:34},{type:'bat',count:7},{type:'sentry',count:8},{type:'brute',count:4}],[{type:'slime',count:42},{type:'bat',count:8},{type:'ghost',count:6},{type:'sentry',count:8},{type:'brute',count:5}]]}
   ],screenShake:true
 });
+export const ENEMIES=Object.freeze({...CONFIG.enemies,...CONFIG.newEnemies});
+export function stageWaves(stageId){const stage=CONFIG.stages[stageId-1];return stage.waves.map((groups,index)=>[...groups.map(group=>({...group,count:group.type==='slime'?Math.ceil(group.count*CONFIG.horde.basicMultiplier):group.count})),...CONFIG.horde.extraByStage[stageId-1].map(group=>({...group,count:group.count+(index===1?1:0)}))]);}
 export const SKILL_IDS=Object.keys(CONFIG.skills),NEW_SKILL_IDS=SKILL_IDS.filter(id=>id!=='slash'),ULTIMATE_IDS=['exit','clones','rush','blackhole','cannon'];
 export const center=([col,row])=>({x:(col+.5)*CONFIG.tile,y:(row+.5)*CONFIG.tile});export const rotate=(v,degrees)=>{const a=degrees*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return {x:v.x*c-v.y*s,y:v.x*s+v.y*c};};
 export function makeSolids(stageId=1,layout=0){const stage=CONFIG.stages[stageId-1],desks=layout&&stage.altDesks?stage.altDesks:stage.desks,cols=stage.size[0]/CONFIG.tile,rows=stage.size[1]/CONFIG.tile,result=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const wall=col===0||row===0||col===cols-1||row===rows-1,desk=desks.some(d=>row===d.row&&col>=d.from&&col<=d.to);if(wall||desk)result.push({x:col*CONFIG.tile,y:row*CONFIG.tile,w:CONFIG.tile,h:CONFIG.tile,wall,col,row});}return result;}export const solids=makeSolids(1);

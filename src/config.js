@@ -5,7 +5,7 @@ export const CONFIG=Object.freeze({
   incomingDamage:{enemy:1.2,projectile:1.65,laser:1.4,stageStrength:[.35,.5,.75,1,1,1]},
   mobileJoystick:{deadzone:14,radius:46},
   attack:{damage:24,cooldown:.35,duration:.18,knockback:24,followDamage:14,followDelay:.13,aimAssistRange:230,maxVisuals:42,ranges:[64,88,100,112],arcs:[100,145,165,190],fullCircleEvery:4,fullCircleDamage:22,fullCircleRange:146},
-  ultimate:{max:100,invulnerability:.7,
+  ultimate:{max:100,invulnerability:.7,rechargeDelay:2,killGainMultiplier:.8,summonGainMultiplier:.6,
     exit:{name:'本日は退勤します',mobDamage:90,bossDamage:45,duration:.85,gain:1},
     clones:{name:'分身出勤',duration:8,count:2,damageMultiplier:.5,gain:.92,offset:28},
     rush:{name:'定時ラッシュ',duration:6,damageReduction:.5,minCooldown:.16,gain:.88,range:112,damage:24},

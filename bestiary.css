@@ -22,7 +22,7 @@
 .bestiary,.bestiary-rail{min-width:0;max-width:100%;box-sizing:border-box}
 .bestiary-card{box-sizing:border-box;overflow-wrap:anywhere}
 @media(max-width:759px){
-  .board:has(#bestiary:not([hidden])){width:100%;height:calc(100dvh - 175px - env(safe-area-inset-bottom));aspect-ratio:auto}
+  .board:has(#bestiary:not([hidden])){width:100%;height:calc(100dvh - 107px - env(safe-area-inset-bottom));aspect-ratio:auto}
   .overlay:has(#bestiary:not([hidden])){padding:8px}
   .dialog:has(#bestiary:not([hidden])){padding:12px 10px;overscroll-behavior-y:contain}
   .bestiary{margin-top:22px;padding-top:18px}

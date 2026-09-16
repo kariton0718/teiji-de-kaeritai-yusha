@@ -9,6 +9,6 @@ test('screen-clear ultimate cannot recharge itself, including chained bomb kills
 test('all ultimates block gain during effect and recovery, then allow ordinary kills',()=>{
  for(const id of ULTIMATE_IDS){const g=fresh(id);g.ultimate=100;g.useUltimate();g.killEnemy(g.createEnemy('slime',{x:400,y:400}));assert.equal(g.ultimate,0,id);g.ultimateEffectLeft=0;g.ultimateRechargeLeft=.1;g.killEnemy(g.createEnemy('slime',{x:400,y:400}));assert.equal(g.ultimate,0,id);g.update(.1);g.update(.1);g.killEnemy(g.createEnemy('slime',{x:400,y:400}));assert.ok(g.ultimate>0,id);g.reset();assert.equal(g.ultimateRechargeLeft,0);}
 });
-test('summons award less gauge, and pause does not shorten recovery',()=>{
- const g=fresh(),normal=g.createEnemy('slime',{x:100,y:300});g.killEnemy(normal);const normalGain=g.ultimate;g.ultimate=0;const summon=g.createEnemy('slime',{x:100,y:300});summon.bossSummon=true;g.killEnemy(summon);assert.ok(Math.abs(g.ultimate-normalGain*C.ultimate.summonGainMultiplier)<1e-9);g.ultimate=100;g.useUltimate();const remaining=g.ultimateRechargeLeft;g.pause();g.update(5);assert.equal(g.ultimateRechargeLeft,remaining);
+test('summons award less gauge, and recharge delay decreases during gameplay',()=>{
+ const g=fresh(),normal=g.createEnemy('slime',{x:100,y:300});g.killEnemy(normal);const normalGain=g.ultimate;g.ultimate=0;const summon=g.createEnemy('slime',{x:100,y:300});summon.bossSummon=true;g.killEnemy(summon);assert.ok(Math.abs(g.ultimate-normalGain*C.ultimate.summonGainMultiplier)<1e-9);g.ultimate=100;g.useUltimate();const remaining=g.ultimateRechargeLeft;g.update(.1);assert.ok(g.ultimateRechargeLeft<remaining);
 });

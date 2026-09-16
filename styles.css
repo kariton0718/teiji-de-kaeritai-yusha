@@ -12,10 +12,7 @@
 @media(max-width:759px) and (max-height:650px){.hud{height:60px}.board{width:min(100vw,calc((100dvh - 99px)*.75));height:min(calc(100vw * 4 / 3),calc(100dvh - 99px))}.story-art{height:120px}.dialog-logo{height:52px}.title-cast{height:42px}.dialog p,.story-card p{line-height:1.5}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* Pause is outside the movement surface, beyond the non-interactive status strip. */
-.pause-dock{display:flex;justify-content:center;flex:0 0 auto;padding:12px 16px max(12px,env(safe-area-inset-bottom));background:#102831;border-top:1px solid #40585f}
-.pause-dock #pause{min-height:44px;padding:10px 24px;border-radius:8px;background:#304851;color:#cbd8d5;font-size:12px;touch-action:manipulation}
-.pause-dock #pause:disabled{opacity:.35;cursor:default}
+
 
 /* Each source is a 1200x675 2x2 sheet. Preserve its ratio and crop, never squash. */
 .story-overlay{position:fixed;inset:0;z-index:50;touch-action:pan-y}
@@ -29,9 +26,8 @@
 .story-card h2{margin-top:12px}.story-card p{font-size:14px;line-height:1.8}
 @media(max-width:759px){
   .hud{flex-shrink:0;height:68px}.time-track{flex-shrink:0}
-  .board{width:min(100vw,440px,calc((100dvh - 175px - env(safe-area-inset-bottom))*.75));height:auto;aspect-ratio:3/4}
+  .board{width:min(100vw,440px,calc((100dvh - 107px - env(safe-area-inset-bottom))*.75));height:auto;aspect-ratio:3/4}
   .status{flex:0 0 36px;padding-bottom:5px}
-  .pause-dock{margin-top:auto}
   .story-card{max-width:100%;padding-bottom:max(16px,env(safe-area-inset-bottom))}
   .story-card h2{font-size:21px;margin:12px 18px 8px}
   .story-card p{font-size:14px;padding:0 20px;margin-bottom:16px}

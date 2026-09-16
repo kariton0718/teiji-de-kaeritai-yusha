@@ -14,12 +14,7 @@ test('title uses new square key art and readable SVG logo',()=>{
   const logo=readFileSync(new URL('../assets/title-logo-v3.svg',import.meta.url),'utf8');
   assert.match(logo,/>定時で帰りたい<\/text>/);assert.match(logo,/>勇者<\/text>/);
 });
-test('pause is unique and in an external dock after the status strip',()=>{
-  assert.equal((html.match(/id="pause"/g)||[]).length,1);
-  assert.ok(html.indexOf('class="pause-dock"')>html.indexOf('id="status"'));
-  assert.match(html,/<nav class="pause-dock"[^>]*><button id="pause"/);
-  assert.doesNotMatch(html.match(/<div class="hud-buttons">.*?<\/div>/)[0],/id="pause"/);
-});
+test('pause controls are absent',()=>{assert.doesNotMatch(html,/id="pause"|pause-dock/);});
 test('square story crop preserves source aspect ratio in all four panels',()=>{
   const square=css.slice(css.indexOf('/* Each source'));
   assert.match(square,/aspect-ratio:1;height:auto;max-height:none/);

@@ -10,7 +10,7 @@ const shuffled=(items,random)=>{const a=[...items];for(let i=a.length-1;i>0;i--)
 export class Game{
   constructor(random=Math.random){this.random=random;this.reset();}
   reset(){
-    this.state='title';this.resumeState='playing';this.phase='title';this.outcome=null;this.reason=null;
+    this.state='title';this.phase='title';this.outcome=null;this.reason=null;
     this.remaining=C.timeLimit;this.elapsed=0;this.stage=1;this.wave=0;this.waveElapsed=0;this.waveClearLeft=0;this.clearedWaves=0;this.upgradeCount=0;
     this.skills=Object.fromEntries(SKILL_IDS.map(id=>[id,0]));this.ultimateChoice=null;this.ultimate=0;this.ultimateEffectLeft=0;this.ultimateRechargeLeft=0;this.blackholes=[];this.cannon=null;
     this.hero={...center(C.stages[0].start),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,invulnerable:0,slowLeft:0,hurtFlash:0};
@@ -52,8 +52,6 @@ export class Game{
     this.ultimateChoice=id;this.loadStage(1,true);this.state='stageIntro';this.phase='stageIntro';this.notice=`必殺技：${this.selectedUltimate.name}`;return true;
   }
   enterStage(){if(this.state==='stageIntro')this.beginWave(this.stage,1);}
-  pause(){if(this.state==='playing'){this.resumeState='playing';this.state='paused';}}
-  resume(){if(this.state==='paused')this.state=this.resumeState;}
 
   startTravel(wave){this.state='playing';this.phase='travel';this.wave=wave;this.travelTarget=center(this.stageConfig.arenas[wave-1]);this.notice=`矢印の先へ移動：戦闘エリア ${wave}/2`;this.banner={title:this.stageName,detail:'目的地へ入ると戦闘開始',left:2};}
   beginWave(stage,wave){

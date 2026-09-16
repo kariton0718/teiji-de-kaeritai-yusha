@@ -28,7 +28,7 @@ export const BOSS_PROFILES=C.stages.map((stage,index)=>({id:`boss-${BOSS_COPY[in
 
 export const ALLY_PROFILES=[
  {id:'ally-healer',name:'総務の小春',quote:'「少し休憩しましょう♪」',description:'たまに駆けつける回復役。7秒間ついてきて、気力を12ずつ最大3回回復。差し入れのコーヒーで、もうひと頑張り。'},
- {id:'ally-striker',name:'営業の黒沢',quote:'「ここは俺に任せろ。先に帰れ。」',description:'渋いベテランの攻撃役。8秒間、書類キャノンの3方向貫通弾で援護。助っ人の撃破では必殺ゲージは増えない。'}
+ {id:'ally-striker',name:'営業の黒沢',quote:'「ここは俺に任せろ。先に帰れ。」',description:'渋いベテランの攻撃役。10秒間、書類キャノンの5方向貫通弾を高速連射。射程も長く、敵の群れをまとめて押し返す。助っ人の撃破では必殺ゲージは増えない。'}
 ].map(p=>({...p,image:`assets/${p.id}.webp`,stages:C.stages.map(s=>s.id)}));
 
 export function mountBestiary(root){

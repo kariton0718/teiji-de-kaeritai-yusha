@@ -357,7 +357,7 @@ export class Game{
     const data=C.allies[kind];if(!data||this.allies.length||this.state!=='playing')return false;
     const pos=this.findSafePosition({x:this.hero.x-55,y:this.hero.y+40},12,28);
     this.allies.push({kind,pos,radius:12,path:[],repath:0,left:data.duration,cooldown:0,pulses:0});
-    this.banner={title:`${data.name}が応援に来た！`,detail:kind==='healer'?'「少し休憩しましょう♪」 気力を3回回復':'「ここは俺に任せろ」 8秒間の援護射撃',left:2.5};this.events.push('heal');return true;
+    this.banner={title:`${data.name}が応援に来た！`,detail:kind==='healer'?'「少し休憩しましょう♪」 気力を3回回復':'「ここは俺に任せろ」 10秒間の全力援護！',left:2.5};this.events.push('heal');return true;
   }
   damageEnemyFromAlly(enemy,damage,dir){
     const previous=this.suppressUltimateGain;this.suppressUltimateGain=true;
@@ -375,7 +375,7 @@ export class Game{
       }else{
         const target=this.activeEnemies.filter(e=>dist(ally.pos,e.pos)<data.range&&this.nav.clearLine(ally.pos,e.pos,6)).sort((a,b)=>dist(ally.pos,a.pos)-dist(ally.pos,b.pos))[0];if(!target)continue;
         ally.cooldown=data.interval;const dir=norm(target.pos.x-ally.pos.x,target.pos.y-ally.pos.y);
-        for(const angle of [-12,0,12]){if(this.heroProjectiles.length>=C.reply.max)break;this.heroProjectiles.push({kind:'allyPaper',pos:copy(ally.pos),dir:rotate(dir,angle),speed:data.speed,life:data.range/data.speed,radius:7,damage:data.damage,pierce:data.pierce,hit:new Set(),noUltimateGain:true});}
+        for(const angle of data.angles){if(this.heroProjectiles.length>=C.reply.max)break;this.heroProjectiles.push({kind:'allyPaper',pos:copy(ally.pos),dir:rotate(dir,angle),speed:data.speed,life:data.range/data.speed,radius:7,damage:data.damage,pierce:data.pierce,hit:new Set(),noUltimateGain:true});}
         this.events.push('shoot');
       }
     }

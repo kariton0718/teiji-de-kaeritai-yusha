@@ -3,7 +3,7 @@ export const CONFIG=Object.freeze({
   width:480,height:640,tile:40,radius:12,timeLimit:540,startMinute:1065,deadlineMinute:1080,maxDelta:.1,step:1/120,
   hero:{energy:100,speed:170,hitInvulnerability:1.2,bossHitInvulnerability:1.5,slowDuration:.5,slowMultiplier:.68,stageHealRatio:0},
   incomingDamage:{enemy:1.2,projectile:1.65,laser:1.4,stageStrength:[.35,.5,.75,1,1,1]},
-  allies:{chance:.38,requiredKills:8,speed:195,healer:{name:'総務の小春',duration:7,interval:2,pulses:3,heal:12},striker:{name:'営業の黒沢',duration:8,interval:.9,damage:18,range:260,speed:310,pierce:3}},
+  allies:{chance:.38,requiredKills:8,speed:195,healer:{name:'総務の小春',duration:7,interval:2,pulses:3,heal:12},striker:{name:'営業の黒沢',duration:10,interval:.5,damage:28,range:360,speed:390,pierce:5,angles:[-16,-8,0,8,16]}},
   mobileJoystick:{deadzone:14,radius:46},
   attack:{damage:24,cooldown:.35,duration:.18,knockback:24,followDamage:14,followDelay:.13,aimAssistRange:230,maxVisuals:42,ranges:[64,88,100,112],arcs:[100,145,165,190],fullCircleEvery:4,fullCircleDamage:22,fullCircleRange:146},
   ultimate:{max:100,invulnerability:.7,rechargeDelay:2,killGainMultiplier:.8,summonGainMultiplier:.6,

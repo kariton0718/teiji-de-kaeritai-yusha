@@ -18,10 +18,18 @@ test('healer restores at most 36, clamps energy, freezes in menus and expires',(
  g.finish('energy');assert.equal(g.allies.length,0);g.reset();assert.equal(g.allyRolledStages.size,0);
 });
 test('striker fires bounded piercing volleys only at visible targets and ends on transition',()=>{
- const g=fresh();g.spawnAlly('striker');assert.equal(g.spawnAlly('healer'),false);g.allies[0].pos={x:200,y:300};const e=g.createEnemy('slime',{x:240,y:300});e.pos={x:240,y:300};g.nav.clearLine=()=>false;g.updateAllies(.01);assert.equal(g.heroProjectiles.length,0);g.nav.clearLine=()=>true;g.updateAllies(.01);assert.equal(g.heroProjectiles.length,3);assert.ok(g.heroProjectiles.every(p=>p.noUltimateGain&&p.pierce===3));g.isBlocked=()=>false;for(let i=0;i<10;i++)g.updateProjectiles(.01);assert.ok(e.hp<e.maxHp);assert.equal(g.ultimate,0);
+ const g=fresh();g.spawnAlly('striker');assert.equal(g.spawnAlly('healer'),false);g.allies[0].pos={x:200,y:300};const e=g.createEnemy('slime',{x:240,y:300});e.pos={x:240,y:300};g.nav.clearLine=()=>false;g.updateAllies(.01);assert.equal(g.heroProjectiles.length,0);g.nav.clearLine=()=>true;g.updateAllies(.01);assert.equal(g.heroProjectiles.length,5);assert.ok(g.heroProjectiles.every(p=>p.noUltimateGain&&p.pierce===5));g.isBlocked=()=>false;for(let i=0;i<10;i++)g.updateProjectiles(.01);assert.ok(e.hp<e.maxHp);assert.equal(g.ultimate,0);
  g.allies[0].cooldown=0;g.heroProjectiles=Array(C.reply.max).fill({});g.updateAllies(.1);assert.equal(g.heroProjectiles.length,C.reply.max);g.clearCombat();assert.equal(g.allies.length,0);
 });
 test('ally chain explosions do not charge ultimates; subsequent hero kills still do',()=>{
  const g=fresh();g.phase='test';const bomb=g.createEnemy('bomb',{x:200,y:300}),slime=g.createEnemy('slime',{x:205,y:300});bomb.pos={x:200,y:300};slime.pos={x:205,y:300};g.damageEnemyFromAlly(bomb,100,{x:1,y:0});assert.ok(bomb.dead&&slime.dead);assert.equal(g.ultimate,0);assert.equal(g.suppressUltimateGain,false);g.killEnemy(g.createEnemy('slime',{x:300,y:300}));assert.ok(g.ultimate>0);
 });
 test('public ally portraits exist and cover all six stages without secret characters',()=>{assert.equal(ALLY_PROFILES.length,2);for(const p of ALLY_PROFILES){assert.ok(existsSync(p.image));assert.deepEqual(p.stages,[1,2,3,4,5,6]);assert.ok(!p.id.includes('auditor'));}});
+
+test('striker reaches distant groups and clears a close threat without ultimate gain',()=>{
+ const g=fresh();g.phase='test';g.isBlocked=()=>false;g.nav.move=()=>{};g.spawnAlly('striker');g.allies[0].pos={x:200,y:300};
+ const distant=g.createEnemy('slime',{x:200,y:600});distant.pos={x:200,y:600};g.updateAllies(.01);assert.equal(g.heroProjectiles.length,5);g.heroProjectiles=[];distant.dead=true;
+ const enemies=[-10,0,10].map(offset=>{const e=g.createEnemy('slime',{x:240,y:300+offset});e.pos={x:240,y:300+offset};return e;});g.allies[0].cooldown=0;
+ for(let i=0;i<100;i++){g.updateAllies(.01);g.updateProjectiles(.01);}assert.ok(enemies.every(e=>e.dead));assert.equal(g.ultimate,0);assert.ok(g.heroProjectiles.length<=C.reply.max);
+ for(let i=0;i<1000;i++)g.updateAllies(.01);assert.equal(g.allies.length,0);
+});

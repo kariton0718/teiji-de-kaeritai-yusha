@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>2人協力・試作 | 定時で帰りたい勇者</title><link rel="stylesheet" href="coop.css"></head>
+<body><main class="coop-shell">
+<header><a href="index.html">← 1人用へ</a><b>2人で定時退勤 <small>協力プレイ試作</small></b><button id="sound" aria-pressed="false">音 OFF</button></header>
+<section id="lobby" class="lobby">
+<img class="logo" src="assets/title-logo-v3.svg" alt="定時で帰りたい勇者">
+<h1>今日は、一緒に帰ろう。</h1><p>友達と2人で、2ウェーブ＋魔王リーダー戦。<br>移動・自動攻撃・必殺技で力を合わせよう。</p>
+<label for="ultimate-select">あなたの必殺技</label><select id="ultimate-select"></select><p id="ultimate-help" class="help"></p>
+<div class="lobby-actions"><button id="create" class="primary">部屋を作る</button><button id="join" class="primary" hidden>この部屋に参加する</button></div>
+<p id="network-status" role="status" aria-live="polite">部屋を作って、招待URLを友達に送ろう。</p>
+<div id="invite-panel" hidden><label for="invite-url">友達に送る招待URL</label><input id="invite-url" readonly><button id="copy">招待URLをコピー</button><button id="share" hidden>招待URLを共有</button></div>
+<button id="ready" class="primary" hidden>準備OK！</button><button id="start" class="primary" hidden disabled>2人で出発！</button><button id="cancel" hidden>部屋を閉じる</button>
+<div class="instructions"><strong>協力プレイのコツ</strong><p>青が1P、金色が2P。気力が尽きた仲間に近づき、3秒そばにいると救助できます。強化はそれぞれ選び、最後は2人で右上のゲートへ。</p><p>PC：方向キー／WASDで移動、K／Iで必殺。スマホ：ステージをなぞって移動、右下で必殺。攻撃は自動です。</p></div>
+<small class="network-note">試作版です。遊ぶ間は2人ともこの画面を開いたままにしてください。一部のWi-Fi・携帯回線では接続できません。つながらない場合は回線を変えてお試しください。音声・カメラは使いません。</small>
+</section>
+<section id="play" hidden>
+<div class="party-hud"><div id="player0" class="player-panel"></div><div id="player1" class="player-panel"></div></div>
+<div class="battle-status"><b id="stage-label">WAVE 1</b><span id="timer">4:00</span><span id="connection-label">接続中</span></div>
+<div id="board" class="board"><canvas id="game" width="480" height="640" tabindex="0" aria-label="協力プレイのステージ。ドラッグで移動"></canvas><div id="joystick-base" hidden><div id="joystick-knob"></div></div><button id="ultimate" class="ultimate" data-input="ultimate"><b>必殺</b><small id="ult-label">準備中</small></button><div id="modal" class="modal" hidden><section><h2 id="modal-heading"></h2><p id="modal-text"></p><div id="choices"></div><button id="return" hidden>部屋選択に戻る</button></section></div></div>
+<p id="battle-help" class="battle-help">画面をなぞって移動・攻撃は自動</p><button id="leave" class="leave">協力プレイを終了</button>
+</section></main><script type="module" src="src/coop/main.js"></script></body></html>

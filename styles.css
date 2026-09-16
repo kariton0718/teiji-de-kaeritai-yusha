@@ -36,7 +36,7 @@
 
 /* Four square true-ending panels, preserved without stretching or cropping. */
 .story-art.square-sheet{aspect-ratio:1;height:auto;max-height:none;flex:0 0 auto;border-bottom:0}
-.story-art.square-sheet img{width:200%;height:200%;object-fit:fill;max-width:none;left:0;top:0;transform:none}
+.story-art.square-sheet img{position:absolute;width:200%;height:200%;object-fit:fill;max-width:none;left:0;top:0;transform:none}
 .story-art.square-sheet.q2 img{left:-100%}
 .story-art.square-sheet.q3 img{top:-100%}
 .story-art.square-sheet.q4 img{left:-100%;top:-100%}

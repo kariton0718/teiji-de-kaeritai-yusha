@@ -38,3 +38,12 @@
   .bestiary .bestiary-card p{font-size:12px;line-height:1.6;margin:6px 12px;white-space:normal}
   .bestiary-card small{font-size:10px;line-height:1.5;margin:8px 12px 0}
 }
+
+/* Explicit swipe affordance, also usable by touch, mouse and keyboard. */
+.bestiary-navigation{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 8px 10px;padding:8px;background:#183641;border:1px solid #9d834f;border-radius:10px}
+.bestiary-navigation button{min-width:68px;min-height:44px;padding:8px 10px;background:#efd18b;color:#182f3a;border:1px solid #ffe5ab;border-radius:7px;font-size:13px;font-weight:bold;cursor:pointer;touch-action:manipulation}
+.bestiary-navigation button:disabled{opacity:.35;cursor:default}
+.bestiary-position{text-align:center;color:#ffe5ab;line-height:1.4;min-width:0}
+.bestiary-position b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.bestiary-position small{display:block;font-size:11px;color:#dbe7e8}
+@media(max-width:759px){.bestiary-navigation{margin-inline:0;gap:4px;padding:6px}.bestiary-navigation button{min-width:60px;padding:8px 6px;font-size:12px}.bestiary-position small{font-size:10px}}

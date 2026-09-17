@@ -1,0 +1,12 @@
+{
+  "tool": "built-in image_gen",
+  "prompts": [
+    "Use case: stylized-concept. Asset type: single collectible icon for a Japanese fantasy office action RPG. One unmistakable rectangular chocolate bar, brown chocolate exposed in upper two thirds with six chunky raised chocolate squares (2 columns by 3 rows); bottom third wrapped in bright crimson paper and a folded silver foil rim. Front view slightly tilted, bold dark outline, polished hand-painted anime game item shading, very simple silhouette readable at 40 pixels. Single object centered filling 80% of a square canvas. Genuinely transparent background, no scenery, no cast shadow outside object, no text, no lettering, no branding, no sparkles.",
+    "Use case: stylized-concept. Asset type: single collectible icon for a Japanese fantasy office action RPG. One unmistakable large triangular Japanese rice ball onigiri, white rice with rounded triangular corners, wide black-green nori seaweed rectangle wrapped around bottom middle, tiny rice grain details, warm cream highlights, bold dark outline. Front view, polished hand-painted anime game item shading, very simple silhouette readable at 40 pixels. Single object centered filling 80% of square canvas. Genuinely transparent background, no plate, no scenery, no cast shadow outside object, no text, no lettering, no branding, no sparkles."
+  ],
+  "assets": [
+    "assets/items/chocolate.webp",
+    "assets/items/onigiri.webp"
+  ],
+  "processing": "192x192 WebP with alpha retained; ImageMagick conversion quality 88"
+}

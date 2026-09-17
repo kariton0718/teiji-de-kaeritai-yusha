@@ -18,7 +18,7 @@ export class Game{
     this.hero={...center(C.stages[0].start),energy:C.hero.energy,facing:{x:0,y:-1},attackCd:0,attackCount:0,invulnerable:0,slowLeft:0,smogSlowLeft:0,hurtFlash:0};
     this.offers=[];this.upgradeType=null;this.afterUpgrade=null;this.layoutIndex=0;this.loadStage(1,false);
     this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];
-    this.particles=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();this.auto={thunder:0,meteor:0,boomerang:0,drone:0};
+    this.meetingWaves=[];this.particles=[];this.thunders=[];this.meteors=[];this.enemyAreas=[];this.orbitHits=new Map();this.auto={thunder:0,meteor:0,boomerang:0,drone:0};
     this.kills=0;this.hitsTaken=0;this.pickups=[];this.floatingTexts=[];this.secretBossTriggered=false;this.secretBossDefeated=false;this.exitArrivalTime=null;this.gateOpen=false;this.elevatorPending=false;this.travelTarget=null;
     this.banner=null;this.notice='Enterで操作説明へ';this.events=[];this.nextEnemyId=1;this.shake=0;this.healFreeze=0;this.boss=null;this.bossReports=[];this.transitionHeal=0;this.pendingBossRecovery=false;this.emergencyUsed=new Set();
     this.telemetry={damageByStage:Array(6).fill(0),healed:0,minEnergy:C.hero.energy,defeatedBy:null,ultimateUses:0};
@@ -147,7 +147,7 @@ export class Game{
   }
   fireBoomerang(){const level=this.skills.boomerang,d=copy(this.hero.facing);this.heroProjectiles.push({kind:'boomerang',pos:{x:this.hero.x+d.x*20,y:this.hero.y+d.y*20},dir:d,origin:copy(this.hero),travel:0,returning:false,life:4,radius:C.boomerang.radius[level],damage:C.boomerang.damage[level],range:C.boomerang.range[level],outHits:new Set(),backHits:new Set()});this.heroProjectiles=this.heroProjectiles.slice(-C.reply.max);}
   clonePositions(){if(!(this.ultimateChoice==='clones'&&this.ultimateEffectLeft>0))return [];const f=this.hero.facing,p={x:-f.y,y:f.x},o=C.ultimate.clones.offset;return [{x:this.hero.x+p.x*o-f.x*12,y:this.hero.y+p.y*o-f.y*12},{x:this.hero.x-p.x*o-f.x*12,y:this.hero.y-p.y*o-f.y*12}];}
-  dronePositions(){const level=this.skills.drone;if(!level)return [];const count=C.drone.count[level],base=this.elapsed*2.1;return Array.from({length:count},(_,i)=>({x:this.hero.x+Math.cos(base+i*Math.PI*2/count)*34,y:this.hero.y+Math.sin(base+i*Math.PI*2/count)*34,index:i}));}
+
   useUltimate(){
     if(this.state!=='playing'||!this.ultimateChoice||this.ultimate<C.ultimate.max||this.ultimateEffectLeft>0||this.ultimateRechargeLeft>0)return false;
     const id=this.ultimateChoice,d=C.ultimate[id];this.ultimateEffectLeft=d.duration;this.ultimateRechargeLeft=d.duration+C.ultimate.rechargeDelay;this.ultimate=0;this.telemetry.ultimateUses++;this.hero.invulnerable=Math.max(this.hero.invulnerable,C.ultimate.invulnerability);
@@ -166,22 +166,32 @@ export class Game{
   updateFollowups(dt){for(const f of this.followups)f.left-=dt;for(const f of this.followups.filter(f=>f.left<=0))this.swing(true,f.dir);this.followups=this.followups.filter(f=>f.left>0);for(const a of this.attacks)a.left-=dt;this.attacks=this.attacks.filter(a=>a.left>0);}
 
   updateAutomaticSkills(dt){
-    this.updateShredder(dt);const enemies=this.activeEnemies;if(!enemies.length)return;
+    this.updateThunder(dt);this.updateMeetingWaves(dt);this.updateShredder(dt);const enemies=this.activeEnemies;if(!enemies.length)return;
     const tl=this.skills.thunder;if(tl&&this.auto.thunder<=0){this.castThunder(tl);this.auto.thunder=C.thunder.interval[tl];}
     const ml=this.skills.meteor;if(ml&&this.auto.meteor<=0){this.castMeteor(ml);this.auto.meteor=C.meteor.interval[ml];}
-    const dl=this.skills.drone;if(dl&&this.auto.drone<=0){this.fireDrone(dl);this.auto.drone=C.drone.interval[dl];}
+    const dl=this.skills.drone;if(dl&&this.auto.drone<=0){this.castMeetingWave(dl);this.auto.drone=C.meetingWave.interval[dl];}
   }
   orbitPositions(){const level=this.skills.shredder;if(!level)return [];const count=C.shredder.blades[level],radius=C.shredder.radius[level],base=this.elapsed*3.7;return Array.from({length:count},(_,i)=>({x:this.hero.x+Math.cos(base+i*Math.PI*2/count)*radius,y:this.hero.y+Math.sin(base+i*Math.PI*2/count)*radius,index:i}));}
   updateShredder(dt){for(const [k,v] of this.orbitHits)this.orbitHits.set(k,v-dt);for(const [k,v] of this.orbitHits)if(v<=0)this.orbitHits.delete(k);for(const b of this.orbitPositions()){if(this.isBlocked(b.x,b.y,C.shredder.size))continue;for(const e of [...this.activeEnemies]){const key=`${b.index}:${e.id}`;if(!this.orbitHits.has(key)&&dist(b,e.pos)<=C.shredder.size+e.radius&&this.clearLine(this.hero,e.pos)){this.orbitHits.set(key,C.shredder.hitInterval);this.damageEnemy(e,C.shredder.damage,norm(e.pos.x-b.x,e.pos.y-b.y),5);}}}}
   castThunder(level){
-    const available=this.activeEnemies.filter(e=>dist(this.hero,e.pos)<=C.thunder.range),used=new Set();for(let bolt=0;bolt<C.thunder.bolts[level];bolt++){let current=available.filter(e=>!used.has(e.id)).sort((a,b)=>dist(this.hero,a.pos)-dist(this.hero,b.pos))[0];if(!current)continue;let from=copy(this.hero);for(let c=0;c<C.thunder.chains[level]&&current;c++){used.add(current.id);this.thunders.push({from:copy(from),to:copy(current.pos),left:C.thunder.effect});this.damageEnemy(current,C.thunder.damage,{x:0,y:1},0);from=copy(current.pos);current=this.activeEnemies.filter(e=>!used.has(e.id)&&dist(from,e.pos)<=C.thunder.chainRange).sort((a,b)=>dist(from,a.pos)-dist(from,b.pos))[0];}}
-    this.thunders=this.thunders.slice(-C.thunder.maxEffects);this.events.push('thunder');
+    const available=this.activeEnemies.filter(e=>dist(this.hero,e.pos)<=C.thunder.range),used=new Set();
+    for(let bolt=0;bolt<C.thunder.bolts[level];bolt++){
+      let current=available.filter(e=>!used.has(e.id)).sort((a,b)=>dist(this.hero,a.pos)-dist(this.hero,b.pos))[0],from=null;
+      for(let chain=0;chain<C.thunder.chains[level]&&current;chain++){
+        used.add(current.id);this.thunders.push({from:from?copy(from):null,to:copy(current.pos),targetId:current.id,order:chain+1,delay:chain*C.thunder.chainDelay,left:C.thunder.effect,struck:false});
+        from=copy(current.pos);current=this.activeEnemies.filter(e=>!used.has(e.id)&&dist(from,e.pos)<=C.thunder.chainRange).sort((a,b)=>dist(from,a.pos)-dist(from,b.pos))[0];
+      }
+    }
+    this.thunders=this.thunders.slice(-C.thunder.maxEffects);this.updateThunder(0);
   }
+  updateThunder(dt){for(const t of this.thunders){if(t.struck)continue;t.delay-=dt;if(t.delay>0)continue;t.struck=true;const target=this.activeEnemies.find(e=>e.id===t.targetId);if(!target){t.left=0;continue;}t.to=copy(target.pos);this.damageEnemy(target,C.thunder.damage,{x:0,y:1},0);this.events.push('thunder');}}
   castMeteor(level){
     const enemies=this.activeEnemies.filter(e=>this.inCamera(e.pos,40)),count=Math.min(C.meteor.count[level],enemies.length),chosen=[];for(let i=0;i<count;i++){const target=enemies.filter(e=>!chosen.includes(e)).sort((a,b)=>enemies.filter(e=>dist(b.pos,e.pos)<90).length-enemies.filter(e=>dist(a.pos,e.pos)<90).length)[0];if(!target)break;chosen.push(target);enemies.splice(enemies.indexOf(target),1);this.meteors.push({pos:copy(target.pos),radius:C.meteor.radius[level],damage:C.meteor.damage,left:C.meteor.warning,effect:0,fired:false});}
     this.meteors=this.meteors.slice(-C.meteor.max);this.events.push('meteor');
   }
-  fireDrone(level){for(const p of this.dronePositions()){const target=this.activeEnemies.filter(e=>dist(p,e.pos)<=C.drone.range&&this.clearLine(p,e.pos)).sort((a,b)=>dist(p,a.pos)-dist(p,b.pos))[0];if(target){const d=norm(target.pos.x-p.x,target.pos.y-p.y);this.heroProjectiles.push({kind:'drone',pos:copy(p),dir:d,life:1.2,radius:C.drone.radius,damage:C.drone.damage[level],pierce:1,hit:new Set(),speed:C.drone.shotSpeed});}}this.heroProjectiles=this.heroProjectiles.slice(-C.reply.max);}
+  castMeetingWave(level){const d=C.meetingWave;this.meetingWaves.push({pos:copy(this.hero),radius:d.radius[level],damage:d.damage[level],knock:d.knock[level],left:d.duration,hit:new Set()});this.meetingWaves=this.meetingWaves.slice(-d.maxEffects);this.events.push('burst');}
+  updateMeetingWaves(dt){for(const wave of this.meetingWaves){wave.left=Math.max(0,wave.left-dt);const reach=wave.radius*(1-wave.left/C.meetingWave.duration);for(const e of [...this.activeEnemies]){if(!wave.hit.has(e.id)&&dist(wave.pos,e.pos)<=reach+e.radius&&this.clearStrikeLine(wave.pos,e)){wave.hit.add(e.id);this.damageEnemy(e,wave.damage,norm(e.pos.x-wave.pos.x,e.pos.y-wave.pos.y),wave.knock);}}}this.meetingWaves=this.meetingWaves.filter(w=>w.left>0);}
+
   updateMeteors(dt){for(const m of this.meteors){if(!m.fired){m.left-=dt;if(m.left<=0){m.fired=true;m.effect=C.meteor.effect;this.applyRadius({pos:m.pos,range:m.radius,damage:m.damage,hit:new Set()},true);this.shake=C.screenShake?0.1:0;this.events.push('impact');}}else m.effect-=dt;}this.meteors=this.meteors.filter(m=>!m.fired||m.effect>0);}
 
   updateSpawns(dt){
@@ -401,7 +411,7 @@ export class Game{
       else{const before=this.hero.energy,item=C.recovery.items[p.type];this.hero.energy=Math.min(C.hero.energy,this.hero.energy+C.hero.energy*item.healRatio);const healed=Math.round(this.hero.energy-before);this.telemetry.healed+=healed;this.healFreeze=.055;this.floatingTexts.push({pos:copy(p.pos),text:`+${healed}`,left:1,color:item.color});this.notice=`${item.name}で気力 ${healed} 回復`;this.events.push('heal');}
     }}this.pickups=this.pickups.filter(p=>!p.collected&&p.left>0);for(const f of this.floatingTexts){f.left-=dt;f.pos.y-=24*dt;}this.floatingTexts=this.floatingTexts.filter(f=>f.left>0);}
 
-  updateEffects(dt){for(const p of this.particles){p.left-=dt;p.pos.x+=p.vel.x*dt;p.pos.y+=p.vel.y*dt;p.vel.y+=80*dt;}this.particles=this.particles.filter(p=>p.left>0);for(const t of this.thunders)t.left-=dt;this.thunders=this.thunders.filter(t=>t.left>0);}
+  updateEffects(dt){for(const p of this.particles){p.left-=dt;p.pos.x+=p.vel.x*dt;p.pos.y+=p.vel.y*dt;p.vel.y+=80*dt;}this.particles=this.particles.filter(p=>p.left>0);for(const t of this.thunders)if(t.struck)t.left-=dt;this.thunders=this.thunders.filter(t=>t.left>0);}
 
   checkWaveClear(dt){if(this.spawnQueue.length||this.spawnWarnings.length||this.activeEnemies.length){this.waveClearLeft=0;return;}this.waveClearLeft+=dt;if(this.waveClearLeft<C.waveCompleteDelay)return;this.clearedWaves++;
     if(this.wave===1)this.openUpgrade({kind:'wave',stage:this.stage,wave:2},'evolution');else{this.state='bossIntro';this.phase='bossIntro';this.wave=0;this.notice=`魔王${this.stageConfig.rank}接近！`;this.banner={title:'BOSS 接近',detail:`魔王${this.stageConfig.rank}`,left:1.8};}
@@ -420,7 +430,7 @@ export class Game{
       this.transitionHeal=Math.min(C.hero.energy-this.hero.energy,C.hero.energy*C.hero.stageHealRatio);this.hero.energy+=this.transitionHeal;this.loadStage(next.stage,true);this.clearCombat();if(this.pendingBossRecovery){this.spawnRecovery('coffee',{x:this.hero.x+64,y:this.hero.y-30},true);this.pendingBossRecovery=false;}this.state='stageIntro';this.phase='stageIntro';this.notice=this.pickups.length?'ボス撃破報酬のコーヒーが近くにあります':'次のフロアへ';if(this.transitionHeal>0)this.events.push('heal');
     }else{this.state='bossIntro';this.phase='bossIntro';this.wave=0;this.notice=`魔王${this.stageConfig.rank}が待っている`;}
   }
-  clearCombat(){this.itemEffects={};this.fieldItemCooldown=0;this.exitPath=[];this.exitPathLeft=0;this.allies=[];this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];this.enemyAreas=[];this.meteors=[];this.thunders=[];this.blackholes=[];this.cannon=null;this.orbitHits.clear();this.pickups=[];this.floatingTexts=[];this.boss=null;this.gateOpen=false;this.travelTarget=null;this.ultimateEffectLeft=0;this.hero.attackCd=0;}
+  clearCombat(){this.itemEffects={};this.fieldItemCooldown=0;this.exitPath=[];this.exitPathLeft=0;this.allies=[];this.enemies=[];this.enemyProjectiles=[];this.heroProjectiles=[];this.attacks=[];this.followups=[];this.spawnQueue=[];this.spawnWarnings=[];this.enemyAreas=[];this.meteors=[];this.thunders=[];this.meetingWaves=[];this.blackholes=[];this.cannon=null;this.orbitHits.clear();this.pickups=[];this.floatingTexts=[];this.boss=null;this.gateOpen=false;this.travelTarget=null;this.ultimateEffectLeft=0;this.hero.attackCd=0;}
   isBlocked(x,y,r=C.radius){return blocked(x,y,r,this.solids);}
   clearLine(a,b){return clearLine(a,b,this.solids);}
   skillSummary(){return SKILL_IDS.filter(id=>id==='slash'||this.skills[id]>0).map(id=>this.skills[id]?`${C.skills[id].name} Lv.${this.skills[id]}`:`${C.skills[id].name} 初期`);}

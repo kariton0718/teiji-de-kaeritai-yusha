@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Game} from '../src/game.js';
+import {CONFIG as C,ENEMIES} from '../src/config.js';
+const fresh=()=>{const g=new Game(()=>.99);g.state='playing';g.phase='test';g.hero.x=200;g.hero.y=300;g.hero.energy=1;return g;};
+test('fatal projectiles retain attacker identity after attacker disappears',()=>{const g=fresh(),e=g.createEnemy('bat',{x:200,y:300});e.pos={x:g.hero.x,y:g.hero.y};g.shootFan(e.pos,{x:1,y:0},1,0,'mail',20,e);g.enemies=[];g.isBlocked=()=>false;g.updateProjectiles(0);assert.equal(g.defeatDetail.enemy,ENEMIES.bat.name);assert.equal(g.defeatDetail.attack,'メール弾');assert.match(g.defeatMessage,/直前の気力 1 → 0/);assert.equal(g.telemetry.defeatedBy,'projectile');});
+test('delayed area damage identifies attacker and attack',()=>{const g=fresh();g.enemyAreas=[{kind:'bossFloor',pos:{...g.hero},radius:90,left:0,damage:30,fired:false,effect:0,attackInfo:{enemy:'魔王部長',attack:'連続床攻撃'}}];g.updateEnemyAreas(.01);assert.match(g.defeatMessage,/魔王部長の「連続床攻撃」/);});
+test('fatal record includes reduced damage and cannot be overwritten after death',()=>{const g=fresh();g.itemEffects.guard=8;g.damageHero(20,{x:0,y:0},'enemy',{enemy:'締切オーガ',attack:'接触'});const record={...g.defeatDetail};assert.ok(record.damage<20);g.hero.invulnerable=0;assert.equal(g.damageHero(99,{x:0,y:0},'laser',{enemy:'別の敵',attack:'レーザー'}),false);assert.deepEqual(g.defeatDetail,record);g.reset();assert.equal(g.defeatDetail,null);assert.equal(g.lastHit,null);});
+test('timeout is distinguished from energy defeat and invulnerability ignores hits',()=>{const g=fresh();g.hero.invulnerable=1;g.damageHero(10,{x:0,y:0});assert.equal(g.lastHit,null);g.finish('timeout');assert.match(g.defeatMessage,/時間切れ/);assert.doesNotMatch(g.defeatMessage,/被ダメージ/);});
+test('speed item is cigarette with unchanged timed effect',()=>{assert.equal(C.fieldItems.items.speed.name,'加速タバコ');assert.equal(C.fieldItems.items.speed.duration,8);assert.equal(C.fieldItems.items.speed.multiplier,1.35);});

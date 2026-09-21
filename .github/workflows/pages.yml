@@ -3,6 +3,9 @@ name: Deploy game to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
@@ -22,11 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Test Sleep Early Hero
+        run: node --test games/hayaku-netai-yusha/tests/*.test.js
       - name: Prepare static game
         run: |
           mkdir _site
           cp index.html styles.css title-art.css bestiary.css coop.html coop.css _site/
           cp -r src assets _site/
+          mkdir -p _site/hayaku-netai-yusha
+          cp games/hayaku-netai-yusha/index.html games/hayaku-netai-yusha/styles.css games/hayaku-netai-yusha/*.js _site/hayaku-netai-yusha/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

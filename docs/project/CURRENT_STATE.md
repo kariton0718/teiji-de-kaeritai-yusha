@@ -17,9 +17,13 @@
 
 - 制作ブランチ：`codex/hayaku-netai-family-prototype`。
 - 保存場所：`games/hayaku-netai-yusha/`。
-- 状態：遊べるv0.1試作。2026-09-21に「コミット・プッシュして新しいURLでプレイできるように」と公開承認を受領。今回のmain反映で公開処理を実行する。
+- 状態：v0.1試作を公開済み。2026-09-21に「コミット・プッシュして新しいURLでプレイできるように」と公開承認を受領。
 - 第2作の公開先：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/
 - 試作本体コミット：`43128ddd0880edff1eec21dd63ce6ce34acfe3ee`。公開設定変更は同じ制作ブランチの後続コミット。
+- 公開コミット：`d83d205e7a5fbfd0cc793891693232328a85c2eb`。
+- 公開処理：https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35575100040 。テスト・ファイル配置・GitHub Pages公開の全ステップ成功。
+- 新URLのHTTP 200と、配信HTMLがコミット内の第2作index.htmlに一致することを確認。スマホ実機の操作感・描画性能・音は未確認。
+- 第1作のsrc/assetsおよび公開用ルートHTML/CSSは保全コミットとの差分なし。今回の公開後も既存URLを維持。
 - 夜5つの家事ボス＋子どもの寝かしつけ最終戦。通常エンディングは家族全員が眠る。
 - 裏ルートは翌朝。起床、朝ごはん、歯磨き、着替え、送り出しの演出、自分の出社、別のエンディング。
 - ママの回復・周囲の家事援護。ポチのアイテム回収・お願いのお手伝い。

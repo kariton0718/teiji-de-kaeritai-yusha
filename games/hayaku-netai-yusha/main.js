@@ -5,7 +5,7 @@ import { NIGHT, MORNING, STORY, SKILLS } from './config.js';
 import { canvasPoint, stickVector } from './input.js';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
-let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', paused = false, last = 0, noticeLeft = 0;
+let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
 const input = { x: 0, y: 0, ultimate: false }, keys = new Set(); let pointer = null, stick = null;
 const clearInput = () => { keys.clear(); pointer = null; stick = null; input.x = 0; input.y = 0; input.ultimate = false; };
 function button(label, action, secondary = false) {
@@ -14,7 +14,7 @@ function button(label, action, secondary = false) {
 function panel(html, modal = true) { clearInput(); overlay.hidden = false; overlay.className = 'overlay' + (modal ? ' panel' : ''); overlay.innerHTML = html; }
 function setHud(show) { for (const id of ['hud', 'controls', 'ultimate']) $(id).hidden = !show; }
 function title() {
-  game.reset(); scene = 'family'; story = null; priorState = 'title'; paused = false; setHud(false);
+  game.reset(); scene = 'family'; story = null; priorState = 'title'; setHud(false);
   panel('<div class="eyebrow">定時で帰りたい勇者 SERIES / 02</div><h1><span>定時で帰った。その先にも冒険があった。</span>早く寝たい勇者</h1><p class="lead">家事を片づけて、子どもを寝かしつけて。<br>家族みんなで、おやすみなさい。</p><div class="family-tags"><span>ママと手分け</span><span>ポチもお手伝い</span><span>夜と朝、2つの結末</span></div>', false);
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
@@ -71,15 +71,9 @@ function changeState() {
   else if (game.state === 'trueEnding') playStory('true', () => result(true));
   else if (game.state === 'defeat') defeat();
 }
-function pause() {
-  if (!['playing', 'commute'].includes(game.state) || paused) return;
-  paused = true; clearInput(); panel('<div class="eyebrow">ひとやすみ</div><h2>大丈夫。待っているよ。</h2><p>再開するまで、ゲームの時間は止まります。</p>');
-  button('冒険をつづける', () => { paused = false; clearInput(); overlay.hidden = true; }); button('タイトルへ戻る', title, true);
-}
-$('pause').addEventListener('click', pause);
 $('sound').addEventListener('click', () => { try { const enabled = audio.toggle(); $('sound').textContent = enabled ? '音 ON' : '音 OFF'; $('sound').setAttribute('aria-pressed', String(enabled)); } catch { showNotice('このブラウザーでは音を再生できません。'); } });
-$('ultimate').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (!paused) game.useUltimate(); });
-$('ultimate').addEventListener('click', e => { if (e.detail === 0 && !paused) game.useUltimate(); });
+$('ultimate').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (overlay.hidden && !document.hidden) game.useUltimate(); });
+$('ultimate').addEventListener('click', e => { if (e.detail === 0 && overlay.hidden && !document.hidden) game.useUltimate(); });
 canvas.addEventListener('pointerdown', e => {
   if (!overlay.hidden || pointer !== null || !['playing', 'commute'].includes(game.state)) return;
   e.preventDefault(); const p = canvasPoint(e.clientX, e.clientY, canvas.getBoundingClientRect());
@@ -92,14 +86,15 @@ canvas.addEventListener('pointermove', e => {
 });
 for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) canvas.addEventListener(event, e => { if (e.pointerId === pointer) { pointer = null; stick = null; input.x = 0; input.y = 0; } });
 document.addEventListener('keydown', e => {
-  if (e.code === 'Escape') { pause(); return; }
-  if (!overlay.hidden || paused) return;
+  if (!overlay.hidden || document.hidden) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) { e.preventDefault(); keys.add(e.code); }
   if (e.code === 'Space' && !e.repeat) game.useUltimate();
 });
 document.addEventListener('keyup', e => keys.delete(e.code));
-window.addEventListener('blur', () => { clearInput(); pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); pause(); } });
+// Focus changes can occur during mobile browser UI interactions. Never open a
+// blocking menu here. Only clear held controls to prevent movement getting stuck.
+window.addEventListener('blur', clearInput);
+document.addEventListener('visibilitychange', () => { clearInput(); last = 0; });
 function refreshHud() {
   const day = game.route === 'morning', commute = game.state === 'commute';
   $('chapter').textContent = commute ? '最後の一走り / 出社へ' : day ? `朝 ${game.morning + 1}/4 · ${game.config.name}` : `夜 ${game.stage + 1}/6 · ${game.config.name}`;
@@ -118,7 +113,8 @@ function refreshHud() {
 let hudLeft = 0;
 function frame(now) {
   const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
-  if (!paused) {
+  // Freeze only while the page is actually hidden; resume automatically on return.
+  if (!document.hidden) {
     if (pointer === null) { input.x = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0); input.y = (keys.has('ArrowDown') || keys.has('KeyS') ? 1 : 0) - (keys.has('ArrowUp') || keys.has('KeyW') ? 1 : 0); }
     game.update(dt, input); changeState();
     if (!document.hidden) audio.update(dt, story ? 'story' : game.state === 'result' ? 'ending' : game.isBedtime ? 'bed' : game.route === 'morning' ? 'morning' : 'night');
@@ -127,7 +123,7 @@ function frame(now) {
   canvas.style.objectPosition = scene ? 'center top' : 'center';
   if (scene) painter.scene(scene, now / 1000); else painter.draw(game, now / 1000, stick);
   hudLeft -= dt; if (hudLeft <= 0) { refreshHud(); hudLeft = .1; }
-  if (noticeLeft > 0 && !paused) { noticeLeft -= dt; if (noticeLeft <= 0) $('notice').classList.remove('show'); }
+  if (noticeLeft > 0 && !document.hidden) { noticeLeft -= dt; if (noticeLeft <= 0) $('notice').classList.remove('show'); }
   requestAnimationFrame(frame);
 }
 title(); requestAnimationFrame(frame);

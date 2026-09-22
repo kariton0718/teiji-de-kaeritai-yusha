@@ -1,0 +1,15 @@
+{
+  "generator": "built-in imagegen",
+  "assets": [
+    {
+      "id": "girl",
+      "name": "女の子",
+      "prompt": "Use case: stylized-concept. Reference image: existing boy sprite, STYLE reference only, preserve the boy file unchanged. Create ONE new little girl character for the same Japanese family housework action RPG. Adorable human preschool girl with warm brown eyes, rosy cheeks, dark brown hair in two short low pigtails with mint ribbons. Lavender long-sleeve pajamas with small moon motifs, mint slippers. Hugging a white plush bunny, cheerful energetic 'one more story!' expression, natural age-appropriate preschool body. Full body solo character, hand-painted anime chibi JRPG style matching reference, bold navy outlines, rich cel shading, recognizable silhouette at small size. Center square transparent alpha canvas with 10% padding, all limbs inside. No background, no floor, no text, no horns, no demon features, no weapon, no other characters."
+    },
+    {
+      "id": "girl-sleep",
+      "name": "女の子・すやすや",
+      "prompt": "Use case: identity-preserve. Edit target: supplied girl sprite. Preserve exactly the same little girl's identity, brown short pigtails, mint ribbons, purple moon pajamas, mint slippers, white bunny plush, JRPG illustration style and genuine alpha transparency. Change only pose/expression to peacefully sleeping sitting with legs tucked, hugging bunny with both arms, eyes gently closed, closed-mouth smile. Single full-body child centered with margins, no waving, no bed, no floor, no background, no text, no additional characters. Cute human child, never demonic."
+    }
+  ]
+}

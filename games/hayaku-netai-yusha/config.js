@@ -5,7 +5,7 @@ export const NIGHT = [
   { name: '洗濯物の山脈', room: 'laundry', boss: '洗濯マウンテン', prop: 'sock', color: '#a4a5ce', quota: 240, hp: 1020, line: 'ポチ、靴下はおもちゃじゃないよ！', action: '洗濯物の群れを一気に片づけよう。' },
   { name: 'お風呂の大冒険', room: 'bath', boss: '水あかドラゴン', prop: 'bubble', color: '#71b9c1', quota: 280, hp: 1220, line: '子ども「アヒルさんも一緒に入る！」', action: '水流の予告をよけて、お風呂の支度！' },
   { name: '明日の準備', room: 'entry', boss: '忘れ物魔人「アレガナイ」', prop: 'bag', color: '#d5af6b', quota: 320, hp: 1420, line: '明日の自分を、今の自分が助ける。', action: 'ポチと一緒に忘れ物を探そう！' },
-  { name: '寝かしつけの最終決戦', room: 'bedroom', boss: 'まだ、ねむくない！', prop: 'star', color: '#8c94c6', quota: 0, hp: 0, line: '子ども「もう1冊だけ、読んで？」', action: 'お願いの輪に入って、おやすみのお手伝い。' },
+  { name: 'ふたりの寝かしつけ最終決戦', room: 'bedroom', boss: 'ふたりとも、ねむくない！', prop: 'star', color: '#8c94c6', quota: 0, hp: 0, line: '男の子「もう1冊！」 女の子「うさちゃんも一緒！」', action: 'お願いの輪に入って、ふたりのおやすみをお手伝い。' },
 ];
 export const MORNING = [
   { name: 'おはようの攻防', room: 'bedroom', action: 'カーテンを開け、やさしく起こそう。', request: 'おはよう！', prop: 'pillow', color: '#e4b780', child: 'あと、5ふん……' },

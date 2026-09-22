@@ -5,8 +5,8 @@ import { ART_IDS, MOB_TYPES, BOSS_TYPES, artURL, CharacterArt } from '../charact
 import { NIGHT, MORNING } from '../config.js';
 import { Painter } from '../render.js';
 
-test('every encounter has individual artwork and all 18 WebP files exist', () => {
-  assert.equal(new Set(ART_IDS).size, 18);
+test('every encounter has individual artwork and all 20 WebP files exist', () => {
+  assert.equal(new Set(ART_IDS).size, 20);
   for (const config of [...NIGHT, ...MORNING]) assert.ok(MOB_TYPES.includes(config.prop));
   for (const config of NIGHT.filter(c => c.hp > 0)) assert.ok(BOSS_TYPES.includes(config.prop));
   for (const id of ART_IDS) {
@@ -25,7 +25,7 @@ test('loader caches each asset once and handles image failures without rejection
     }};
   });
   await art.ready;
-  assert.equal(count, 18);
+  assert.equal(count, 20);
   assert.ok(art.get('hero'));
   assert.equal(art.get('mob-bag'), undefined);
   assert.ok(art.failed.has('mob-bag'));
@@ -33,12 +33,12 @@ test('loader caches each asset once and handles image failures without rejection
 test('stalled images settle and remain on safe fallback', async () => {
   const art = new CharacterArt(() => ({}), 5);
   await art.ready;
-  assert.equal(art.failed.size, 18);
+  assert.equal(art.failed.size, 20);
 });
 test('missing Image support does not prevent renderer setup', async () => {
   const art = new CharacterArt(() => { throw new Error('unavailable'); });
   await art.ready;
-  assert.equal(art.failed.size, 18);
+  assert.equal(art.failed.size, 20);
 });
 test('renderer uses separate enemy/boss and child sleeping sprites', () => {
   const ids = [], draws = [];
@@ -53,8 +53,10 @@ test('renderer uses separate enemy/boss and child sleeping sprites', () => {
   p.person(100, 200, 'hero');
   p.person(100, 200, 'mama');
   p.person(100, 200, 'child');
+  p.person(100, 200, 'girl');
+  p.person(100, 200, 'girl', 1, true);
   p.dog(100, 200);
-  assert.equal(draws.length, 18);
+  assert.equal(draws.length, 20);
   for (const id of ART_IDS) assert.ok(ids.includes(id), id);
 });
 test('renderer can draw enemies and family when artwork is unavailable', () => {
@@ -62,5 +64,17 @@ test('renderer can draw enemies and family when artwork is unavailable', () => {
   const p = new Painter({ getContext: () => ctx }, { get: () => undefined });
   p.enemy({ x: 100, y: 200, radius: 38, prop: 'block', boss: true, hp: 10, maxHp: 10 }, {});
   p.person(100, 200, 'child', 1, true);
+  p.person(100, 200, 'girl', 1, true);
   p.dog(100, 200);
+});
+
+test('both children appear side by side in awake and asleep poses', () => {
+  const p = new Painter({ getContext: () => ({}) }, { get: () => undefined });
+  const people = [];
+  p.person = (...args) => people.push(args);
+  p.children(240, 140, 1, false);
+  p.children(240, 140, 1, true);
+  assert.deepEqual(people.map(a => a[2]), ['child', 'girl', 'child', 'girl']);
+  assert.deepEqual(people.map(a => a[4]), [false, false, true, true]);
+  assert.ok(people[0][0] < people[1][0]);
 });

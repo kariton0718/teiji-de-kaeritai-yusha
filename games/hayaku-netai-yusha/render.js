@@ -30,16 +30,17 @@ export class Painter {
     const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, 7); c.fillStyle = '#26365020'; c.fill();
   }
   person(x, y, kind = 'hero', scale = 1, sleepy = false) {
-    const id = kind === 'child' && sleepy ? 'child-sleep' : kind;
+    const isChild = kind === 'child' || kind === 'girl';
+    const id = isChild && sleepy ? kind + '-sleep' : kind;
     // Keep existing closed-eye poses for adults until dedicated sleeping art exists.
-    if ((!sleepy || kind === 'child') && this.art.get(id)) {
+    if ((!sleepy || isChild) && this.art.get(id)) {
       this.shadow(x, y + 23 * scale, 19 * scale);
       this.sprite(id, x, y + 27 * scale + (sleepy ? 0 : Math.sin(this.time * 3) * scale), 84 * scale);
       return;
     }
     const c = this.ctx; c.save(); c.translate(x, y); c.scale(scale, scale);
-    const child = kind === 'child', mama = kind === 'mama';
-    this.shadow(0, 23, 19); const shirt = child ? '#f7cc75' : mama ? '#eaa4a0' : '#77bcb5';
+    const child = isChild, mama = kind === 'mama';
+    this.shadow(0, 23, 19); const shirt = kind === 'girl' ? '#bca1e4' : child ? '#f7cc75' : mama ? '#eaa4a0' : '#77bcb5';
     const bob = Math.sin(this.time * (child ? 4 : 3)) * 1.2;
     c.translate(0, bob);
     this.line(-7, 10, -8, 20, '#354665', 8); this.line(7, 10, 8, 20, '#354665', 8);
@@ -47,6 +48,7 @@ export class Painter {
     if (!child) this.rect(-9, -8, 18, 24, 4, '#f8e5bd');
     this.line(-15, -5, -20, 9, C.skin, 7); this.line(15, -5, 20, 8, C.skin, 7);
     if (mama) this.circle(14, -37, 9, '#674b49');
+    if (kind === 'girl') { this.circle(-18, -28, 8, '#435069'); this.circle(18, -28, 8, '#435069'); }
     this.circle(0, -28, 19, C.skin, '#38485b');
     c.beginPath(); c.arc(0, -29, 19, Math.PI, Math.PI * 2); c.lineTo(17, -25); c.lineTo(10, -31); c.lineTo(4, -26); c.lineTo(-5, -33); c.lineTo(-17, -26); c.closePath(); c.fillStyle = mama ? '#674b49' : '#435069'; c.fill();
     if (sleepy) { this.line(-10, -26, -5, -25, C.ink, 2); this.line(5, -25, 10, -26, C.ink, 2); }
@@ -55,6 +57,10 @@ export class Painter {
     this.line(-3, -18, 3, -18, '#b56e60', 2);
     if (child) { this.circle(0, 1, 5, C.cream); this.text('★', 0, 1, 8, '#dd9e4e'); }
     c.restore();
+  }
+  children(x, y, scale = 1, sleepy = false) {
+    this.person(x - 31 * scale, y, 'child', scale, sleepy);
+    this.person(x + 31 * scale, y, 'girl', scale, sleepy);
   }
   dog(x, y, scale = 1, sleepy = false) {
     if (!sleepy && this.art.get('pochi')) {
@@ -145,7 +151,7 @@ export class Painter {
     const actors = game.enemies.map(e => ({ y: e.y, draw: () => this.enemy(e, game) }));
     actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y, 'mama', .83); this.label('ママ', game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
     actors.push({ y: game.pochi.y, draw: () => { this.dog(game.pochi.x, game.pochi.y, .78); if (game.pochi.active) this.text('♪', game.pochi.x, game.pochi.y - 37, 22, '#5e7857'); } });
-    if (game.familyTask) actors.push({ y: game.child.y, draw: () => { this.person(game.child.x, game.child.y, 'child', 1.04, game.child.progress >= 80 && game.isBedtime); this.label(game.child.mood, game.child.x, game.child.y - 65); } });
+    if (game.familyTask) actors.push({ y: game.child.y, draw: () => { this.children(game.child.x, game.child.y, .94, game.child.progress >= 80 && game.isBedtime); this.label(game.child.mood, game.child.x, game.child.y - 65); } });
     actors.push({ y: game.hero.y, draw: () => { if (game.hero.invulnerable > 0) c.globalAlpha = .6 + .4 * Math.sin(time * 18) ** 2; this.person(game.hero.x, game.hero.y, 'hero', .86); c.globalAlpha = 1; } });
     actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
     for (const e of game.effects) this.fx(e, game);
@@ -218,12 +224,12 @@ export class Painter {
     const sleep = ['sleep', 'familySleep', 'nightEnd'].includes(kind);
     if (sleep) {
       this.rect(116, 369, 246, 116, 14, '#93889c'); this.rect(127, 379, 224, 94, 13, '#c3bed5');
-      this.person(230, 408, 'child', 1.3, true);
-      if (kind !== 'sleep') { this.person(161, 405, 'hero', 1.3, true); this.person(301, 405, 'mama', 1.3, true); }
-      else this.person(326, 416, 'hero', 1.5);
+      this.children(239, 408, 1.02, true);
+      if (kind !== 'sleep') { this.person(146, 405, 'hero', 1.2, true); this.person(333, 405, 'mama', 1.2, true); }
+      else this.person(339, 416, 'hero', 1.4);
       this.rect(124, 419, kind === 'sleep' ? 153 : 227, 57, 12, '#a5b9bd'); this.dog(335, 497, .9, true); this.text('Z z z', 236, 322, 24, '#7a7494');
     } else {
-      this.person(154, 418, 'hero', 1.6); this.person(325, 416, 'mama', 1.6); this.person(241, 430, 'child', 1.25); this.dog(362, 472, 1.05);
+      this.person(123, 418, 'hero', 1.5); this.person(352, 416, 'mama', 1.5); this.children(240, 430, 1.15); this.dog(382, 480, 1.05);
       if (kind === 'alarm') { this.circle(245, 293, 37, '#f0c37f', '#8d7264'); this.line(245, 293, 245, 270, C.ink); this.line(245, 293, 260, 293, C.ink); this.text('6:30', 240, 535, 40, '#667d89'); }
       if (kind === 'sendoff') this.label('いってきます！', 240, 331);
       if (kind === 'home') this.label('おかえり！', 320, 332);

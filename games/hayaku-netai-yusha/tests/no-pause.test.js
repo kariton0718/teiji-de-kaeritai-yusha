@@ -29,7 +29,7 @@ function harness() {
   const window = target(); let game, callback, now = 1000;
   class ObservedGame extends SleepGame { constructor() { super(() => .41); game = this; } }
   vm.runInNewContext(source.replace(/^import .*;\n/gm, ''), {
-    document, window, SleepGame: ObservedGame, STORY, SKILLS, canvasPoint, stickVector,
+    document, window, SleepGame: ObservedGame, STORY, SKILLS, canvasPoint, stickVector, mountBestiary() {},
     Painter: class { scene() {} draw() {} }, HomeAudio: class { update() {} event() {} },
     requestAnimationFrame(fn) { callback = fn; },
   });

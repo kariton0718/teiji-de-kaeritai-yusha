@@ -33,9 +33,11 @@ jobs:
           cp index.html styles.css title-art.css bestiary.css coop.html coop.css _site/
           cp -r src assets _site/
           mkdir -p _site/hayaku-netai-yusha
-          cp games/hayaku-netai-yusha/index.html games/hayaku-netai-yusha/styles.css games/hayaku-netai-yusha/*.js _site/hayaku-netai-yusha/
+          cp games/hayaku-netai-yusha/index.html games/hayaku-netai-yusha/*.css games/hayaku-netai-yusha/*.js _site/hayaku-netai-yusha/
           mkdir -p _site/hayaku-netai-yusha/assets/characters
           cp games/hayaku-netai-yusha/assets/characters/*.webp _site/hayaku-netai-yusha/assets/characters/
+          mkdir -p _site/hayaku-netai-yusha/assets/title
+          cp games/hayaku-netai-yusha/assets/title/*.webp _site/hayaku-netai-yusha/assets/title/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

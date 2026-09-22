@@ -1,0 +1,33 @@
+.overlay.title-screen{display:block;justify-content:initial;background:radial-gradient(ellipse at 50% 14%,#344661,#121f36 65%);padding:22px 20px 32px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;scrollbar-color:#cfae69 #14233a}
+.title-screen>*{flex-shrink:0}
+.title-screen>.eyebrow{text-align:center;font-size:9px;margin:0 0 6px;letter-spacing:.14em}
+.title-screen .title-heading{margin:0;line-height:0;text-shadow:none}
+.title-logo{display:block;width:100%;height:auto;object-fit:contain}
+.title-screen .title-tagline{text-align:center;font-size:11px;letter-spacing:.03em;color:#efd6a5;margin:3px 0 16px}
+.title-keyart{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border:1px solid #c7a362;border-radius:10px;box-shadow:0 12px 30px #080e2080}
+.title-screen>.lead{text-align:center;font-size:13px;line-height:1.9;margin:19px 0 10px}
+.title-screen>.btn:not(.secondary){background:linear-gradient(#ffdfa2,#dab170);border:1px solid #fff1c7;box-shadow:0 4px #876237,0 0 25px #ecc47220;color:#20324a;letter-spacing:.05em;min-height:54px}
+.title-screen>.btn.secondary{min-height:46px;border-color:#708399;background:#26384f}
+.title-screen>.subtle{text-align:center}
+.bestiary{margin-top:30px;padding-top:24px;border-top:1px solid #a38554;min-width:0;scroll-margin-top:16px}
+.bestiary>.eyebrow{margin-bottom:8px}
+.bestiary h2{font-size:21px;color:#f5d99d;line-height:1.5;margin-bottom:10px}
+.bestiary .bestiary-lead{font-size:12px;color:#c6d1df}
+.bestiary-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.bestiary-filters button{padding:9px 4px;min-height:44px;border:1px solid #708399;border-radius:22px;font-size:12px;background:#25374d;color:#e2e8ef}
+.bestiary-filters button[aria-pressed=true]{background:#efd396;color:#24334a;border-color:#ffe9b9;font-weight:800}
+.bestiary-navigation{display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;margin-bottom:12px}
+.bestiary-navigation button{min-height:44px;background:#e7ca91;color:#293952;font-weight:800;border-radius:8px;font-size:12px}
+.bestiary-navigation button:disabled{opacity:.35}
+.bestiary-count{text-align:center;font-size:13px;letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.bestiary-rail{position:relative;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding-bottom:12px;scrollbar-color:#b39460 #1b2a42}
+.bestiary-card{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;border:1px solid #8d7852;border-radius:12px;background:#1d2d45}
+.bestiary-card img{display:block;width:100%;height:auto;max-height:340px;aspect-ratio:1;object-fit:contain;background:radial-gradient(ellipse,#526275,#273b52 70%);padding:15px}
+.bestiary-copy{padding:16px}
+.bestiary-copy h3{color:#ffe0a1;font-size:19px;line-height:1.5;margin:7px 0 10px;overflow-wrap:anywhere}
+.bestiary-copy .bestiary-place{color:#b3c8d6;font-size:10px}
+.bestiary-copy p{font-size:12px;line-height:1.85;margin:0}
+.bestiary-copy .bestiary-quote{color:#f1cb83;font-weight:800;margin-bottom:9px}
+.bestiary .bestiary-hint{font-size:10px;color:#abbfcd;text-align:center;margin-top:9px}
+@media(max-width:760px){.overlay.title-screen{padding:18px 16px max(28px,env(safe-area-inset-bottom))}.title-screen .title-heading{font-size:inherit}.bestiary-card img{max-height:310px}}
+@media(max-height:640px){.title-screen .title-heading{font-size:inherit}.title-screen>.lead{font-size:12px}.bestiary-card img{max-height:240px}}

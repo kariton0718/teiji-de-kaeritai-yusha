@@ -1,0 +1,13 @@
+{
+  "generator": "built-in imagegen",
+  "assets": [
+    {
+      "id": "title-logo",
+      "prompt": "Use case: logo-brand. Create a premium illustrated Japanese JRPG title logo with EXACT legible Japanese text 「早く寝たい勇者」 only, arranged top line 「早く寝たい」 and large bottom line 「勇者」. Bold custom beveled fantasy lettering, warm ivory and luminous gold upper letters, deep turquoise to blue lower letters with gold edges, dark midnight navy outlines. Small crescent moon, star sparks, subtle pillow motif and a household mop integrated behind lettering. Adventurous, playful, cozy family night game, looks like a polished console RPG logo. Wide 3:2 canvas, centered entire logo inside safe margins, genuinely transparent alpha background, no rectangular plaque, no background scene, no extra words or English, no watermark. Strong readability on dark blue at mobile size."
+    },
+    {
+      "id": "title-keyart",
+      "prompt": "Use case: illustration-story. Create a polished square Japanese chibi JRPG game cover illustration, no text anywhere. The five references are character identity references: father hero teal shirt cream apron carrying mop; mother rose shirt bun cream apron; boy yellow star pajamas with teddy; girl purple moon pajamas pigtails mint ribbons with bunny; fluffy tan dog Pochi red collar. Keep exactly these five family characters recognizable, humans not monsters. Dynamic warm adventure composition: father in foreground raising mop diagonally like heroic staff, mother at his side with folded towels and encouraging smile, two excited children center-front hugging their plush toys, Pochi bounding across lower corner. Their cozy home stretches behind into a magical nighttime housework adventure, little animated toy blocks, socks, dirty plates and soap bubbles swirling around, towering funny toy golem in distance; glowing golden bedroom doorway with soft bed beyond, crescent moon through window, midnight blue and lavender shadows against honey-gold light, sparkling motion trails. Rich hand-painted anime cel-shaded game key art, expressive faces, clear silhouettes, cinematic depth, ornamental detail, sense of fun and anticipation. Full-bleed square poster, all five family faces entirely visible with margin. No logo, no lettering, no gore, no demons, children never evil."
+    }
+  ]
+}

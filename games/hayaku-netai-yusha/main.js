@@ -3,6 +3,7 @@ import { Painter } from './render.js';
 import { HomeAudio } from './audio.js';
 import { NIGHT, MORNING, STORY, SKILLS } from './config.js';
 import { canvasPoint, stickVector } from './input.js';
+import { mountBestiary } from './bestiary.js';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -11,14 +12,17 @@ const clearInput = () => { keys.clear(); pointer = null; stick = null; input.x =
 function button(label, action, secondary = false) {
   const b = document.createElement('button'); b.className = 'btn' + (secondary ? ' secondary' : ''); b.textContent = label; b.addEventListener('click', action); overlay.append(b); return b;
 }
-function panel(html, modal = true) { clearInput(); overlay.hidden = false; overlay.className = 'overlay' + (modal ? ' panel' : ''); overlay.innerHTML = html; }
+function panel(html, modal = true) { clearInput(); overlay.hidden = false; overlay.className = 'overlay' + (modal ? ' panel' : ''); overlay.innerHTML = html; overlay.scrollTop = 0; }
 function setHud(show) { for (const id of ['hud', 'controls', 'ultimate']) $(id).hidden = !show; }
 function title() {
   game.reset(); scene = 'family'; story = null; priorState = 'title'; setHud(false);
-  panel('<div class="eyebrow">定時で帰りたい勇者 SERIES / 02</div><h1><span>定時で帰った。その先にも冒険があった。</span>早く寝たい勇者</h1><p class="lead">家事を片づけて、子どもを寝かしつけて。<br>家族みんなで、おやすみなさい。</p><div class="family-tags"><span>ママと手分け</span><span>ポチもお手伝い</span><span>夜と朝、2つの結末</span></div>', false);
+  panel('<div class="eyebrow">定時で帰りたい勇者 SERIES / 02</div><h1 class="title-heading"><img class="title-logo" src="./assets/title/title-logo.webp" alt="早く寝たい勇者" width="900" height="600"></h1><p class="title-tagline">定時で帰った。その先にも冒険があった。</p><img class="title-keyart" src="./assets/title/title-keyart.webp" alt="モップを掲げる勇者、ママ、2人の子ども、愛犬ポチ。家事の魔物たちを越えて、光る寝室へ！" width="1000" height="1000" fetchpriority="high"><p class="lead">今夜のラスボスは、まだ眠くないふたり。<br>家族みんなで、おやすみを勝ち取ろう。</p>', false);
+  overlay.classList.add('title-screen'); overlay.scrollTop = 0;
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
+  button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
   const p = document.createElement('p'); p.className = 'subtle'; p.textContent = '試作版 v0.1 ・ 通常攻撃は自動 ・ 音は初期OFF'; overlay.append(p);
+  mountBestiary(overlay);
 }
 function instructions() {
   panel('<div class="eyebrow">HOW TO PLAY</div><h2>家族で、夜を乗り切ろう。</h2><p>画面の好きな場所をスライドして移動。家事の魔物への攻撃は自動です。ゲージがたまったら、右下の必殺技！</p><p><b>ママ</b>：気力を回復し、周りの家事も片づけてくれます。<br><b>ポチ</b>：アイテムを運び、お願いの場所を探します。<br><b>子ども</b>：かわいい強敵。「お願い」の輪に入って2秒、お手伝いすると準備が進みます。</p><p>夜の6ステージを終えると、おやすみのエンディング。試作では、その後のボタンから翌朝の裏ルートも遊べます。</p>');

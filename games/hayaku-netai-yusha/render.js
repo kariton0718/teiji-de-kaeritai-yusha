@@ -1,8 +1,17 @@
 import { WORLD as W, NIGHT } from './config.js';
+import { CharacterArt } from './character-art.js';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
-  constructor(canvas) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.time = 0; }
+  constructor(canvas, art = new CharacterArt()) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.time = 0; this.art = art; }
+  sprite(id, x, bottom, size) {
+    const image = this.art.get(id);
+    if (!image) return false;
+    const ratio = image.width / image.height;
+    const w = ratio > 1 ? size : size * ratio, h = ratio > 1 ? size / ratio : size;
+    this.ctx.drawImage(image, x - w / 2, bottom - h, w, h);
+    return true;
+  }
   rect(x, y, w, h, r, color, stroke = '') {
     const c = this.ctx; c.beginPath(); c.roundRect(x, y, w, h, r); c.fillStyle = color; c.fill();
     if (stroke) { c.strokeStyle = stroke; c.lineWidth = 2; c.stroke(); }
@@ -21,6 +30,13 @@ export class Painter {
     const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, 7); c.fillStyle = '#26365020'; c.fill();
   }
   person(x, y, kind = 'hero', scale = 1, sleepy = false) {
+    const id = kind === 'child' && sleepy ? 'child-sleep' : kind;
+    // Keep existing closed-eye poses for adults until dedicated sleeping art exists.
+    if ((!sleepy || kind === 'child') && this.art.get(id)) {
+      this.shadow(x, y + 23 * scale, 19 * scale);
+      this.sprite(id, x, y + 27 * scale + (sleepy ? 0 : Math.sin(this.time * 3) * scale), 84 * scale);
+      return;
+    }
     const c = this.ctx; c.save(); c.translate(x, y); c.scale(scale, scale);
     const child = kind === 'child', mama = kind === 'mama';
     this.shadow(0, 23, 19); const shirt = child ? '#f7cc75' : mama ? '#eaa4a0' : '#77bcb5';
@@ -41,6 +57,11 @@ export class Painter {
     c.restore();
   }
   dog(x, y, scale = 1, sleepy = false) {
+    if (!sleepy && this.art.get('pochi')) {
+      this.shadow(x, y + 16 * scale, 21 * scale);
+      this.sprite('pochi', x, y + 20 * scale, 60 * scale);
+      return;
+    }
     const c = this.ctx; c.save(); c.translate(x, y); c.scale(scale, scale);
     this.shadow(0, 16, 21); this.line(13, 0, 25, -10 + Math.sin(this.time * 9) * 5, '#cf9b67', 8);
     this.rect(-15, -6, 30, 22, 10, '#d7aa74', '#715a49');
@@ -137,7 +158,10 @@ export class Painter {
   enemy(e, game) {
     const c = this.ctx; this.shadow(e.x, e.y + e.radius, e.radius);
     c.save(); c.translate(e.x, e.y); c.rotate(Math.sin(this.time * 4 + e.x) * .08);
-    if (e.boss) {
+    const illustrated = this.sprite((e.boss ? 'boss-' : 'mob-') + e.prop, 0, e.radius + 5, e.boss ? 110 : e.radius * 2 + 14);
+    if (illustrated) {
+      if (e.boss && e.hp < e.maxHp * .5) this.text('!!', 0, -78, 21, '#8a4650');
+    } else if (e.boss) {
       for (const [x, y, s] of [[-24, 8, 26], [24, 8, 26], [0, -22, 32]]) this.prop(e.prop, x, y, s);
       this.rect(-17, -2, 34, 10, 5, '#5c5869'); this.circle(-9, 1, 3, '#ffebbb'); this.circle(9, 1, 3, '#ffebbb');
       if (e.hp < e.maxHp * .5) this.text('!!', 0, -64, 21, '#8a4650');

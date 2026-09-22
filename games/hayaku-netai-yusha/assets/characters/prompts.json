@@ -1,0 +1,96 @@
+{
+  "generator": "built-in imagegen",
+  "date": "2026-09-22",
+  "assets": [
+    {
+      "id": "mob-block",
+      "name": "おもちゃブロック兵",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent-background game enemy sprite for a Japanese family housework action RPG 'Hayaku netai yuusha'. Subject: a mischievous little toy-block soldier, clearly made of red yellow and teal plastic interlocking toy building bricks, squat body, big expressive cartoon eyes on its head block, stubby articulated block arms and feet, confident ready-to-scatter pose. One single character only, not a sheet. Style: high-quality hand-painted anime/JRPG chibi game illustration, bold dark-navy outline, rich cel shading with hand-painted highlights and convincing plastic material; substantial illustrated detail but very clear silhouette at 48px. Camera: full body, slightly elevated 3/4 front view looking toward viewer. Square 1024x1024 composition, character centered filling 80%, all feet and arms included, 10% transparent padding. Background: genuine alpha transparency, absolutely no background, no floor, no cast shadow, no text, no logo, no checkerboard pattern, no extra props, no UI. Funny rather than frightening, no horns, no demon aesthetic, no gore. Output usable as a cutout game sprite."
+    },
+    {
+      "id": "mob-plate",
+      "name": "よごれ皿ランナー",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A mischievous animated dirty ceramic dinner plate creature. A large ivory round plate with a teal rim is its body, clearly visible orange spaghetti-sauce stains and small green food crumbs, big playful eyes in center, two little ceramic arms and bent little legs sprinting. Recognizable as dirty dishes, not an animal or a human."
+    },
+    {
+      "id": "mob-sock",
+      "name": "くつしたジャンパー",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A mischievous animated single lavender-and-cream striped sock creature. Entire body is a soft knitted ankle sock with clear ribbed cuff, heel and rounded toe, large cheeky eyes, springy short fabric arms, hopping on its toe. One sock character, no pair and no pile; cozy fabric texture clearly readable."
+    },
+    {
+      "id": "mob-bubble",
+      "name": "あわあわスライム",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A cute mischievous bathroom soap-foam slime creature, round pear-shaped translucent turquoise body with big expressive navy eyes, white frothy soap bubbles on the head and around two small arms, tiny rounded feet, bouncing ready pose. Clearly soap and foam, no horns, no scary teeth."
+    },
+    {
+      "id": "mob-bag",
+      "name": "わすれものバッグ",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A lively mischievous ochre yellow school-supply tote-bag creature, whole body is a canvas tote with clear two handles, thick stitching and open top containing one visible rolled towel and a pencil case. Big eyes on the front pocket, little fabric arms and stubby feet. Readable household tomorrow-preparation character, not a person."
+    },
+    {
+      "id": "mob-star",
+      "name": "おめめぱっちりスター",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A cute golden five-pointed plush star with big wide-awake eyes, tiny arms and soft slippers, embroidered edges and shiny yellow fabric. One star sprite."
+    },
+    {
+      "id": "mob-pillow",
+      "name": "ねぼすけまくら",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: An animated soft mint pillow with sleepy eyes and yawning mouth, striped piping, tiny cloth arms and feet. Clearly a pillow creature."
+    },
+    {
+      "id": "boss-block",
+      "name": "散らかしゴーレム",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A large imposing but funny toy golem boss assembled from many colorful toy bricks, a wooden toy storage crate torso overflowing with blocks, toy train shoulder, large block fists and feet. One cohesive giant, very different from a simple single-block soldier."
+    },
+    {
+      "id": "mob-bread",
+      "name": "トーストダッシュ",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: An animated golden toast slice with crisp brown crust, butter square on forehead, cheerful face and stubby bread arms and running legs."
+    },
+    {
+      "id": "boss-plate",
+      "name": "焦げつきフライパン魔人",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A funny massive black cast-iron frying pan boss with an expressive face inside its circular scorched pan body, long wooden handle rising behind its head, spatula arm and oven-mitt arm, chunky saucepan feet, burnt food crust and oil flecks. Clearly a frying pan character, no demonic features."
+    },
+    {
+      "id": "boss-sock",
+      "name": "洗濯マウンテン",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A massive fluffy laundry mountain boss made of colorful crumpled shirts, striped towels and socks overflowing a wicker laundry basket, friendly stubborn eyes in a cream towel head, big bundled laundry arms and fabric feet. One cohesive giant."
+    },
+    {
+      "id": "boss-bubble",
+      "name": "水あかドラゴン",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A squat playful turquoise bathroom dragon boss made of soap bubbles and chalky limescale patches, shower-head curled tail, tiny flipper wings, rubber-duck yellow belly, big expressive eyes, rounded muzzle. Clearly a cute bathroom dragon, not demonic."
+    },
+    {
+      "id": "boss-bag",
+      "name": "忘れ物魔人「アレガナイ」",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: A large funny household lost-item boss: navy school satchel and overstuffed suitcase body with pockets full of keys, folded clothes and notebooks, big puzzled eyes, mismatched sneaker feet and rolled-cloth arms. Giant silhouette distinct from a small yellow tote, no text."
+    },
+    {
+      "id": "child",
+      "name": "まだ、ねむくない！",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: One adorable HUMAN Japanese preschool child, short dark brown fluffy hair, round rosy face with lively brown eyes, yellow pajamas with little white stars, blue slippers, hugging a small teddy bear and carrying a picture book. Cheerful playful refusing-bedtime pose. This is a beloved child to care for, NOT a monster, no weapons, no supernatural features."
+    },
+    {
+      "id": "hero",
+      "name": "早く寝たい勇者",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: One kind Japanese father in his thirties, short tousled navy-black hair, slightly tired but warm determined smile, teal rolled-sleeve home shirt, cream apron with front pocket, dark trousers and slippers, holding a household mop upright like an adventurer staff. Ordinary caring parent, chibi family RPG hero."
+    },
+    {
+      "id": "mama",
+      "name": "ママ",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: One kind confident Japanese mother in her thirties, brown hair in a bun, rose-pink rolled-sleeve shirt and cream apron, dark pants, house slippers, holding a folded towel in one arm and waving encouragingly. Capable friendly partner and support character."
+    },
+    {
+      "id": "pochi",
+      "name": "ポチ",
+      "prompt": "Use case: stylized-concept. Asset type: ONE individual in-game enemy sprite for a Japanese family housework action RPG. Style: premium hand-painted anime JRPG chibi illustration, bold dark navy outlines, rich clean cel shading, tactile material highlights, strong large silhouette readable at 48px. Full body, slightly elevated three-quarter front view, centered square composition, entire character inside frame filling about 80%, 10% margin. Genuine transparent alpha background; no floor, no cast shadow, no scenery, no checkerboard, no text, no logo, no border, no UI, no other characters. Playfully troublesome, not evil or demonic, no horns or gore. Subject: One adorable small tan and cream floppy-eared family dog, dark brown ears, big friendly eyes, red collar and round golden tag, wagging curled tail, playful four-pawed ready-to-help pose. No clothing except collar."
+    },
+    {
+      "id": "child-sleep",
+      "name": "すやすや",
+      "prompt": "Use case: identity-preserve. Edit target: supplied child sprite. Keep exactly the same human child identity, dark brown hair, yellow star pajamas, teddy bear, illustration style and genuine transparent background. Change pose to peacefully asleep, eyes gently closed and mouth closed smiling, sitting with legs tucked and hugging teddy, no book and no waving. Full body centered single sprite, no bed, no floor, no shadow or text. Never demonic."
+    }
+  ]
+}

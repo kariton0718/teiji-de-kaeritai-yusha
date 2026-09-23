@@ -2,12 +2,13 @@
 
 確認・更新日：2026-09-23
 
-## 現在の制作：v0.3 エンディング・ボス強化（未公開）
+## 現在：v0.3 エンディング・ボス強化（公開済み）
 
 - 制作ブランチ：`codex/hayaku-ending-boss-rush`。基準main：`1ffc6cb77d8bd90aaec7b9194f87ead0649861be`。保全：`backup/pre-ending-1ffc6cb`。
 - 夜3枚・送り出し2枚・真エンディング3枚の専用イラスト。各ボス5技、3段階の攻撃速度、雑魚の射撃と出現頻度を強化。
 - 自動テスト56件成功。回避する自動操作3シードで両ルート完走、1シードは1回再挑戦。実機の操作感・難易度は未確認。
-- ローカル制作ブランチへ保存。今回分の公開依頼はまだなく、push・main反映・Pages公開は未実施。公開URLはv0.2のまま。
+- 今回分の「プッシュ公開！」承認により、制作ブランチとmainへ `6ba2e7aba1756775f5763775bc28511588aca0e3` を保存。制作版5e4b504とのGitツリー完全一致を確認。
+- [公開処理35833751229](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35833751229)成功。保全：`backup/main-1ffc6cb-before-ending-boss-rush`。第1作の変更なし。
 - 詳細：[ENDING_BOSS_RUSH.md](ENDING_BOSS_RUSH.md)。以下は過去の制作・公開履歴。
 
 ## 公開中：v0.2 アクション・紙芝居の全面改修（公開済み）

@@ -1,6 +1,6 @@
 # 早く寝たい勇者 — 家族と夜・朝を乗り切る試作
 
-**最新制作v0.3・未公開**：夜と朝の結末に専用イラスト8枚、各ボス5技と3段階の攻撃強化、雑魚の攻撃頻度を追加。制作ブランチ `codex/hayaku-ending-boss-rush`。56テスト成功、スマホ実機は未確認。[制作記録](../../docs/project/ENDING_BOSS_RUSH.md)。公開中は以下のv0.2です。
+**v0.3公開済み**：夜と朝の結末に専用イラスト8枚、各ボス5技と3段階の攻撃強化、雑魚の攻撃頻度を追加。制作ブランチ `codex/hayaku-ending-boss-rush`、公開コミット `6ba2e7aba1756775f5763775bc28511588aca0e3`。[公開処理35833751229](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35833751229)成功。56テスト成功、スマホ実機は未確認。[制作記録](../../docs/project/ENDING_BOSS_RUSH.md)。以下は以前の履歴です。
 
 **v0.2公開済み**：今回分の公開承認を受け、`5e5165e92b68cc846a2f49dc7eab0f33b6f90250`をmainへ反映。[公開処理35803586856](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35803586856)はテストからGitHub Pages公開まですべて成功。下記の「未公開」は制作途中の履歴です。
 

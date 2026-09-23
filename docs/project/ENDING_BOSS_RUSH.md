@@ -1,5 +1,9 @@
 # v0.3 エンディングとボス強化
 
+## 公開完了
+
+今回分の「プッシュ公開！」を受領し、`6ba2e7aba1756775f5763775bc28511588aca0e3` を制作ブランチとmainへ保存。[GitHub Pages公開処理35833751229](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35833751229)成功。制作版5e4b504とのGitツリー完全一致、56テスト再成功。公開前の保全：`backup/main-1ffc6cb-before-ending-boss-rush`。以下の未公開表記は制作時点の記録です。
+
 2026-09-23。制作ブランチ `codex/hayaku-ending-boss-rush`。基準main `1ffc6cb77d8bd90aaec7b9194f87ead0649861be`、保全 `backup/pre-ending-1ffc6cb`。ローカルコミットで保存、未公開。第1作を変更しない。
 
 ## 紙芝居

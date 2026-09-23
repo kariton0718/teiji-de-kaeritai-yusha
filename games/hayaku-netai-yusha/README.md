@@ -1,5 +1,7 @@
 # 早く寝たい勇者 — 家族と夜・朝を乗り切る試作
 
+**v0.2公開済み**：今回分の公開承認を受け、`5e5165e92b68cc846a2f49dc7eab0f33b6f90250`をmainへ反映。[公開処理35803586856](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35803586856)はテストからGitHub Pages公開まですべて成功。下記の「未公開」は制作途中の履歴です。
+
 ## 現在：2026-09-23 v0.2 アクション・紙芝居改修（未公開）
 
 制作ブランチ `codex/hayaku-action-overhaul`。最新仕様・素材・検証は[改修記録](../../docs/project/ACTION_OVERHAUL.md)を参照。

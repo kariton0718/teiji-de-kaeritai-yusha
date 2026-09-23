@@ -2,7 +2,14 @@
 
 確認・更新日：2026-09-23
 
-## 現在の制作：v0.2 アクション・紙芝居の全面改修（未公開）
+## 現在：v0.2 アクション・紙芝居の全面改修（公開済み）
+
+- 今回分の「プッシュ公開よろしく」の承認により、`5e5165e92b68cc846a2f49dc7eab0f33b6f90250`を制作ブランチとmainへ保存。
+- GitHub Pagesのテスト・素材配置・公開すべて成功：[35803586856](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35803586856)。保存内容はローカル制作版のGitツリーと完全一致を確認。
+- 公開前mainのリモート保全：`backup/main-1b90f1f-before-action-overhaul`。第1作の変更なし。
+- 第2作URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/
+- 以下の未公開・承認待ち表記は制作途中の履歴。現在は公開済み。スマホ実機の操作感は未確認。
+- 公開URLのindex.html、combat.js、story-01.webp、boss-clock.webpはHTTP200。配信内容のSHA-256がローカルファイルと一致。
 
 - ユーザーから今回分の「プッシュ公開よろしく」を受領。前回の承認待ちは解除。48テスト再実行成功、mainが基準1b90f1fのままであることを確認し、制作ブランチ保存とPages公開を進める。公開結果は確認後に追記する。
 

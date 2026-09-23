@@ -1,5 +1,7 @@
 # 早く寝たい勇者 v0.2 制作記録
 
+公開完了：`5e5165e92b68cc846a2f49dc7eab0f33b6f90250`。制作ブランチ・mainへ保存し、[Actions 35803586856](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35803586856)でテスト・Pages公開まで成功。以下の「未公開」「承認待ち」は制作途中の履歴。
+
 公開承認追記：今回分についてユーザーから「プッシュ公開よろしく」を受領。下記の承認待ちは履歴。48テストを再実行し、すべて成功。公開処理の結果はCURRENT_STATEへ追記する。
 
 2026-09-23。制作 `codex/hayaku-action-overhaul`。基準 `1b90f1f`、保全 `backup/pre-overhaul-1b90f1f`。今回の変更は未公開。

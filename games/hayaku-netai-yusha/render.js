@@ -136,6 +136,10 @@ export class Painter {
     this.time = time; const c = this.ctx; c.clearRect(0, 0, W.width, W.height);
     if (game.state === 'commute') { this.commute(game); return; }
     this.room(game.config.room, game.route === 'morning', game.familyTask ? game.child.progress : game.progress);
+    for (const z of game.zones || []) {
+      c.globalAlpha=.35+.08*Math.sin(time*12);this.circle(z.x,z.y,z.r,'#ed763e');c.globalAlpha=1;
+      this.circle(z.x,z.y,z.r,'#00000000','#ad3f31');this.text('熱',z.x,z.y,18,'#fff7d4');
+    }
     for (const w of game.warnings) { c.globalAlpha = .3 + Math.sin(time * 12) * .15; this.circle(w.x, w.y, 18, '#e49f78'); c.globalAlpha = 1; }
     for (const a of game.hazards) {
       if (a.shape === 'line' || a.shape === 'aim') {
@@ -147,6 +151,10 @@ export class Painter {
       c.globalAlpha = .2; this.circle(a.x, a.y, a.r, '#e75d67'); c.globalAlpha = 1;
       c.setLineDash([7, 5]); this.circle(a.x, a.y, a.r, '#00000000', '#b34d62'); c.setLineDash([]);
       this.text('!', a.x, a.y, 22, '#ae4058');
+      if(a.kind==='gapRing'){
+        c.save();c.globalAlpha=.55;c.beginPath();c.moveTo(a.x,a.y);c.arc(a.x,a.y,100,a.angle-.52,a.angle+.52);c.closePath();c.fillStyle='#92efd6';c.fill();c.restore();
+        this.text('すき間',a.x+Math.cos(a.angle)*88,a.y+Math.sin(a.angle)*88,11,'#236b63');
+      }
     }
     if (game.request || game.sideRequest) {
       const r = game.request || game.sideRequest; c.globalAlpha = .35; this.circle(r.x, r.y, 46, '#fff7c2'); c.globalAlpha = 1;
@@ -172,7 +180,8 @@ export class Painter {
     for (const p of game.projectiles || []) {
       c.save(); c.translate(p.x,p.y); c.rotate(p.kind==='towel'?time*13:Math.atan2(p.vy,p.vx));
       this.line(-14,0,0,0,p.friendly?'#fff4b9aa':'#bf365999',p.radius);
-      if(p.kind==='towel')this.rect(-16,-7,32,14,5,'#bfeadc','#4b9b90');
+      if(p.returnAt){this.circle(0,0,12,p.kind==='plate'?'#e7d6c0':'#e4b955','#854632');this.circle(0,0,7,'#00000000','#b07448');this.line(-11,0,-21,0,'#854632',5);}
+      else if(p.kind==='towel')this.rect(-16,-7,32,14,5,'#bfeadc','#4b9b90');
       else if(p.kind==='clip'){this.rect(-10,-4,20,8,3,'#ffdd8c','#ad784e');this.line(-4,0,8,0,'#b57b4d',2);}
       else{this.circle(0,0,p.radius,p.friendly?'#fdf0b1':'#ff9b6f',p.friendly?'#b68942':'#982c4c');this.circle(-2,-2,2,'#fff4d8');}
       c.restore();

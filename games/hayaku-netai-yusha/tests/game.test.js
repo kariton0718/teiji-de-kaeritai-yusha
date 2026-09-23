@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { SleepGame, distance } from '../game.js';
 import { WORLD, NIGHT, MORNING, STORY } from '../config.js';
 import { canvasPoint, stickVector } from '../input.js';
+import { carefulPilot } from './careful-pilot.js';
 
 function random(seed = 14) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 function playing(seed = 14) { const g = new SleepGame(random(seed)); g.begin(); g.enterRoom(); return g; }
@@ -96,20 +97,30 @@ test('pointer mapping handles letterboxing and stick deadzone', () => {
   assert.deepEqual(stickVector({ x: 10, y: 10 }, { x: 12, y: 13 }), { x: 0, y: 0 });
   assert.deepEqual(stickVector({ x: 10, y: 10 }, { x: 40, y: 50 }), { x: .6, y: .8 });
 });
-for (const seed of [14, 71, 2026]) test(`unmodified gameplay pilot completes six night encounters and morning, seed ${seed}`, () => {
-  const g = playing(seed); let frames = 0, peak = 0, encounters = 0, visitedNightEnding = false, morningPhases = 1;
+test('old close-and-stand controller can no longer coast through the first boss', () => {
+  const g=playing(14);for(let i=0;i<12000 && g.state==='playing';i++)g.update(1/60,pilot(g));
+  assert.equal(g.state,'defeat');assert.ok(g.bossSpawned);assert.ok(g.elapsed>20);
+});
+for (const seed of [14, 71, 2026]) test(`dodging pilot completes both routes with up to two normal retries, seed ${seed}`, () => {
+  const g = playing(seed); let frames = 0, peak = 0, encounters = 0, visitedNightEnding = false, morningPhases = 1, retries=0;
   while (frames++ < 60000) {
     if (g.state === 'upgrade') { encounters++; g.chooseSkill(['bubble', 'mop', 'vacuum', 'mop', 'clip'][g.stage]); g.enterRoom(); }
     if (g.state === 'nightEnding') { visitedNightEnding = true; encounters++; g.beginMorning(); g.enterRoom(); }
     if (g.state === 'morningRoomIntro') { morningPhases++; g.enterRoom(); }
     if (g.state === 'sendoff') g.beginCommute();
+    if(g.state==='defeat' && retries<2){
+      retries++;g.hero.energy=g.hero.maxEnergy;g.ultimate=Math.max(50,g.ultimate);
+      if(g.route==='morning'){g.morningElapsed=0;g.morning=0;g.secretActive=false;morningPhases=1;}
+      else g.nightElapsed=Math.min(g.nightElapsed,g.stage*60);
+      g.enterRoom();
+    }
     if (g.state === 'trueEnding' || g.state === 'defeat') break;
-    g.update(1 / 60, pilot(g)); peak = Math.max(peak, g.enemies.length);
+    g.update(1 / 60, carefulPilot(g)); peak = Math.max(peak, g.enemies.length);
     assert.ok(g.enemies.length + g.warnings.length <= WORLD.maxEnemies);
   }
   assert.equal(g.state, 'trueEnding', `${g.cause}; stage=${g.stage}; morning=${g.morning}`);
   assert.equal(encounters, 6); assert.equal(visitedNightEnding, true); assert.equal(morningPhases, 4);
   assert.equal(g.secretDefeated, true, 'must defeat secret boss before sendoff and office');
   assert.ok(g.kills > 1000); assert.ok(peak > 64);
-  console.log(JSON.stringify({ seed, seconds: Math.round(g.elapsed), nightSeconds: Math.round(g.nightElapsed), morningSeconds: Math.round(g.morningElapsed), kills: g.kills, peakEnemies: peak }));
+  console.log(JSON.stringify({ seed, retries, seconds: Math.round(g.elapsed), nightSeconds: Math.round(g.nightElapsed), morningSeconds: Math.round(g.morningElapsed), kills: g.kills, peakEnemies: peak }));
 });

@@ -22,7 +22,7 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.2 ・ 雑魚15種 / 夜6戦＋朝の裏ボス ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.3 ・ ボス固有技＆連続攻撃強化 ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {
@@ -61,6 +61,8 @@ function result(morning = false) {
     const p = document.createElement('p'); p.className = 'subtle'; p.textContent = '試作中は全員が翌朝を体験できます。正式な出現条件は調整予定。'; overlay.append(p);
   }
   button('タイトルへ戻る', title, true);
+  const endArt = document.createElement('img'); endArt.className = 'ending-art'; endArt.src = `./assets/story/${morning ? 'true-03' : 'night-03'}.webp`; endArt.alt = morning ? '家族を想い、職場で朝日を見つめる勇者' : '家族みんなで穏やかに眠る夜';
+  overlay.prepend(endArt); overlay.classList.add('ending-result');
 }
 function defeat() {
   panel(`<div class="eyebrow">今日は、ちょっとひと休み。</div><h2>おつかれさま、勇者。</h2><p>${game.cause}</p><p>お願いの輪へ移動しながら、近くの魔物を片づけよう。ママの回復と、ポチのお届けも力になります。</p>`);
@@ -111,7 +113,7 @@ function refreshHud() {
   $('energy').textContent = Math.ceil(game.hero.energy); $('energy-fill').style.width = `${game.hero.energy / game.hero.maxEnergy * 100}%`;
   $('energy-fill').style.background = game.hero.energy < 25 ? '#dc8c89' : '#81bcaa';
   const boss = game.boss && !game.boss.dead;
-  $('objective').textContent = commute ? '会社の入口へ' : game.familyTask ? game.isBedtime ? 'すやすやゲージ' : 'お支度ゲージ' : boss ? game.config.boss : 'お片づけ';
+  $('objective').textContent = commute ? '会社の入口へ' : game.familyTask ? game.isBedtime ? 'すやすやゲージ' : 'お支度ゲージ' : boss ? `${game.config.boss}${game.boss.phase===3?' · ラスト':game.boss.phase===2?' · 本気':''}` : 'お片づけ';
   $('counter').textContent = commute ? 'あと少し！' : game.familyTask ? `${Math.round(game.child.progress)}%${game.isBedtime ? ` · 音 ${Math.round(game.noise)}%` : ''}` : boss ? `${Math.ceil(game.boss.hp)} / ${game.boss.maxHp}` : `${Math.min(game.stageKills, game.config.quota)} / ${game.config.quota}`;
   $('progress-fill').style.width = `${commute ? 100 : boss ? game.boss.hp / game.boss.maxHp * 100 : game.progress}%`;
   $('ultimate').classList.toggle('ready', game.ultimate >= 100); $('ultimate').disabled = game.ultimate < 100; $('ult-value').textContent = game.ultimate >= 100 ? '発動！' : `${Math.floor(game.ultimate)}%`;

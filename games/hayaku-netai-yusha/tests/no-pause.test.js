@@ -21,7 +21,7 @@ function harness() {
     return Object.assign(target(), {
       children: [], hidden: false, style: {}, classList: { add() {}, remove() {}, toggle() {} },
       set innerHTML(value) { this.content = value; this.children = []; }, get innerHTML() { return this.content || ''; },
-      append(child) { this.children.push(child); }, setAttribute() {}, setPointerCapture() {},
+      append(child) { this.children.push(child); }, prepend(child) { this.children.unshift(child); }, setAttribute() {}, setPointerCapture() {},
       getBoundingClientRect() { return { left: 0, top: 0, width: 480, height: 620 }; },
     });
   }
@@ -97,4 +97,17 @@ test('help shows five illustrated item effects and explains mama support', () =>
   assert.equal((h.overlay.innerHTML.match(/assets\/characters\/item-/g)||[]).length,5);
   assert.match(h.overlay.innerHTML,/12秒/);assert.match(h.overlay.innerHTML,/飛び道具/);
   h.click('わかった！');h.start();assert.equal(h.game.state,'playing');
+});
+test('both endings show three distinct illustrations and retain separate results', () => {
+  for (const [state,id,mark] of [['nightEnding','night','NIGHT ENDING'],['trueEnding','true','TRUE ENDING']]) {
+    const h=harness();h.start();h.game.state=state;h.game.nightCleared=true;h.frames(1);
+    for(let i=1;i<=3;i++){assert.match(h.overlay.innerHTML,new RegExp(id+'-0'+i+'\\.webp'));h.click(i===3?'つづける →':'次へ →');}
+    assert.equal(h.game.state,'result');assert.match(h.overlay.innerHTML,new RegExp(mark));assert.match(h.overlay.children[0].src,new RegExp(id+'-03'));
+    assert.equal(h.overlay.children.some(e=>e.textContent==='翌朝の裏ルートも遊ぶ →'),id==='night');
+  }
+});
+test('sendoff illustrations lead to playable commute before the true ending', () => {
+  const h=harness();h.start();h.game.route='morning';h.game.secretDefeated=true;h.game.state='sendoff';h.frames(1);
+  assert.match(h.overlay.innerHTML,/sendoff-01/);h.click('次へ →');assert.match(h.overlay.innerHTML,/sendoff-02/);h.click('つづける →');
+  assert.equal(h.game.state,'commute');assert.equal(h.overlay.hidden,true);
 });

@@ -22,7 +22,7 @@ export class SleepGame {
   }
   clearRoom() {
     this.enemies = []; this.effects = []; this.drops = []; this.hazards = []; this.warnings = [];
-    this.projectiles = []; this.falls = []; this.buffs = { shoes: 0, gloves: 0, apron: 0 };
+    this.projectiles = []; this.falls = []; this.zones = []; this.buffs = { shoes: 0, gloves: 0, apron: 0 };
     this.skillCds = { iron: 1, towel: 1, meteor: 2 }; this.mamaSweepCd = 3;
     this.lastPickup = ''; this.pickupLife = 0;
     this.stageKills = 0; this.roomTime = 0; this.spawnCd = .8; this.attackCd = 0;
@@ -67,13 +67,14 @@ export class SleepGame {
     if (!e || e.dead) return;
     e.hp -= damage * (this.buffs.gloves > 0 ? 1.6 : 1); e.flash = .12;
     if (e.behavior === 'tank') push *= .25;
+    if (e.boss) push *= .08;
     if (push) { const n = unit(e.x - this.hero.x, e.y - this.hero.y); e.x = clamp(e.x + n.x * push, 22, 458); e.y = clamp(e.y + n.y * push, 65, 584); }
     if (e.hp > 0) return;
     e.dead = true; this.kills++; this.stageKills++; this.combo++; this.comboLife = 2.2;
-    this.bestCombo = Math.max(this.bestCombo, this.combo); this.ultimate = Math.min(100, this.ultimate + (e.boss ? 14 : 1.1));
+    this.bestCombo = Math.max(this.bestCombo, this.combo); this.ultimate = Math.min(100, this.ultimate + (e.boss ? 14 : .7));
     this.effect('tidy', e.x, e.y, 13, '', .7);
     if (this.combo % 15 === 0) { this.effect('label', this.hero.x, this.hero.y - 50, 0, `${this.combo} 家事コンボ！`, 1.1); this.emit('combo'); }
-    if (this.random() < .085 && this.drops.length < W.maxDrops) {
+    if (this.random() < .045 && this.drops.length < W.maxDrops) {
       const pool = ['rice', 'rice', 'milk', 'shoes', 'gloves', 'apron'];
       this.drops.push({ x: e.x, y: e.y, life: 16, kind: pool[Math.floor(this.random() * pool.length)] });
     }
@@ -87,14 +88,14 @@ export class SleepGame {
     if (this.state !== 'playing' || this.ultimate < 100) return false;
     this.ultimate = 0;
     this.area(this.hero.x, this.hero.y, 800, 180, this.isBedtime ? 'quiet' : 'ultimate', 30);
-    this.hazards = []; this.projectiles = this.projectiles.filter(p => p.friendly); this.hero.invulnerable = 2;
+    this.hazards = []; this.zones = []; this.projectiles = this.projectiles.filter(p => p.friendly); this.hero.invulnerable = 2;
     this.effect('label', 240, 280, 0, this.isBedtime ? 'みんな、おやすみ。' : '本日は閉店です！', 2);
     this.emit('ultimate'); return true;
   }
   hurtHero(damage, source) {
     if (this.state !== 'playing' || this.hero.invulnerable > 0) return;
     if (this.buffs.apron > 0) damage = Math.ceil(damage / 2);
-    this.hero.energy = Math.max(0, this.hero.energy - damage); this.hero.invulnerable = 1;
+    this.hero.energy = Math.max(0, this.hero.energy - damage); this.hero.invulnerable = .85;
     this.effect('label', this.hero.x, this.hero.y - 32, 0, `気力 −${damage}`, .8); this.emit('hurt');
     if (this.hero.energy <= 0) { this.cause = `${source}で気力を使い切った。`; this.state = 'defeat'; }
   }
@@ -136,12 +137,12 @@ export class SleepGame {
     this.spawnCd -= dt;
     if (this.spawnCd <= 0) {
       const count = this.secretActive ? 8 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
-      this.firstWave = false; this.spawn(count); this.spawnCd = this.familyTask ? 4.8 : 3.6;
+      this.firstWave = false; this.spawn(count); this.spawnCd = this.familyTask ? 3.8 : 2.9;
     }
     for (const w of this.warnings) {
       w.life -= dt; if (w.life > 0) continue;
       const spec = MOBS[w.prop]; const hp = spec.hp * (1 + (this.route === 'night' ? this.stage : 4) * .07);
-      this.enemies.push({ ...spec, x: w.x, y: w.y, hp, maxHp: hp, prop: w.prop, heavy: w.heavy, flash: 0, dead: false, attackCd: 2 + this.random() * 3, age: this.random() * 6 });
+      this.enemies.push({ ...spec, x: w.x, y: w.y, hp, maxHp: hp, prop: w.prop, heavy: w.heavy, flash: 0, dead: false, attackCd: 1 + this.random() * 1.8, age: this.random() * 6 });
     }
     this.warnings = this.warnings.filter(w => w.life > 0);
     this.attackCd -= dt;
@@ -198,7 +199,7 @@ export class SleepGame {
     if (this.enemies.length + this.warnings.length >= W.maxEnemies) {
       if (this.warnings.length) this.warnings.pop(); else this.enemies.pop();
     }
-    this.boss = { x: this.hero.x < 240 ? 370 : 110, y: 125, hp: this.config.hp, maxHp: this.config.hp, radius: 38, speed: 24 + this.stage * 3, prop: this.config.prop, boss: true, flash: 0, dead: false, attackCd: 2.4 };
+    this.boss = { x: this.hero.x < 240 ? 370 : 110, y: 125, hp: this.config.hp * 1.8, maxHp: this.config.hp * 1.8, radius: 38, speed: 36 + this.stage * 4, prop: this.config.prop, boss: true, flash: 0, dead: false, attackCd: 1.2 };
     this.enemies.push(this.boss); this.effect('label', 240, 250, 0, this.config.boss, 2.2); this.emit('boss');
   }
   updateEnemies(dt) {
@@ -241,14 +242,16 @@ export class SleepGame {
     if (!this.familyTask) return;
     this.dangerCd -= dt;
     if (this.dangerCd <= 0) {
-      const pattern = this.requestIndex % 3;
+      const pattern = this.helped % 5;
       hazard(this, { x: this.hero.x, y: this.hero.y, r: 36 + this.helped * 3, life: 1.65, damage: 10 });
       if (this.isBedtime) {
         this.effect('label', 240, 190, 0, BOSS_MOVES[5][pattern], 1.3);
         if (pattern === 1) this.spawn(4, 'train');
         if (pattern === 2) hazard(this, { x: 240, y: 190, kind: 'volley', count: 3, r: 25, life: 1.4 });
+        if (pattern === 3) for (let i=0;i<3;i++) hazard(this, { x: 90+i*150, y: this.hero.y, r: 36, life: 1.2+i*.4, damage: 12 });
+        if (pattern === 4) hazard(this, { x: 240, y: 190, kind: 'gapRing', angle: Math.atan2(this.hero.y-190,this.hero.x-240), count: 12, r: 25, life: 1.3, prop: 'star' });
       }
-      this.dangerCd = this.isBedtime && this.helped > 2 ? 4 : 5;
+      this.dangerCd = this.isBedtime && this.helped > 2 ? 2.9 : 3.8;
     }
     if (this.isBedtime) {
       this.noise = clamp(this.noise + (this.enemies.length > 38 ? 6 : -4) * dt, 0, 100);

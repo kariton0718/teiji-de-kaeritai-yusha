@@ -18,3 +18,6 @@
 @keyframes page-reveal{from{opacity:.25;transform:scale(1.025)}to{opacity:1;transform:scale(1)}}
 @media(max-height:700px){.story-illustration{max-height:49dvh}.story-illustration img{height:49dvh;object-fit:cover;object-position:center 40%}.storybook h2{font-size:17px}.storybook .lead{font-size:11px}.ally-status{font-size:9px;margin-top:3px}.buff-status{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.story-illustration img{animation:none}}
+.overlay.ending-result{justify-content:flex-start;background:#1f3048}
+.ending-art{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border:1px solid #b79a66;border-radius:12px;margin-bottom:18px;flex:none}
+@media(max-height:700px){.story-illustration img{object-fit:contain}}

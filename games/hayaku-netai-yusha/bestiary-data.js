@@ -151,7 +151,7 @@ for (const [id, mob] of Object.entries(MOBS)) {
   else PROFILES.push({id:'mob-'+id,group:'mob',name:mob.name,quote:mob.tip,description:`速さ ${mob.speed} ／ タフさ ${mob.hp}。部屋の進行に合わせ、ほかの魔物と混ざって登場。`,where:'家事の魔物・個性で見分けよう'});
 }
 PROFILES.find(p => p.id === 'mama').description = '勇者のそばへ移動。12秒ごとに気力18回復、5秒ごとにタオルで周囲の敵と飛び道具を片づける。チームワークで回復量もアップ！';
-PROFILES.filter(p => p.group === 'boss').forEach((p,i) => p.description += ' 技：' + BOSS_MOVES[i].join('・') + '。気力半分から攻撃が変化！');
+PROFILES.filter(p => p.group === 'boss').forEach((p,i) => p.description += ' 技：' + BOSS_MOVES[i].join('・') + '。HP60%・25%で攻撃が激化！');
 PROFILES.push(
   {id:'boss-children',artId:'child',companion:'girl',group:'boss',name:'ふたりとも、ねむくない！',quote:'もう1冊！ うさちゃんも一緒！',description:'第6戦はふたりの寝かしつけ。まくら・おもちゃ・夜ふかしの星を片づけながら、5つのお願いをかなえる。子どもに攻撃は当たりません。',where:'第6戦・寝かしつけ／すやすやゲージ'},
   {id:'boss-clock',group:'boss',name:'朝の時間ドロボウ',quote:'あと5分？ もう出発の時間だよ！',description:'朝の4つのお支度のあとに現れる裏ボス。時計弾、交差する針、家事の総攻撃。家族で乗り越え、送り出しと出社へ！',where:'裏ボス・翌朝の玄関'},

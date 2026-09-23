@@ -57,11 +57,11 @@ test('three new attacks actually damage targets and are offered',()=>{
     assert.ok(e.hp<e.maxHp,id);assert.ok(g.offers().some(s=>s.id===id));
   }
 });
-test('each combat boss cycles three named moves, then accelerates in phase two',()=>{
+test('each combat boss cycles five named moves, then accelerates in phase two',()=>{
   for(const stage of [0,1,2,3,4,6]){
     const g=game();if(stage===6){g.route='morning';g.morning=3;g.secretActive=true;}else g.stage=stage;
     g.spawnBoss();const seen=[];
-    for(let i=0;i<3;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}
+    for(let i=0;i<5;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}
     assert.deepEqual(seen,BOSS_MOVES[stage]);const normal=g.boss.attackCd;g.boss.hp=g.boss.maxHp*.4;bossAttack(g,g.boss);assert.ok(g.boss.attackCd<normal);
     assert.ok(g.enemies.length+g.warnings.length<=128);
   }

@@ -1,5 +1,6 @@
 import { WORLD as W, NIGHT } from './config.js';
 import { CharacterArt } from './character-art.js';
+import { ITEMS } from './combat-data.js';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -137,6 +138,12 @@ export class Painter {
     this.room(game.config.room, game.route === 'morning', game.familyTask ? game.child.progress : game.progress);
     for (const w of game.warnings) { c.globalAlpha = .3 + Math.sin(time * 12) * .15; this.circle(w.x, w.y, 18, '#e49f78'); c.globalAlpha = 1; }
     for (const a of game.hazards) {
+      if (a.shape === 'line' || a.shape === 'aim') {
+        c.save(); c.globalAlpha = a.shape === 'line' ? .23 : .65;
+        this.line(a.x,a.y,a.x2,a.y2,'#bd3556',a.shape === 'line' ? a.r*2 : 2);
+        c.globalAlpha = .9; c.setLineDash([8,6]); this.line(a.x,a.y,a.x2,a.y2,'#fff0c1',2); c.restore();
+        this.text('!',(a.x+a.x2)/2,(a.y+a.y2)/2,20,'#a12e46'); continue;
+      }
       c.globalAlpha = .2; this.circle(a.x, a.y, a.r, '#e75d67'); c.globalAlpha = 1;
       c.setLineDash([7, 5]); this.circle(a.x, a.y, a.r, '#00000000', '#b34d62'); c.setLineDash([]);
       this.text('!', a.x, a.y, 22, '#ae4058');
@@ -147,19 +154,42 @@ export class Painter {
       c.beginPath(); c.arc(r.x, r.y, 38, -Math.PI / 2, -Math.PI / 2 + Math.min(1, r.fill / 2) * Math.PI * 2); c.strokeStyle = '#477f78'; c.lineWidth = 5; c.stroke();
       this.text('♡', r.x, r.y, 29, '#578d83'); this.label(r.label, r.x, r.y + 55, '#fff3d6');
     }
-    for (const d of game.drops) { this.circle(d.x, d.y, 10, '#fff4cf'); this.text(d.kind === 'heart' ? '♥' : '✦', d.x, d.y, 14, d.kind === 'heart' ? '#c67279' : '#c39547'); }
+    for (const d of game.drops) this.item(d);
+    for (const f of game.falls || []) {
+      c.globalAlpha=.2;this.circle(f.x,f.y,f.radius,'#fff4aa');c.globalAlpha=1;
+      const by=f.y-180*f.life;
+      this.rect(f.x-20,by-18,40,30,5,'#f4cc86','#987b50');
+      this.circle(f.x,by-17,13,'#00000000','#987b50');
+      for(let i=-12;i<=12;i+=8)this.line(f.x+i,by-10,f.x+i,by+7,'#a68a59',2);
+      this.circle(f.x,f.y,f.radius,'#00000000','#fff1bb');
+    }
     const actors = game.enemies.map(e => ({ y: e.y, draw: () => this.enemy(e, game) }));
-    actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y, 'mama', .83); this.label('ママ', game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
+    actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y + (game.mama.moving ? Math.sin(time*13)*3 : 0), 'mama', .83); this.label(game.mama.active ? 'ママ・援護中' : 'ママ・回復役', game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
     actors.push({ y: game.pochi.y, draw: () => { this.dog(game.pochi.x, game.pochi.y, .78); if (game.pochi.active) this.text('♪', game.pochi.x, game.pochi.y - 37, 22, '#5e7857'); } });
     if (game.familyTask) actors.push({ y: game.child.y, draw: () => { this.children(game.child.x, game.child.y, .94, game.child.progress >= 80 && game.isBedtime); this.label(game.child.mood, game.child.x, game.child.y - 65); } });
     actors.push({ y: game.hero.y, draw: () => { if (game.hero.invulnerable > 0) c.globalAlpha = .6 + .4 * Math.sin(time * 18) ** 2; this.person(game.hero.x, game.hero.y, 'hero', .86); c.globalAlpha = 1; } });
     actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
+    for (const p of game.projectiles || []) {
+      c.save(); c.translate(p.x,p.y); c.rotate(p.kind==='towel'?time*13:Math.atan2(p.vy,p.vx));
+      this.line(-14,0,0,0,p.friendly?'#fff4b9aa':'#bf365999',p.radius);
+      if(p.kind==='towel')this.rect(-16,-7,32,14,5,'#bfeadc','#4b9b90');
+      else if(p.kind==='clip'){this.rect(-10,-4,20,8,3,'#ffdd8c','#ad784e');this.line(-4,0,8,0,'#b57b4d',2);}
+      else{this.circle(0,0,p.radius,p.friendly?'#fdf0b1':'#ff9b6f',p.friendly?'#b68942':'#982c4c');this.circle(-2,-2,2,'#fff4d8');}
+      c.restore();
+    }
+    if(game.buffs?.apron>0)this.circle(game.hero.x,game.hero.y,35,'#bca4ef22','#d5c0ff');
     for (const e of game.effects) this.fx(e, game);
     if (stick) { c.globalAlpha = .35; this.circle(stick.x, stick.y, 38, '#fff5df', '#40526c'); this.circle(stick.x + stick.dx * 28, stick.y + stick.dy * 28, 16, '#fff5df'); c.globalAlpha = 1; }
     if (game.isBedtime) { c.fillStyle = '#26345712'; c.fillRect(0, 0, 480, 620); }
   }
   label(s, x, y, color = '#fff5e4') {
     const w = Math.min(440, s.length * 12 + 22); this.rect(Math.max(3, Math.min(x - w / 2, 477 - w)), y - 13, w, 26, 13, color); this.text(s, Math.max(w / 2 + 3, Math.min(x, 477 - w / 2)), y, 11, '#49586b');
+  }
+  item(d) {
+    const item=ITEMS[d.kind];
+    this.circle(d.x,d.y,22,'#fff7dc',item?.color || '#e2c985');
+    if(!this.sprite('item-'+d.kind,d.x,d.y+18,42))this.text(d.kind==='heart'?'♥':'✦',d.x,d.y,20,'#ad6074');
+    if(item)this.label(item.label,d.x,d.y+31,'#fff7e9');
   }
   enemy(e, game) {
     const c = this.ctx; this.shadow(e.x, e.y + e.radius, e.radius);
@@ -174,16 +204,30 @@ export class Painter {
     } else this.prop(e.prop, 0, 0, e.radius + 2);
     if (e.flash) { c.globalAlpha = .65; this.circle(0, 0, e.radius + 4, '#fff8d1'); }
     c.restore();
+    if(e.boosted)this.text('↑',e.x,e.y-e.radius-17,15,'#c37321');
+    if(e.maxHp>60 && e.hp<e.maxHp && !e.boss){this.rect(e.x-17,e.y+e.radius+9,34,4,2,'#64566a');this.rect(e.x-17,e.y+e.radius+9,34*Math.max(0,e.hp/e.maxHp),4,2,'#e8d197');}
   }
   fx(e, game) {
     const c = this.ctx; const t = 1 - e.life / e.maxLife;
     c.save(); c.globalAlpha = 1 - t;
     if (e.kind === 'label') { this.label(e.text, e.x, e.y - t * 20, '#fff5dd'); c.restore(); return; }
+    if (e.kind === 'beam' || e.kind === 'healLink') {
+      const color=e.kind==='healLink'?'#83dbb6':e.hostile?'#ef6985':'#f8df8b';
+      this.line(e.x,e.y,e.x2,e.y2,color,e.kind==='healLink'?6:(e.radius*2*(1-t)+2));
+      this.line(e.x,e.y,e.x2,e.y2,'#fffbe5',3);c.restore();return;
+    }
+    if (e.kind === 'impact' || e.kind === 'meteor') {
+      for(let i=0;i<10;i++){const a=i*Math.PI/5,r=e.radius*(.3+t);this.line(e.x+Math.cos(a)*r*.45,e.y+Math.sin(a)*r*.45,e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,'#fff2a8',4*(1-t)+1);}
+    }
+    if(e.kind==='vacuum'){
+      for(let i=0;i<4;i++){c.beginPath();c.arc(e.x,e.y,Math.max(2,e.radius*(1-t)*(i+1)/4),t*8+i,t*8+i+Math.PI);c.strokeStyle='#53a1a7';c.lineWidth=3;c.stroke();}
+      c.restore();return;
+    }
     if (e.kind === 'tidy') {
       const x = e.x + (46 - e.x) * t * t, y = e.y + (573 - e.y) * t * t;
       this.circle(x, y, 4 * (1 - t) + 2, '#fff4ba'); c.restore(); return;
     }
-    const colors = { sweep: '#fff0ba', bubble: '#e9ffff', vacuum: '#548e96', clip: '#fff3c4', heart: '#edabc2', quiet: '#d7dcff', ultimate: '#fff7d3', danger: '#c75b70' };
+    const colors = { sweep: '#fff0ba', bubble: '#e9ffff', vacuum: '#548e96', clip: '#fff3c4', heart: '#edabc2', quiet: '#d7dcff', ultimate: '#fff7d3', danger: '#c75b70', mamaWave: '#a7f0cd', boost: '#ffa85c', meteor: '#ffdf88' };
     c.strokeStyle = colors[e.kind] || C.cream; c.lineWidth = e.kind === 'sweep' ? 14 * (1 - t) + 2 : 3;
     c.beginPath();
     if (e.kind === 'sweep' && game.skills.mop < 3) { const a = Math.atan2(game.hero.facing.y, game.hero.facing.x); c.arc(e.x, e.y, e.radius * (.5 + t * .5), a - 1.65, a + 1.65); }

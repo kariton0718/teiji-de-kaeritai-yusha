@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { SleepGame } from '../game.js';
 import { STORY, SKILLS } from '../config.js';
 import { canvasPoint, stickVector } from '../input.js';
+import { ITEMS } from '../combat-data.js';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../main.js', import.meta.url), 'utf8');
@@ -29,7 +30,7 @@ function harness() {
   const window = target(); let game, callback, now = 1000;
   class ObservedGame extends SleepGame { constructor() { super(() => .41); game = this; } }
   vm.runInNewContext(source.replace(/^import .*;\n/gm, ''), {
-    document, window, SleepGame: ObservedGame, STORY, SKILLS, canvasPoint, stickVector, mountBestiary() {},
+    document, window, SleepGame: ObservedGame, STORY, SKILLS, ITEMS, canvasPoint, stickVector, mountBestiary() {},
     Painter: class { scene() {} draw() {} }, HomeAudio: class { update() {} event() {} },
     requestAnimationFrame(fn) { callback = fn; },
   });
@@ -82,4 +83,18 @@ test('story menu survives visibility changes without being replaced', () => {
   h.document.hidden = false; h.document.emit('visibilitychange'); h.frames();
   assert.equal(h.overlay.hidden, false); assert.equal(h.overlay.innerHTML, content);
   h.click('演出をスキップ'); h.click('いっしょに片づけよう！'); h.frames(); assert.equal(h.game.state, 'playing');
+});
+test('four illustrated story pages advance without waiting for image loading', () => {
+  const h = harness(); h.click('おうちの冒険をはじめる →');
+  for (let i=1;i<=4;i++) {
+    assert.match(h.overlay.innerHTML,new RegExp('story-0'+i+'\\.webp'));
+    h.click(i===4?'つづける →':'次へ →');
+  }
+  h.click('いっしょに片づけよう！'); h.frames(); assert.equal(h.game.state,'playing');
+});
+test('help shows five illustrated item effects and explains mama support', () => {
+  const h = harness();h.click('遊び方・家族の紹介');
+  assert.equal((h.overlay.innerHTML.match(/assets\/characters\/item-/g)||[]).length,5);
+  assert.match(h.overlay.innerHTML,/12秒/);assert.match(h.overlay.innerHTML,/飛び道具/);
+  h.click('わかった！');h.start();assert.equal(h.game.state,'playing');
 });

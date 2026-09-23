@@ -55,6 +55,7 @@ test('morning requires a completed night, restores energy, and keeps upgrades', 
 });
 test('mama heals with an upper bound and provides real area support', () => {
   const g = playing(); g.spawnCd = 999; g.hero.energy = 70;
+  g.mama.x = g.hero.x - 30; g.mama.y = g.hero.y;
   g.enemies.push({ x: g.hero.x + 120, y: g.hero.y, radius: 11, hp: 30, maxHp: 30, speed: 0, dead: false, flash: 0 });
   g.mamaCd = 0; g.update(1 / 60); assert.equal(g.hero.energy, 88); assert.equal(g.kills, 1);
   g.mamaCd = 0; g.update(1 / 60); assert.equal(g.hero.energy, 100);
@@ -108,6 +109,7 @@ for (const seed of [14, 71, 2026]) test(`unmodified gameplay pilot completes six
   }
   assert.equal(g.state, 'trueEnding', `${g.cause}; stage=${g.stage}; morning=${g.morning}`);
   assert.equal(encounters, 6); assert.equal(visitedNightEnding, true); assert.equal(morningPhases, 4);
+  assert.equal(g.secretDefeated, true, 'must defeat secret boss before sendoff and office');
   assert.ok(g.kills > 1000); assert.ok(peak > 64);
   console.log(JSON.stringify({ seed, seconds: Math.round(g.elapsed), nightSeconds: Math.round(g.nightElapsed), morningSeconds: Math.round(g.morningElapsed), kills: g.kills, peakEnemies: peak }));
 });

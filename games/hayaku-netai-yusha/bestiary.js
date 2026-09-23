@@ -39,12 +39,16 @@ export function mountBestiary(parent) {
     rail.replaceChildren(); index = 0;
     cards = profilesFor(group).map(profile => {
       const card = el('article', 'bestiary-card');
-      const img = el('img', ''); img.src = artURL(profile.id); img.alt = profile.name;
+      const img = el('img', ''); img.src = artURL(profile.artId || profile.id); img.alt = profile.name;
       img.width = img.height = 512; img.loading = 'lazy'; img.decoding = 'async';
       const caption = el('div', 'bestiary-copy');
       caption.append(el('small', 'bestiary-place', profile.where), el('h3', '', profile.name),
         el('p', 'bestiary-quote', '「' + profile.quote + '」'), el('p', '', profile.description));
-      card.append(img, caption); rail.append(card); return card;
+      if (profile.companion) {
+        const pair = el('div','bestiary-pair'), second = el('img',''); second.src = artURL(profile.companion); second.alt = '女の子'; second.width=second.height=512; second.loading='lazy';
+        pair.append(img,second); card.append(pair,caption);
+      } else card.append(img, caption);
+      rail.append(card); return card;
     });
     for (const {id, b} of tabs) b.setAttribute('aria-pressed', String(id === group));
     rail.scrollLeft = 0; update();

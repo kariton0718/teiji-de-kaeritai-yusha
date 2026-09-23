@@ -1,6 +1,7 @@
-export const MOB_TYPES = ['block', 'plate', 'sock', 'bubble', 'bag', 'star', 'pillow', 'bread'];
-export const BOSS_TYPES = MOB_TYPES.slice(0, 5);
-export const ART_IDS = [...MOB_TYPES.map(p => 'mob-' + p), ...BOSS_TYPES.map(p => 'boss-' + p), 'hero', 'mama', 'pochi', 'child', 'child-sleep', 'girl', 'girl-sleep'];
+import { MOBS, ITEMS } from './combat-data.js';
+export const MOB_TYPES = Object.keys(MOBS);
+export const BOSS_TYPES = ['block', 'plate', 'sock', 'bubble', 'bag', 'clock'];
+export const ART_IDS = [...MOB_TYPES.map(p => 'mob-' + p), ...BOSS_TYPES.map(p => 'boss-' + p), ...Object.keys(ITEMS).map(p => 'item-' + p), 'hero', 'mama', 'pochi', 'child', 'child-sleep', 'girl', 'girl-sleep'];
 export const artURL = id => new URL('./assets/characters/' + id + '.webp', import.meta.url).href;
 
 // Load once, never gate game progress on image/network availability.

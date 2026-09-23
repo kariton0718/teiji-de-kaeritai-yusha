@@ -5,13 +5,14 @@ import { PROFILES, profilesFor } from '../bestiary-data.js';
 import { ART_IDS } from '../character-art.js';
 import { mountBestiary } from '../bestiary.js';
 
-test('public character book covers 18 unique illustrated characters', () => {
-  assert.equal(PROFILES.length, 18);
-  assert.equal(new Set(PROFILES.map(p => p.id)).size, 18);
+test('book covers 15 mobs, 6 bosses plus secret boss, family and 5 items', () => {
+  assert.equal(PROFILES.length, 32);
+  assert.equal(new Set(PROFILES.map(p => p.id)).size, 32);
   assert.equal(profilesFor('family').length, 5);
-  assert.equal(profilesFor('mob').length, 8);
-  assert.equal(profilesFor('boss').length, 5);
-  for (const p of PROFILES) assert.ok(ART_IDS.includes(p.id) && p.name && p.quote && p.description && p.where);
+  assert.equal(profilesFor('mob').length, 15);
+  assert.equal(profilesFor('boss').length, 7);
+  assert.equal(profilesFor('item').length, 5);
+  for (const p of PROFILES) { assert.ok(ART_IDS.includes(p.artId || p.id) && p.name && p.quote && p.description && p.where); if(p.companion) assert.ok(ART_IDS.includes(p.companion)); }
 });
 test('title assets and stylesheet are present in the publication configuration', () => {
   const workflow = readFileSync(new URL('../../../.github/workflows/pages.yml', import.meta.url), 'utf8');
@@ -40,13 +41,13 @@ test('book filters, arrows, keyboard, swiping and reset work in DOM adapter', t 
   const nav = root.children.find(n => n.className === 'bestiary-navigation');
   const rail = root.children.find(n => n.className === 'bestiary-rail');
   const [prev, count, next] = nav.children;
-  assert.equal(rail.children.length, 18); assert.equal(count.textContent, '1 / 18'); assert.ok(prev.disabled);
-  next.emit('click'); assert.equal(count.textContent, '2 / 18');
+  assert.equal(rail.children.length, 32); assert.equal(count.textContent, '1 / 32'); assert.ok(prev.disabled);
+  next.emit('click'); assert.equal(count.textContent, '2 / 32');
   filters.children[3].emit('click');
-  assert.equal(rail.children.length, 5); assert.equal(count.textContent, '1 / 5'); assert.equal(rail.scrollLeft, 0);
+  assert.equal(rail.children.length, 7); assert.equal(count.textContent, '1 / 7'); assert.equal(rail.scrollLeft, 0);
   assert.equal(filters.children[3].attrs['aria-pressed'], 'true');
-  rail.emit('keydown', {key: 'ArrowRight'}); assert.equal(count.textContent, '2 / 5');
-  rail.scrollTo({left: 332 * 4}); assert.equal(count.textContent, '5 / 5'); assert.ok(next.disabled);
+  rail.emit('keydown', {key: 'ArrowRight'}); assert.equal(count.textContent, '2 / 7');
+  rail.scrollTo({left: 332 * 6}); assert.equal(count.textContent, '7 / 7'); assert.ok(next.disabled);
   filters.children[1].emit('click'); assert.equal(count.textContent, '1 / 5');
   assert.equal(rail.children[0].children[0].alt, '早く寝たい勇者');
   prev.emit('click'); assert.equal(count.textContent, '1 / 5');

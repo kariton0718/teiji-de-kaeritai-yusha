@@ -38,6 +38,8 @@ jobs:
           cp games/hayaku-netai-yusha/assets/characters/*.webp _site/hayaku-netai-yusha/assets/characters/
           mkdir -p _site/hayaku-netai-yusha/assets/title
           cp games/hayaku-netai-yusha/assets/title/*.webp _site/hayaku-netai-yusha/assets/title/
+          mkdir -p _site/hayaku-netai-yusha/assets/story
+          cp games/hayaku-netai-yusha/assets/story/*.webp _site/hayaku-netai-yusha/assets/story/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

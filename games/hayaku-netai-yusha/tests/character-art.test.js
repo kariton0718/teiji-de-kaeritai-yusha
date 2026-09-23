@@ -5,8 +5,8 @@ import { ART_IDS, MOB_TYPES, BOSS_TYPES, artURL, CharacterArt } from '../charact
 import { NIGHT, MORNING } from '../config.js';
 import { Painter } from '../render.js';
 
-test('every encounter has individual artwork and all 20 WebP files exist', () => {
-  assert.equal(new Set(ART_IDS).size, 20);
+test('every encounter and item has individual artwork and all 33 WebP files exist', () => {
+  assert.equal(new Set(ART_IDS).size, 33);
   for (const config of [...NIGHT, ...MORNING]) assert.ok(MOB_TYPES.includes(config.prop));
   for (const config of NIGHT.filter(c => c.hp > 0)) assert.ok(BOSS_TYPES.includes(config.prop));
   for (const id of ART_IDS) {
@@ -25,7 +25,7 @@ test('loader caches each asset once and handles image failures without rejection
     }};
   });
   await art.ready;
-  assert.equal(count, 20);
+  assert.equal(count, ART_IDS.length);
   assert.ok(art.get('hero'));
   assert.equal(art.get('mob-bag'), undefined);
   assert.ok(art.failed.has('mob-bag'));
@@ -33,12 +33,12 @@ test('loader caches each asset once and handles image failures without rejection
 test('stalled images settle and remain on safe fallback', async () => {
   const art = new CharacterArt(() => ({}), 5);
   await art.ready;
-  assert.equal(art.failed.size, 20);
+  assert.equal(art.failed.size, ART_IDS.length);
 });
 test('missing Image support does not prevent renderer setup', async () => {
   const art = new CharacterArt(() => { throw new Error('unavailable'); });
   await art.ready;
-  assert.equal(art.failed.size, 20);
+  assert.equal(art.failed.size, ART_IDS.length);
 });
 test('renderer uses separate enemy/boss and child sleeping sprites', () => {
   const ids = [], draws = [];
@@ -56,7 +56,8 @@ test('renderer uses separate enemy/boss and child sleeping sprites', () => {
   p.person(100, 200, 'girl');
   p.person(100, 200, 'girl', 1, true);
   p.dog(100, 200);
-  assert.equal(draws.length, 20);
+  for (const kind of ['rice','milk','shoes','gloves','apron']) p.item({kind,x:100,y:200});
+  assert.equal(draws.length, ART_IDS.length);
   for (const id of ART_IDS) assert.ok(ids.includes(id), id);
 });
 test('renderer can draw enemies and family when artwork is unavailable', () => {

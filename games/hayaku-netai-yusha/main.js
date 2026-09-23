@@ -4,6 +4,7 @@ import { HomeAudio } from './audio.js';
 import { NIGHT, MORNING, STORY, SKILLS } from './config.js';
 import { canvasPoint, stickVector } from './input.js';
 import { mountBestiary } from './bestiary.js';
+import { ITEMS } from './combat-data.js';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -21,17 +22,19 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = '試作版 v0.1 ・ 通常攻撃は自動 ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.2 ・ 雑魚15種 / 夜6戦＋朝の裏ボス ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {
-  panel('<div class="eyebrow">HOW TO PLAY</div><h2>家族で、夜を乗り切ろう。</h2><p>画面の好きな場所をスライドして移動。家事の魔物への攻撃は自動です。ゲージがたまったら、右下の必殺技！</p><p><b>ママ</b>：気力を回復し、周りの家事も片づけてくれます。<br><b>ポチ</b>：アイテムを運び、お願いの場所を探します。<br><b>子ども</b>：かわいい強敵。「お願い」の輪に入って2秒、お手伝いすると準備が進みます。</p><p>夜の6ステージを終えると、おやすみのエンディング。試作では、その後のボタンから翌朝の裏ルートも遊べます。</p>');
+  panel('<div class="eyebrow">HOW TO PLAY</div><h2>家族で、夜を乗り切ろう。</h2><p>スライド、または矢印キーで移動。モップと泡の連鎖は最初から自動発動！ 部屋をクリアすると貫通ビーム・ブーメラン・メテオなどの技を選べます。必殺技は敵弾も消します。</p><p><b>ママ</b>：勇者について歩き、12秒ごとに近くで気力を回復。5秒ごとのタオル援護で、周りの敵と飛び道具を片づけます。画面上に回復までの秒数が出ます。<br><b>ポチ</b>：アイテムを拾って届け、お願いの準備も手伝います。<br><b>子ども2人</b>：「お願い」の輪に2秒入ってお手伝い。攻撃を当てる相手ではありません。</p><p>赤い丸・帯・狙い線は攻撃の予告。夜の6戦を終えると「おやすみ」のエンディング。翌朝は4つの支度と裏ボスを越え、送り出しから出社へ続きます。</p><div class="item-guide">' + Object.entries(ITEMS).map(([id,item]) => `<div><img src="./assets/characters/item-${id}.webp" alt="${item.name}" width="56" height="56"><span><b>${item.name}</b><small>${item.label}</small></span></div>`).join('') + '</div>');
+  overlay.classList.add('scroll-panel');
   button('わかった！', title);
 }
 function playStory(id, done) { clearInput(); setHud(false); story = STORY[id]; storyIndex = 0; storyDone = done; renderStory(); }
 function renderStory() {
-  const [title, copy, art] = story[storyIndex]; scene = art;
-  panel(`<div class="story-counter">${story.map((_, i) => `<i class="${i <= storyIndex ? 'on' : ''}"></i>`).join('')}</div><div class="eyebrow">早く寝たい勇者</div><h2>${title}</h2><p class="lead">${copy}</p>`, false);
+  const [title, copy, art, illustration] = story[storyIndex]; scene = art;
+  panel(`${illustration ? `<figure class="story-illustration"><img src="./assets/story/${illustration}.webp" alt="${title}。${copy}" width="1000" height="1000" fetchpriority="high"></figure>` : ''}<div class="story-counter">${story.map((_, i) => `<i class="${i <= storyIndex ? 'on' : ''}"></i>`).join('')}</div><div class="eyebrow">早く寝たい勇者 / ${storyIndex + 1} OF ${story.length}</div><h2>${title}</h2><p class="lead">${copy}</p>`, false);
+  if (illustration) overlay.classList.add('storybook');
   button(storyIndex === story.length - 1 ? 'つづける →' : '次へ →', nextStory);
   if (storyIndex < story.length - 1) button('演出をスキップ', () => { const done = storyDone; story = null; done(); }, true);
 }
@@ -44,6 +47,7 @@ function roomIntro() {
 function showNotice(s, duration = 3) { $('notice').textContent = s; $('notice').classList.add('show'); noticeLeft = duration; }
 function upgrades() {
   panel(`<div class="eyebrow">ROOM CLEAR / おつかれさま！</div><h2>家事のコツを、ひとつ。</h2><p>次の部屋へ。使うほど、まとめて片づく。</p><div class="choices" id="choices"></div>`);
+  overlay.classList.add('scroll-panel');
   for (const skill of game.offers()) {
     const b = document.createElement('button'); b.className = 'choice'; b.innerHTML = `<strong>${skill.icon} ${skill.name}　Lv.${game.skills[skill.id] + 1}</strong><small>${skill.detail}</small>`;
     b.addEventListener('click', () => { if (game.chooseSkill(skill.id)) roomIntro(); }); $('choices').append(b);
@@ -62,7 +66,7 @@ function defeat() {
   panel(`<div class="eyebrow">今日は、ちょっとひと休み。</div><h2>おつかれさま、勇者。</h2><p>${game.cause}</p><p>お願いの輪へ移動しながら、近くの魔物を片づけよう。ママの回復と、ポチのお届けも力になります。</p>`);
   button(game.route === 'morning' ? '朝の支度からもう一度' : 'この部屋からもう一度', () => {
     game.hero.energy = game.hero.maxEnergy; game.ultimate = Math.max(50, game.ultimate);
-    if (game.route === 'morning') { game.morningElapsed = 0; game.morning = 0; } else game.nightElapsed = Math.min(game.nightElapsed, game.stage * 60);
+    if (game.route === 'morning') { game.morningElapsed = 0; game.morning = 0; game.secretActive = false; } else game.nightElapsed = Math.min(game.nightElapsed, game.stage * 60);
     game.state = 'roomIntro'; roomIntro();
   }); button('タイトルへ戻る', title, true);
 }
@@ -101,7 +105,7 @@ window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { clearInput(); last = 0; });
 function refreshHud() {
   const day = game.route === 'morning', commute = game.state === 'commute';
-  $('chapter').textContent = commute ? '最後の一走り / 出社へ' : day ? `朝 ${game.morning + 1}/4 · ${game.config.name}` : `夜 ${game.stage + 1}/6 · ${game.config.name}`;
+  $('chapter').textContent = commute ? '最後の一走り / 出社へ' : game.secretActive ? '裏ボス · 朝の時間ドロボウ' : day ? `朝 ${game.morning + 1}/4 · ${game.config.name}` : `夜 ${game.stage + 1}/6 · ${game.config.name}`;
   const minutes = day ? 390 + Math.min(119, game.morningElapsed / 2) : 1110 + Math.min(210, game.nightElapsed * .55);
   $('clock').textContent = `${Math.floor(minutes / 60).toString().padStart(2, '0')}:${Math.floor(minutes % 60).toString().padStart(2, '0')}`;
   $('energy').textContent = Math.ceil(game.hero.energy); $('energy-fill').style.width = `${game.hero.energy / game.hero.maxEnergy * 100}%`;
@@ -113,6 +117,8 @@ function refreshHud() {
   $('ultimate').classList.toggle('ready', game.ultimate >= 100); $('ultimate').disabled = game.ultimate < 100; $('ult-value').textContent = game.ultimate >= 100 ? '発動！' : `${Math.floor(game.ultimate)}%`;
   $('ult-name').textContent = game.isBedtime ? 'みんな、おやすみ。' : '本日は閉店です！';
   $('skill-list').textContent = SKILLS.filter(s => game.skills[s.id]).map(s => `${s.icon}${game.skills[s.id]}`).join(' ');
+  $('ally-status').textContent = game.mama.active > 0 ? 'ママ：援護中！ タオルで敵弾もお片づけ' : `ママ：追従・回復まで ${Math.max(0,Math.ceil(game.mamaCd))}秒 ／ ポチ：アイテム回収`;
+  $('buff-status').textContent = game.pickupLife > 0 ? game.lastPickup : Object.entries(game.buffs).filter(([,t]) => t > 0).map(([id,t]) => `${id === 'shoes' ? '速さUP' : id === 'gloves' ? '威力UP' : '半減ガード'} ${Math.ceil(t)}秒`).join(' ／ ');
 }
 let hudLeft = 0;
 function frame(now) {

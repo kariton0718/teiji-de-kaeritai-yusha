@@ -6,6 +6,7 @@
   <title>早く寝たい勇者｜定時で帰りたい勇者シリーズ</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./title-screen.css">
+  <link rel="stylesheet" href="./adventure.css">
 </head>
 <body>
 <main class="shell">
@@ -15,6 +16,8 @@
       <div class="energy-row"><span>気力</span><div class="bar"><i id="energy-fill"></i></div><strong id="energy">100</strong></div>
       <div class="objective-row"><span id="objective">お片づけ</span><span id="counter">0 / 105</span></div>
       <div class="bar progress"><i id="progress-fill"></i></div>
+      <div id="ally-status" class="ally-status">ママ：追従・回復と援護 ／ ポチ：アイテム回収</div>
+      <div id="buff-status" class="buff-status" role="status"></div>
     </header>
     <div class="arena" id="arena"><canvas id="canvas" width="480" height="620" aria-label="ゲーム画面。画面をスライドして移動、通常攻撃は自動です。"></canvas>
       <div id="notice" class="notice" role="status"></div>

@@ -1,10 +1,10 @@
-import { SleepGame } from './game.js';
-import { Painter } from './render.js';
-import { HomeAudio } from './audio.js';
-import { NIGHT, MORNING, STORY, SKILLS } from './config.js';
-import { canvasPoint, stickVector } from './input.js';
-import { mountBestiary } from './bestiary.js';
-import { ITEMS } from './combat-data.js';
+import { SleepGame } from './game.js?v=0.4.1';
+import { Painter } from './render.js?v=0.4.1';
+import { HomeAudio } from './audio.js?v=0.4.1';
+import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.4.1';
+import { canvasPoint, stickVector } from './input.js?v=0.4.1';
+import { mountBestiary } from './bestiary.js?v=0.4.1';
+import { ITEMS } from './combat-data.js?v=0.4.1';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;

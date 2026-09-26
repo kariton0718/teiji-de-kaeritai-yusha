@@ -1,4 +1,4 @@
-import { MOBS, ITEMS } from './combat-data.js';
+import { MOBS, ITEMS } from './combat-data.js?v=0.4.1';
 export const MOB_TYPES = Object.keys(MOBS);
 export const BOSS_TYPES = ['block', 'plate', 'sock', 'bubble', 'bag', 'clock'];
 export const ART_IDS = [...MOB_TYPES.map(p => 'mob-' + p), ...BOSS_TYPES.map(p => 'boss-' + p), ...Object.keys(ITEMS).map(p => 'item-' + p), 'hero', 'mama', 'pochi', 'child', 'child-sleep', 'girl', 'girl-sleep','commute-hero','commute-city'];

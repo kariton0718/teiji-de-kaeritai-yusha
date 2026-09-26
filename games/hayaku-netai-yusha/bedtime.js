@@ -1,4 +1,4 @@
-import {hazard} from './combat.js';
+import {hazard} from './combat.js?v=0.4.1';
 const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const BED_MISSIONS=[
   {name:'第1幕・もう1冊！',kind:'carry',label:'絵本を探す',deliver:'絵本を届ける',x:95,y:430,hold:1.3},

@@ -1,9 +1,9 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js';
-import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js';
-import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js';
-import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js';
-import { nextBedRequest, updateBedtime } from './bedtime.js';
-import { updateCommute } from './commute.js';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.4.1';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.4.1';
+import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.4.1';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.4.1';
+import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.4.1';
+import { updateCommute } from './commute.js?v=0.4.1';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };

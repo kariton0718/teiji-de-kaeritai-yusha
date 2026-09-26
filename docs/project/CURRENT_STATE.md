@@ -2,6 +2,16 @@
 
 確認・更新日：2026-09-26
 
+## 最新：v0.4公開済み（2026-09-26）
+
+- 公開コミット：`ef96089a709f1e6df5f81fd48606a129fc6c53ba`。制作ブランチ：`codex/bedtime-finale-ultimates`。main反映済み。
+- [GitHub Pages公開処理36229455491](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36229455491)成功。67テスト再成功。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/
+- 公開ブラウザーでv0.4、開始→OPスキップ→必殺4種、旋風の選択→戦闘開始→HUDへの技名反映を確認。PC画面内のHP・必殺表示を目視確認。
+- 子ども・裏ボス・ゲージ・出社と両EDは自動テストで確認。公開ブラウザーでの全編手動通し、スマホ実機・FPS・音・体感難度は未確認。
+- 第1作のゲーム本体・素材・テストには差分なし。第1作の既存通しテスト2件の失敗は残る。
+- キャッシュ対策でHTML→JS/CSS、JS間importに `v=0.4.1` を付与。今後モジュールを変更する公開では、この版番号を一括更新する。
+
 ## 2026-09-26 v0.4公開とキャッシュ対策
 
 - `090816e` をmainへ反映し、[Pages公開処理36229290565](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36229290565)はテスト・配置・公開すべて成功。

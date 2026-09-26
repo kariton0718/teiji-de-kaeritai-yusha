@@ -1,6 +1,7 @@
 import { WORLD as W, NIGHT } from './config.js';
 import { CharacterArt } from './character-art.js';
-import { ITEMS } from './combat-data.js';
+import { ITEMS, MOB_ROLES } from './combat-data.js';
+import { drawCommute } from './commute.js';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -159,8 +160,9 @@ export class Painter {
     if (game.request || game.sideRequest) {
       const r = game.request || game.sideRequest; c.globalAlpha = .35; this.circle(r.x, r.y, 46, '#fff7c2'); c.globalAlpha = 1;
       this.circle(r.x, r.y, 37, '#ffedc344', '#fff8df');
-      c.beginPath(); c.arc(r.x, r.y, 38, -Math.PI / 2, -Math.PI / 2 + Math.min(1, r.fill / 2) * Math.PI * 2); c.strokeStyle = '#477f78'; c.lineWidth = 5; c.stroke();
-      this.text('♡', r.x, r.y, 29, '#578d83'); this.label(r.label, r.x, r.y + 55, '#fff3d6');
+      if(r.kind==='tidy'){c.setLineDash([6,8]);this.circle(r.x,r.y,145,'#00000000','#fff3c6');c.setLineDash([]);}
+      c.beginPath(); c.arc(r.x, r.y, 38, -Math.PI / 2, -Math.PI / 2 + Math.min(1, r.fill / (r.hold||2)) * Math.PI * 2); c.strokeStyle = '#477f78'; c.lineWidth = 5; c.stroke();
+      this.text(r.kind==='tidy'?`${r.kills}/12`:r.kind==='sing'?'♪':r.kind==='carry'?(r.step?'→':'↓'):'♡', r.x, r.y, 24, '#578d83'); this.label(r.label, r.x, r.y + 55, '#fff3d6');
     }
     for (const d of game.drops) this.item(d);
     for (const f of game.falls || []) {
@@ -174,7 +176,11 @@ export class Painter {
     const actors = game.enemies.map(e => ({ y: e.y, draw: () => this.enemy(e, game) }));
     actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y + (game.mama.moving ? Math.sin(time*13)*3 : 0), 'mama', .83); this.label(game.mama.active ? 'ママ・援護中' : 'ママ・回復役', game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
     actors.push({ y: game.pochi.y, draw: () => { this.dog(game.pochi.x, game.pochi.y, .78); if (game.pochi.active) this.text('♪', game.pochi.x, game.pochi.y - 37, 22, '#5e7857'); } });
-    if (game.familyTask) actors.push({ y: game.child.y, draw: () => { this.children(game.child.x, game.child.y, .94, game.child.progress >= 80 && game.isBedtime); this.label(game.child.mood, game.child.x, game.child.y - 65); } });
+    if (game.familyTask) actors.push({ y: game.child.y, draw: () => {
+      if(game.isBedtime){for(let i=0;i<2;i++){const k=game.bedKids[i];this.person(k.x,k.y+(game.bedSpeechLife>0&&game.bedSpeaker===i?Math.sin(time*14)*5:0),i?'girl':'child',1.05,game.helped>=5);if(game.bedSpeechLife>0&&game.bedSpeaker===i)this.text('♪',k.x+32,k.y-42,25,'#d4628d');}}
+      else this.children(game.child.x, game.child.y, .94, false);
+      this.label(game.child.mood, game.child.x, 83);
+    } });
     actors.push({ y: game.hero.y, draw: () => { if (game.hero.invulnerable > 0) c.globalAlpha = .6 + .4 * Math.sin(time * 18) ** 2; this.person(game.hero.x, game.hero.y, 'hero', .86); c.globalAlpha = 1; } });
     actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
     for (const p of game.projectiles || []) {
@@ -183,13 +189,19 @@ export class Painter {
       if(p.returnAt){this.circle(0,0,12,p.kind==='plate'?'#e7d6c0':'#e4b955','#854632');this.circle(0,0,7,'#00000000','#b07448');this.line(-11,0,-21,0,'#854632',5);}
       else if(p.kind==='towel')this.rect(-16,-7,32,14,5,'#bfeadc','#4b9b90');
       else if(p.kind==='clip'){this.rect(-10,-4,20,8,3,'#ffdd8c','#ad784e');this.line(-4,0,8,0,'#b57b4d',2);}
-      else{this.circle(0,0,p.radius,p.friendly?'#fdf0b1':'#ff9b6f',p.friendly?'#b68942':'#982c4c');this.circle(-2,-2,2,'#fff4d8');}
+      else if(!p.friendly&&['star','bubble'].includes(p.kind))this.prop(p.kind,0,0,p.radius+3,false);
+      else{this.circle(0,0,p.radius,p.friendly?'#fdf0b1':p.kind==='duck'?'#70d4ec':p.kind==='brush'?'#e975a7':'#ff9b6f',p.friendly?'#b68942':'#982c4c');this.circle(-2,-2,2,'#fff4d8');}
       c.restore();
     }
     if(game.buffs?.apron>0)this.circle(game.hero.x,game.hero.y,35,'#bca4ef22','#d5c0ff');
+    if(game.ultimateActive?.id==='family'){this.circle(game.hero.x,game.hero.y,145,'#b7f0d522','#82d8b9');this.text('♥',game.hero.x,game.hero.y-65,24,'#e693b0');}
+    if(game.request?.kind==='carry'&&game.request.step)this.label(game.helped===0?'絵本を運んでいます':'お水を運んでいます',game.hero.x,game.hero.y-68);
     for (const e of game.effects) this.fx(e, game);
     if (stick) { c.globalAlpha = .35; this.circle(stick.x, stick.y, 38, '#fff5df', '#40526c'); this.circle(stick.x + stick.dx * 28, stick.y + stick.dy * 28, 16, '#fff5df'); c.globalAlpha = 1; }
-    if (game.isBedtime) { c.fillStyle = '#26345712'; c.fillRect(0, 0, 480, 620); }
+    if (game.isBedtime) {
+      this.label(`第${game.bedPhase}幕 / お世話 ${game.helped}/6`,240,32,'#f2d8a8');
+      if(game.bedBannerLife>0){this.rect(24,155,432,56,12,'#293955e8');this.text(game.bedBanner,240,182,18,'#fff0c9');}
+    }
   }
   label(s, x, y, color = '#fff5e4') {
     const w = Math.min(440, s.length * 12 + 22); this.rect(Math.max(3, Math.min(x - w / 2, 477 - w)), y - 13, w, 26, 13, color); this.text(s, Math.max(w / 2 + 3, Math.min(x, 477 - w / 2)), y, 11, '#49586b');
@@ -202,7 +214,14 @@ export class Painter {
   }
   enemy(e, game) {
     const c = this.ctx; this.shadow(e.x, e.y + e.radius, e.radius);
+    const role=MOB_ROLES[e.behavior];
+    if(!e.boss&&role){
+      this.circle(e.x,e.y,e.radius+3,'#00000000',role.color);
+      if(e.behavior==='support'){c.save();c.globalAlpha=.13;this.circle(e.x,e.y,115,role.color);c.restore();}
+      if(e.behavior==='zigzag'||e.dash>0){const a=e.dashAngle??Math.atan2(game.hero.y-e.y,game.hero.x-e.x);for(let i=1;i<4;i++)this.line(e.x-Math.cos(a)*(i*9+8),e.y-Math.sin(a)*(i*9+8)-5,e.x-Math.cos(a)*(i*9+18),e.y-Math.sin(a)*(i*9+18)-5,role.color,2);}
+    }
     c.save(); c.translate(e.x, e.y); c.rotate(Math.sin(this.time * 4 + e.x) * .08);
+    if(e.leap>0)c.translate(0,-Math.sin(Math.min(1,e.leap/1.15)*Math.PI)*60);
     const illustrated = this.sprite((e.boss ? 'boss-' : 'mob-') + e.prop, 0, e.radius + 5, e.boss ? 110 : e.radius * 2 + 14);
     if (illustrated) {
       if (e.boss && e.hp < e.maxHp * .5) this.text('!!', 0, -78, 21, '#8a4650');
@@ -213,6 +232,7 @@ export class Painter {
     } else this.prop(e.prop, 0, 0, e.radius + 2);
     if (e.flash) { c.globalAlpha = .65; this.circle(0, 0, e.radius + 4, '#fff8d1'); }
     c.restore();
+    if(!e.boss&&role){this.rect(e.x-9,e.y-e.radius-23,18,17,4,role.color);this.text(e.recover>0&&!e.leap?'隙':role.badge,e.x,e.y-e.radius-14,11,'#ffffff');}
     if(e.boosted)this.text('↑',e.x,e.y-e.radius-17,15,'#c37321');
     if(e.maxHp>60 && e.hp<e.maxHp && !e.boss){this.rect(e.x-17,e.y+e.radius+9,34,4,2,'#64566a');this.rect(e.x-17,e.y+e.radius+9,34*Math.max(0,e.hp/e.maxHp),4,2,'#e8d197');}
   }
@@ -245,15 +265,7 @@ export class Painter {
     if (e.kind === 'heart') this.text('♥', e.x, e.y - t * 35, 28, '#fff1e5');
     c.restore();
   }
-  commute(game) {
-    const c = this.ctx; c.fillStyle = '#bad6d5'; c.fillRect(0, 0, 480, 620);
-    this.rect(92, 0, 296, 139, 5, '#e8e6d7', '#839aa3'); this.rect(182, 42, 116, 95, 5, '#608390'); this.text('OFFICE', 240, 23, 19, '#456170');
-    this.rect(128, 145, 224, 475, 0, '#a8afa7');
-    for (let y = 177; y < 620; y += 45) this.rect(237, y, 6, 22, 1, '#f7edce');
-    for (const x of [54, 428]) for (let y = 230; y < 600; y += 175) { this.rect(x - 5, y, 10, 45, 4, '#9b8571'); this.circle(x, y - 4, 28, '#79a394'); }
-    this.circle(240, 99, 42, '#fff2b866', '#fff5d5'); this.text('出社', 240, 99, 18, '#fff6db');
-    this.person(game.hero.x, game.hero.y, 'hero', 1); this.label('会社の入口へ！', 240, 550);
-  }
+  commute(game) { drawCommute(this,game); }
   scene(kind, time) {
     this.time = time; const c = this.ctx; const morning = ['alarm', 'morning', 'sendoff', 'rush', 'office', 'memory', 'trueEnd'].includes(kind);
     const grad = c.createLinearGradient(0, 0, 0, 620); grad.addColorStop(0, morning ? '#c2dbdc' : '#283959'); grad.addColorStop(1, morning ? '#fff0cf' : '#6b7395');

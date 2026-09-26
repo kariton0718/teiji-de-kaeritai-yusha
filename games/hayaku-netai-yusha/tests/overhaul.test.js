@@ -21,7 +21,7 @@ test('ranged enemies telegraph then fire; defeating shooter cancels pending shot
 });
 test('charging mob locks aim before its dash and does not home in',()=>{
   const g=game(),e=enemy(g,'train');updateEnemies(g,.05);const aim={...e.aim};assert.ok(e.windup>0);
-  g.hero.x=400;for(let i=0;i<18;i++)updateEnemies(g,.05);assert.deepEqual(e.aim,aim);assert.ok(e.dash>0);assert.ok(Math.abs(e.dashAngle-Math.PI/2)<.1);
+  g.hero.x=400;for(let i=0;i<24;i++)updateEnemies(g,.05);assert.deepEqual(e.aim,aim);assert.ok(e.dash>0);assert.ok(Math.abs(e.dashAngle-Math.PI/2)<.1);
 });
 test('clock support accelerates neighbors and stops on defeat',()=>{
   const g=game(),clock=enemy(g,'alarm',200,200),mob=enemy(g,'block',230,200);
@@ -29,7 +29,7 @@ test('clock support accelerates neighbors and stops on defeat',()=>{
 });
 test('fast projectiles use swept collision; piercing attacks hit each enemy once',()=>{
   const g=game(),e=enemy(g,'towel',150,300);shot(g,{x:100,y:300},0,{friendly:true,speed:1000,damage:20,pierce:true});
-  updateProjectiles(g,.1);assert.equal(e.hp,120);g.projectiles[0].vx=-1000;updateProjectiles(g,.1);assert.equal(e.hp,120);
+  updateProjectiles(g,.1);assert.equal(e.hp,e.maxHp-20);g.projectiles[0].vx=-1000;updateProjectiles(g,.1);assert.equal(e.hp,e.maxHp-20);
   assert.equal(segmentDistance({x:50,y:0},{x:0,y:0},{x:100,y:0}),0);
 });
 test('mama follows, heals locally and clears hostile shots near her',()=>{
@@ -42,9 +42,9 @@ test('mama follows, heals locally and clears hostile shots near her',()=>{
 test('five clear items restore resources or give temporary non-stacking buffs',()=>{
   const g=game();g.hero.energy=40;g.ultimate=20;
   for(const kind of ['rice','milk','shoes','gloves','apron'])g.collect({kind,x:100,y:100,life:1});
-  assert.equal(g.hero.energy,65);assert.equal(g.ultimate,45);assert.equal(g.buffs.shoes,8);
-  const e=enemy(g,'towel');g.hurtEnemy(e,10);assert.equal(e.hp,124);
-  g.hero.invulnerable=0;g.hurtHero(10,'test');assert.equal(g.hero.energy,60);
+  assert.equal(g.hero.energy,65);assert.equal(g.ultimate,32);assert.equal(g.buffs.shoes,8);
+  const e=enemy(g,'towel');g.hurtEnemy(e,10);assert.equal(e.hp,e.maxHp-16);
+  g.hero.invulnerable=0;g.hurtHero(10,'test');assert.equal(g.hero.energy,58);
   g.collect({kind:'shoes',x:0,y:0,life:1});assert.equal(g.buffs.shoes,8);
   for(let i=0;i<161;i++)g.update(.05);assert.equal(g.buffs.shoes,0);assert.equal(g.buffs.gloves,0);assert.equal(g.buffs.apron,0);
 });
@@ -61,7 +61,7 @@ test('each combat boss cycles five named moves, then accelerates in phase two',(
   for(const stage of [0,1,2,3,4,6]){
     const g=game();if(stage===6){g.route='morning';g.morning=3;g.secretActive=true;}else g.stage=stage;
     g.spawnBoss();const seen=[];
-    for(let i=0;i<5;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}
+    for(let i=0;i<BOSS_MOVES[stage].length;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}
     assert.deepEqual(seen,BOSS_MOVES[stage]);const normal=g.boss.attackCd;g.boss.hp=g.boss.maxHp*.4;bossAttack(g,g.boss);assert.ok(g.boss.attackCd<normal);
     assert.ok(g.enemies.length+g.warnings.length<=128);
   }

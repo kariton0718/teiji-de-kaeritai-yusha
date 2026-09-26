@@ -2,7 +2,7 @@ import {distance,clamp} from '../game.js';
 import {segmentDistance} from '../combat.js';
 // Controller only: reads state, moves and presses ultimate. Never changes combat stats.
 export function carefulPilot(g) {
-  if(g.state==='commute')return {x:240-g.hero.x,y:92-g.hero.y};
+  if(g.state==='commute')return {x:1,y:0};
   const enemies=g.enemies.filter(e=>!e.dead),near=enemies.filter(e=>distance(e,g.hero)<200);
   const target=g.request||(g.boss&&!g.boss.dead?g.boss:enemies.reduce((a,e)=>!a||distance(e,g.hero)<distance(a,g.hero)?e:a,null))||{x:240,y:310};
   let best=Infinity,chosen={x:0,y:0};

@@ -22,12 +22,12 @@ function line(g,origin,target,width=23,life=1.25,extra={}) {
   hazard(g,{x:origin.x,y:origin.y,x2:target.x,y2:target.y,r:width,life,shape:'line',...extra});
 }
 function aimCharge(g,e) {
-  e.aim={x:g.hero.x,y:g.hero.y}; e.windup=.85;
-  line(g,e,e.aim,e.radius,.85,{damage:0,visualOnly:true});
+  e.aim={x:g.hero.x,y:g.hero.y}; e.windup=e.boss?.85:e.prop==='train'?1.1:.75;
+  line(g,e,e.aim,e.radius,e.windup,{damage:0,visualOnly:true,owner:e});
 }
 export function bossAttack(g,e) {
   const stage=g.secretActive?6:g.stage, phase=e.hp<e.maxHp*.25?3:e.hp<e.maxHp*.6?2:1;
-  const turn=(e.turn||0)%5;e.turn=(e.turn||0)+1;e.phase=phase;
+  const turn=(e.turn||0)%BOSS_MOVES[stage].length;e.turn=(e.turn||0)+1;e.phase=phase;
   e.move=BOSS_MOVES[stage][turn];g.effect('label',240,185,0,`${phase===3?'ラストスパート！ ':phase===2?'本気！ ':''}${e.move}`,1.6);
   if(stage===0) {
     if(turn===0)for(let i=0;i<phase+1;i++)hazard(g,{x:clamp(g.hero.x+(i?90:-20),40,440),y:g.hero.y,r:48,life:1.25+i*.2});
@@ -54,8 +54,13 @@ export function bossAttack(g,e) {
     if(turn===1){line(g,{x:30,y:90},{x:450,y:570},25);line(g,{x:450,y:90},{x:30,y:570},25,1.55);if(phase===2)line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},22,1.8);}
     if(turn===2){g.spawn(4,'bread');g.spawn(3,'brush');g.spawn(2,'alarm');e.pull=1.5;hazard(g,{x:e.x,y:e.y,r:85,life:1.6});}
   }
-  if(turn>=3)signatureAttack(g,e,stage,turn,phase);
-  e.attackCd=phase===3?1.75:phase===2?2.25:2.9;g.emit('warning');
+  if(stage===6&&turn>=5){
+    const angle=Math.atan2(g.hero.y-e.y,g.hero.x-e.x);
+    if(turn===5){hazard(g,{x:e.x,y:e.y,kind:'boomerang',angle,count:5+phase,life:.95,r:30,prop:'clock'});g.spawn(phase+2,'train');}
+    if(turn===6){for(let i=0;i<4+phase;i++)hazard(g,{x:clamp(g.hero.x+Math.cos(i*1.3)*110,40,440),y:clamp(g.hero.y+Math.sin(i*1.3)*100,95,550),r:36,life:.9+i*.25});}
+    if(turn===7){for(let i=0;i<3;i++)hazard(g,{x:e.x,y:e.y,kind:'gapRing',angle:angle+i*.7,count:18,life:1+i*.65,r:28,prop:'clock'});line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},20,2.5);}
+  }else if(turn>=3)signatureAttack(g,e,stage,turn,phase);
+  e.attackCd=stage===6?(phase===3?1.3:phase===2?1.75:2.2):(phase===3?1.75:phase===2?2.25:2.9);g.emit('warning');
 }
 function signatureAttack(g,e,stage,turn,phase) {
   const target={x:g.hero.x,y:g.hero.y},angle=Math.atan2(target.y-e.y,target.x-e.x);
@@ -88,11 +93,13 @@ export function updateEnemies(g,dt) {
     let angle=a,speed=e.speed*(e.boss?(e.hp<e.maxHp*.6?1.2:1):1.12);
     e.boosted=!e.boss&&boosters.some(s=>s!==e&&dist(s,e)<115);
     if(e.boosted)speed*=1.3;
-    if(b==='zigzag')angle+=Math.sin(e.age*6)*.85;
+    if(b==='zigzag')angle+=Math.sin(e.age*(e.prop==='sock'?4:9))*(e.prop==='sock'?1.25:.45);
     if(b==='orbit')angle+=d<180?1.05:.35;
     if(['ranged','spread','sniper','support'].includes(b)&&d<200)speed=d<135?-speed*.6:0;
-    if(e.windup>0){speed=0;e.windup-=dt;if(e.windup<=0){e.dash=.65;e.dashAngle=Math.atan2(e.aim.y-e.y,e.aim.x-e.x);}}
-    if(e.dash>0){e.dash-=dt;angle=e.dashAngle;speed=e.boss?310:260;}
+    if(e.recover>0){e.recover=Math.max(0,e.recover-dt);speed=0;}
+    if(e.leap>0){e.leap=Math.max(0,e.leap-dt);speed=0;}
+    if(e.windup>0){speed=0;e.windup-=dt;if(e.windup<=0){e.dash=e.boss?.65:e.prop==='train'?.95:.42;e.dashAngle=Math.atan2(e.aim.y-e.y,e.aim.x-e.x);}}
+    if(e.dash>0){e.dash-=dt;angle=e.dashAngle;speed=e.boss?310:e.prop==='train'?300:390;if(e.dash<=0)e.recover=e.boss?.2:1.1;}
     e.x=clamp(e.x+Math.cos(angle)*speed*dt,22,458);e.y=clamp(e.y+Math.sin(angle)*speed*dt,65,584);
     if(dist(e,g.hero)<e.radius+15)g.hurtHero(e.boss?18:b==='tank'?13:8,e.boss?g.config.boss:'押し寄せる家事');
     if(e.pull>0){e.pull-=dt;g.hero.x=clamp(g.hero.x-Math.cos(a)*44*dt,24,456);g.hero.y=clamp(g.hero.y-Math.sin(a)*44*dt,74,580);g.effect('vacuum',e.x,e.y,110,'',.12);}
@@ -101,10 +108,14 @@ export function updateEnemies(g,dt) {
     if(e.attackCd>0||d>380)continue;
     // Only a few ranged enemies may begin a shot per frame/wave window.
     if(['ranged','spread','sniper'].includes(b)&&g.hazards.filter(h=>h.owner&&!h.owner.dead).length<9&&rangedBudget<3){
-      rangedBudget++;hazard(g,{x:e.x,y:e.y,x2:g.hero.x,y2:g.hero.y,shape:'aim',kind:'mobShot',owner:e,r:8,life:b==='sniper'?.85:.7,count:b==='spread'?5:b==='ranged'?2:1,speed:b==='sniper'?270:155});
+      const life=b==='sniper'?1.15:.85;
+      const count=e.prop==='duck'?7:e.prop==='bubble'?5:e.prop==='robot'?3:e.prop==='plate'?1:1;
+      e.recover=life;rangedBudget++;hazard(g,{x:e.x,y:e.y,x2:g.hero.x,y2:g.hero.y,shape:'aim',kind:'mobShot',owner:e,r:8,life,count,speed:b==='sniper'?320:e.prop==='bubble'?90:e.prop==='robot'?215:170});
     }
     if(b==='charge')aimCharge(g,e);
-    if(b==='bounce')hazard(g,{x:g.hero.x,y:g.hero.y,r:38,life:1.05,damage:12});
+    if(b==='bounce'){e.leap=1.15;hazard(g,{x:g.hero.x,y:g.hero.y,r:45,life:1.15,damage:15,kind:'leap',owner:e});}
+    if(b==='orbit')hazard(g,{x:e.x,y:e.y,kind:'volley',count:3,r:22,life:.9,owner:e,prop:'star'});
+    if(b==='tank'&&d<125)hazard(g,{x:e.x,y:e.y,r:e.radius+36,life:1,damage:16,owner:e});
     if(b==='support')g.effect('boost',e.x,e.y,115,'',.7);
     e.attackCd=2.2+g.random()*1.3;
   }
@@ -113,7 +124,11 @@ export function updateEnemies(g,dt) {
     h.life-=dt;if(h.life>0||h.fired)continue;h.fired=true;
     if(h.owner?.dead||h.visualOnly)continue;
     if(h.kind==='mobShot'){
-      const angle=Math.atan2(h.y2-h.y,h.x2-h.x);for(let i=0;i<h.count;i++)shot(g,h,angle+(i-(h.count-1)/2)*.34,{speed:h.speed,kind:h.owner.prop});
+      const angle=Math.atan2(h.y2-h.y,h.x2-h.x),prop=h.owner.prop;
+      if(prop==='robot'){for(let i=0;i<3;i++)hazard(g,{x:h.x,y:h.y,kind:'burst',angle,owner:h.owner,r:12,life:.05+i*.16});}
+      else for(let i=0;i<h.count;i++)shot(g,h,angle+(i-(h.count-1)/2)*.32,{speed:h.speed,kind:prop,radius:prop==='bubble'?11:5,...(prop==='plate'?{returnAt:2.9,origin:{x:h.x,y:h.y},life:4}:{})});
+    }else if(h.kind==='burst')shot(g,h,h.angle,{speed:215,kind:'robot',radius:6});
+    else if(h.kind==='leap'){h.owner.x=h.x;h.owner.y=h.y;h.owner.recover=1;g.effect('danger',h.x,h.y,h.r,'',.5);if(dist(g.hero,h)<h.r+12)g.hurtHero(h.damage,'もちもち枕の着地');
     }else if(h.kind==='volley')volley(g,h,h.count,165);
     else if(h.kind==='nextCharge')aimCharge(g,h.owner);
     else if(h.kind==='zone'){g.zones.push({x:h.x,y:h.y,r:h.r,life:h.duration,damage:12});}
@@ -132,7 +147,7 @@ export function updateProjectiles(g,dt) {
     if(p.returnAt && p.life<=p.returnAt && !p.returned){p.returned=true;const a=Math.atan2(p.origin.y-p.y,p.origin.x-p.x);p.vx=Math.cos(a)*p.speed;p.vy=Math.sin(a)*p.speed;}
     if(p.kind==='towel'&&p.life<1){const a=Math.atan2(g.hero.y-p.y,g.hero.x-p.x);p.vx=Math.cos(a)*300;p.vy=Math.sin(a)*300;}
     p.x+=p.vx*dt;p.y+=p.vy*dt;
-    if(p.friendly){for(const e of g.enemies){if(e.dead||p.hits.has(e)||segmentDistance(e,previous,p)>e.radius+p.radius)continue;p.hits.add(e);g.hurtEnemy(e,p.damage,3);g.effect('impact',e.x,e.y,20,'',.22);if(!p.pierce){p.life=0;break;}}}
+    if(p.friendly){for(const e of g.enemies){if(e.dead||p.hits.has(e)||segmentDistance(e,previous,p)>e.radius+p.radius)continue;p.hits.add(e);g.hurtEnemy(e,p.damage,3,p.source);g.effect('impact',e.x,e.y,20,'',.22);if(!p.pierce){p.life=0;break;}}}
     else if(segmentDistance(g.hero,previous,p)<p.radius+13){g.hurtHero(p.damage,'飛び道具');p.life=0;}
   }
   g.projectiles=g.projectiles.filter(p=>p.life>0&&p.x>-30&&p.x<510&&p.y>20&&p.y<670);
@@ -153,6 +168,6 @@ export function extraSkills(g,dt){
       g.falls.push({x:target.x,y:target.y,life:.65,radius:75+lv*15,damage:70+lv*25});g.skillCds[id]=4.5-lv*.4;
     }
   }
-  for(const f of g.falls){f.life-=dt;if(f.life<=0)g.area(f.x,f.y,f.radius,f.damage,'meteor',18);}
+  for(const f of g.falls){f.life-=dt;if(f.life<=0)g.area(f.x,f.y,f.radius,f.damage,'meteor',18,f.source);}
   g.falls=g.falls.filter(f=>f.life>0);
 }

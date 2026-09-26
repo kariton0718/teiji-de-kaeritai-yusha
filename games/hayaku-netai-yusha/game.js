@@ -1,6 +1,9 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS, BED_REQUESTS } from './config.js';
-import { MOBS, NIGHT_MIX, MORNING_MIX, ITEMS, SECRET_BOSS, BOSS_MOVES } from './combat-data.js';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js';
 import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js';
+import { nextBedRequest, updateBedtime } from './bedtime.js';
+import { updateCommute } from './commute.js';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };
@@ -16,11 +19,13 @@ export class SleepGame {
     this.skills = { mop: 1, bubble: 1, vacuum: 0, clip: 0, heart: 0, iron: 0, towel: 0, meteor: 0 };
     this.secretActive = false; this.secretDefeated = false;
     this.elapsed = 0; this.nightElapsed = 0; this.morningElapsed = 0; this.kills = 0;
-    this.ultimate = 35; this.combo = 0; this.comboLife = 0; this.bestCombo = 0;
+    this.ultimate = 35; this.ultimateId='close'; this.ultimateLock=0; this.ultimateActive=null; this.chargeBudget=3; this.combo = 0; this.comboLife = 0; this.bestCombo = 0;
     this.completedNight = false; this.completedMorning = false; this.cause = '';
     this.events = []; this.clearRoom();
   }
   clearRoom() {
+    this.ultimateActive=null;
+    this.bedKids=[{x:185,y:145},{x:295,y:145}];this.bedAttackCd=3;this.bedTurn=0;this.bedBanner='';this.bedBannerLife=0;this.bedSpeechLife=0;this.bedSpeaker=0;
     this.enemies = []; this.effects = []; this.drops = []; this.hazards = []; this.warnings = [];
     this.projectiles = []; this.falls = []; this.zones = []; this.buffs = { shoes: 0, gloves: 0, apron: 0 };
     this.skillCds = { iron: 1, towel: 1, meteor: 2 }; this.mamaSweepCd = 3;
@@ -36,6 +41,15 @@ export class SleepGame {
   get config() { return this.secretActive ? SECRET_BOSS : this.route === 'morning' ? MORNING[this.morning] : NIGHT[this.stage]; }
   get familyTask() { return !this.secretActive && (this.route === 'morning' || this.stage === 5); }
   get isBedtime() { return this.route === 'night' && this.stage === 5; }
+  get bedPhase() { return 1+Math.min(2,Math.floor(this.helped/2)); }
+  get ultimateOptions() { return ULTIMATES; }
+  get ultimateName() { return ULTIMATES.find(s=>s.id===this.ultimateId).name; }
+  selectUltimate(id) { if(!['intro','roomIntro','morningIntro','morningRoomIntro'].includes(this.state)||!ULTIMATES.some(s=>s.id===id))return false;this.ultimateId=id;return true; }
+  gainUltimate(amount,source='support') {
+    if(this.ultimateLock>0||this.ultimateActive||source==='ultimate')return;
+    if(source==='kill'){amount=Math.min(amount,this.chargeBudget);this.chargeBudget-=amount;}
+    this.ultimate=Math.min(100,this.ultimate+amount);
+  }
   get progress() {
     if (this.secretActive) return this.boss ? Math.max(0, 100 - this.boss.hp / this.boss.maxHp * 100) : 0;
     if (this.familyTask) return this.child.progress;
@@ -54,7 +68,7 @@ export class SleepGame {
     this.effects.push({ kind, x, y, radius, text, life, maxLife: life });
   }
   spawn(count, prop = null) {
-    const mix = this.route === 'morning' ? MORNING_MIX[this.morning] : NIGHT_MIX[this.stage];
+    const mix = this.secretActive ? SECRET_MIX : this.route === 'morning' ? MORNING_MIX[this.morning] : NIGHT_MIX[this.stage];
     for (let i = 0; i < count && this.enemies.length + this.warnings.length < W.maxEnemies; i++) {
       const side = Math.floor(this.random() * 4);
       let p = { x: side < 2 ? 22 + side * 436 : 24 + this.random() * 432, y: side >= 2 ? 62 + (side - 2) * 518 : 65 + this.random() * 510 };
@@ -63,7 +77,7 @@ export class SleepGame {
       this.warnings.push({ ...p, life: .85 + this.random() * .5, prop: type, heavy: MOBS[type]?.behavior === 'tank' });
     }
   }
-  hurtEnemy(e, damage, push = 0) {
+  hurtEnemy(e, damage, push = 0, source = 'normal') {
     if (!e || e.dead) return;
     e.hp -= damage * (this.buffs.gloves > 0 ? 1.6 : 1); e.flash = .12;
     if (e.behavior === 'tank') push *= .25;
@@ -71,48 +85,50 @@ export class SleepGame {
     if (push) { const n = unit(e.x - this.hero.x, e.y - this.hero.y); e.x = clamp(e.x + n.x * push, 22, 458); e.y = clamp(e.y + n.y * push, 65, 584); }
     if (e.hp > 0) return;
     e.dead = true; this.kills++; this.stageKills++; this.combo++; this.comboLife = 2.2;
-    this.bestCombo = Math.max(this.bestCombo, this.combo); this.ultimate = Math.min(100, this.ultimate + (e.boss ? 14 : .7));
+    this.bestCombo = Math.max(this.bestCombo, this.combo); this.gainUltimate(e.boss?8:.45,source==='ultimate'?'ultimate':'kill');
+    if(this.isBedtime&&this.request?.kind==='tidy'&&distance(e,this.request)<145)this.request.kills++;
     this.effect('tidy', e.x, e.y, 13, '', .7);
     if (this.combo % 15 === 0) { this.effect('label', this.hero.x, this.hero.y - 50, 0, `${this.combo} 家事コンボ！`, 1.1); this.emit('combo'); }
     if (this.random() < .045 && this.drops.length < W.maxDrops) {
       const pool = ['rice', 'rice', 'milk', 'shoes', 'gloves', 'apron'];
-      this.drops.push({ x: e.x, y: e.y, life: 16, kind: pool[Math.floor(this.random() * pool.length)] });
+      this.drops.push({ x: e.x, y: e.y, life: 16, kind: pool[Math.floor(this.random() * pool.length)], source });
     }
     this.emit('tidy');
   }
-  area(x, y, radius, damage, kind = 'sweep', push = 0) {
+  area(x, y, radius, damage, kind = 'sweep', push = 0, source = 'normal') {
     this.effect(kind, x, y, radius);
-    for (const e of this.enemies) if (!e.dead && distance({ x, y }, e) < radius + e.radius) this.hurtEnemy(e, damage, push);
+    for (const e of this.enemies) if (!e.dead && distance({ x, y }, e) < radius + e.radius) this.hurtEnemy(e, damage, push, source);
   }
   useUltimate() {
-    if (this.state !== 'playing' || this.ultimate < 100) return false;
-    this.ultimate = 0;
-    this.area(this.hero.x, this.hero.y, 800, 180, this.isBedtime ? 'quiet' : 'ultimate', 30);
-    this.hazards = []; this.zones = []; this.projectiles = this.projectiles.filter(p => p.friendly); this.hero.invulnerable = 2;
-    this.effect('label', 240, 280, 0, this.isBedtime ? 'みんな、おやすみ。' : '本日は閉店です！', 2);
-    this.emit('ultimate'); return true;
+    return activateUltimate(this);
   }
   hurtHero(damage, source) {
     if (this.state !== 'playing' || this.hero.invulnerable > 0) return;
+    damage=Math.ceil(damage*HOSTILE_DAMAGE_SCALE);
     if (this.buffs.apron > 0) damage = Math.ceil(damage / 2);
+    if(this.ultimateActive?.id==='family')damage=Math.ceil(damage*.5);
+    if(this.isBedtime&&this.request?.kind==='sing')this.request.fill=Math.max(0,this.request.fill-.6);
     this.hero.energy = Math.max(0, this.hero.energy - damage); this.hero.invulnerable = .85;
     this.effect('label', this.hero.x, this.hero.y - 32, 0, `気力 −${damage}`, .8); this.emit('hurt');
     if (this.hero.energy <= 0) { this.cause = `${source}で気力を使い切った。`; this.state = 'defeat'; }
   }
   nextRequest() {
+    if(this.isBedtime){nextBedRequest(this);return;}
     const spots = [{ x: 105, y: 215 }, { x: 375, y: 250 }, { x: 120, y: 405 }, { x: 360, y: 440 }, { x: 240, y: 295 }];
     const p = spots[this.requestIndex % spots.length];
-    const label = this.isBedtime ? BED_REQUESTS[this.requestIndex % BED_REQUESTS.length] : this.config.request;
+    const label = this.config.request;
     this.request = { ...p, label, fill: 0 }; this.requestIndex++;
   }
   collect(drop) {
     if (drop.life <= 0) return;
+    const beforeCharge=this.ultimate;
     drop.life = 0;
     if (drop.kind === 'heart' || drop.kind === 'rice') this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + (drop.kind === 'rice' ? 25 : 9));
     else if (drop.kind in this.buffs) this.buffs[drop.kind] = 8;
-    else this.ultimate = Math.min(100, this.ultimate + (drop.kind === 'milk' ? 25 : 9));
+    else this.gainUltimate(drop.kind==='milk'?12:5,drop.source);
     this.lastPickup = ITEMS[drop.kind] ? `${ITEMS[drop.kind].name}：${ITEMS[drop.kind].label}` : 'ポチのお届け！'; this.pickupLife = 2.5;
-    this.effect('label', this.hero.x, this.hero.y - 60, 0, ITEMS[drop.kind]?.label || '回復！', 1.4);
+    if(drop.kind==='milk')this.lastPickup=this.ultimate>beforeCharge?`ホットミルク：必殺＋${Math.round(this.ultimate-beforeCharge)}`:drop.source==='ultimate'?'必殺で出たミルク：充填対象外':'ホットミルク：現在は充填できません';
+    this.effect('label', this.hero.x, this.hero.y - 60, 0, drop.kind==='milk'?this.lastPickup:ITEMS[drop.kind]?.label || '回復！', 1.4);
     this.effect('heart', drop.x, drop.y, 20); this.emit('collect');
   }
   update(dt, input = {}) {
@@ -120,24 +136,25 @@ export class SleepGame {
     dt = clamp(dt, 0, .05); this.elapsed += dt;
     if (this.route === 'night') this.nightElapsed += dt; else this.morningElapsed += dt;
     if (this.nightElapsed > 720 && this.route === 'night') { this.cause = '夜ふかしで眠気が限界に。'; this.state = 'defeat'; return; }
-    if (this.morningElapsed > 240 && this.route === 'morning') { this.cause = '朝の支度に時間がかかり、遅刻してしまった。'; this.state = 'defeat'; return; }
+    if (this.morningElapsed > 240 && this.route === 'morning' && !this.secretDefeated) { this.cause = '朝の支度に時間がかかり、遅刻してしまった。'; this.state = 'defeat'; return; }
     const h = this.hero; h.invulnerable = Math.max(0, h.invulnerable - dt);
     for (const k in this.buffs) this.buffs[k] = Math.max(0, this.buffs[k] - dt);
     this.pickupLife = Math.max(0, this.pickupLife - dt);
     const n = unit(input.x || 0, input.y || 0); const moving = Boolean(input.x || input.y);
     const speed = this.buffs.shoes > 0 ? 245 : 177;
-    if (moving) { h.facing = n; h.x = clamp(h.x + n.x * speed * dt, 24, 456); h.y = clamp(h.y + n.y * speed * dt, 74, 580); }
+    if (moving && this.state!=='commute') { h.facing = n; h.x = clamp(h.x + n.x * speed * dt, 24, 456); h.y = clamp(h.y + n.y * speed * dt, 74, 580); }
     this.effects.forEach(e => e.life -= dt); this.effects = this.effects.filter(e => e.life > 0);
     if (this.state === 'commute') {
-      if (distance(h, { x: 240, y: 92 }) < 45) { this.completedMorning = true; this.state = 'trueEnding'; this.emit('ending'); }
+      updateCommute(this,dt,input);
       return;
     }
     this.roomTime += dt; this.comboLife -= dt; if (this.comboLife <= 0) this.combo = 0;
+    updateUltimate(this,dt);
     if (input.ultimate) this.useUltimate();
     this.spawnCd -= dt;
     if (this.spawnCd <= 0) {
-      const count = this.secretActive ? 8 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
-      this.firstWave = false; this.spawn(count); this.spawnCd = this.familyTask ? 3.8 : 2.9;
+      const count = this.secretActive ? this.firstWave?64:22+(this.boss?.phase||1)*3 : this.isBedtime ? this.firstWave?70:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
+      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?1.5:1.9) : this.isBedtime ? 2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
     }
     for (const w of this.warnings) {
       w.life -= dt; if (w.life > 0) continue;
@@ -233,41 +250,29 @@ export class SleepGame {
     if (this.drops.includes(target) && distance(target, this.pochi) < 24) { this.collect(target); this.pochi.active = 1; }
     if (this.pochiCd <= 0) {
       this.pochi.active = 2; this.pochiCd = 12;
-      if (this.familyTask && this.request) { this.request.fill = Math.min(1.5, this.request.fill + .5); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチが見つけた！', 1.6); }
-      else { this.ultimate = Math.min(100, this.ultimate + 7); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチのお届け！', 1.5); }
+      if (this.familyTask && this.request) { if(this.request.kind!=='tidy')this.request.fill = Math.max(this.request.fill,Math.min((this.request.hold||2)-.3, this.request.fill + .35)); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチが見つけた！', 1.6); }
+      else { this.gainUltimate(4); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチのお届け！', 1.5); }
       this.emit('pochi');
     }
   }
   updateTask(dt) {
     if (!this.familyTask) return;
+    if(this.isBedtime){updateBedtime(this,dt);return;}
     this.dangerCd -= dt;
     if (this.dangerCd <= 0) {
-      const pattern = this.helped % 5;
       hazard(this, { x: this.hero.x, y: this.hero.y, r: 36 + this.helped * 3, life: 1.65, damage: 10 });
-      if (this.isBedtime) {
-        this.effect('label', 240, 190, 0, BOSS_MOVES[5][pattern], 1.3);
-        if (pattern === 1) this.spawn(4, 'train');
-        if (pattern === 2) hazard(this, { x: 240, y: 190, kind: 'volley', count: 3, r: 25, life: 1.4 });
-        if (pattern === 3) for (let i=0;i<3;i++) hazard(this, { x: 90+i*150, y: this.hero.y, r: 36, life: 1.2+i*.4, damage: 12 });
-        if (pattern === 4) hazard(this, { x: 240, y: 190, kind: 'gapRing', angle: Math.atan2(this.hero.y-190,this.hero.x-240), count: 12, r: 25, life: 1.3, prop: 'star' });
-      }
-      this.dangerCd = this.isBedtime && this.helped > 2 ? 2.9 : 3.8;
-    }
-    if (this.isBedtime) {
-      this.noise = clamp(this.noise + (this.enemies.length > 38 ? 6 : -4) * dt, 0, 100);
-      if (this.noise >= 100) { this.child.mood = 'なにか、音がした？'; this.noise = 55; this.child.progress = Math.max(0, this.child.progress - 5); }
+      this.dangerCd = 3.8;
     }
     if (!this.request) { this.requestWait -= dt; if (this.requestWait <= 0) this.nextRequest(); return; }
     if (distance(this.hero, this.request) < 46) {
       this.request.fill += dt;
       if (this.request.fill >= 2) {
-        this.child.progress = Math.min(100, this.child.progress + (this.isBedtime ? 20 : 34)); this.helped++;
-        this.child.mood = this.isBedtime ? ['もう1冊……', 'おみず、ありがとう', 'ふわぁ……', 'ねむくなってきた', 'すう、すう……'][this.helped - 1] : 'できた！';
-        this.effect('label', this.child.x, this.child.y - 40, 0, this.isBedtime ? 'すやすや ＋20' : 'お支度できた！', 1.6);
+        this.child.progress = Math.min(100, this.child.progress + 34); this.helped++;
+        this.child.mood = 'できた！';
+        this.effect('label', this.child.x, this.child.y - 40, 0, 'お支度できた！', 1.6);
         this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + 5); this.request = null; this.requestWait = 2.5; this.emit('help');
         if (this.child.progress >= 100) {
-          if (this.isBedtime) { this.completedNight = true; this.state = 'nightEnding'; this.emit('ending'); }
-          else if (this.morning === 3) { this.startSecretBoss(); }
+          if (this.morning === 3) { this.startSecretBoss(); }
           else { this.morning++; this.state = 'morningRoomIntro'; this.emit('clear'); }
         }
       }
@@ -283,12 +288,12 @@ export class SleepGame {
     r.life -= dt;
     if (distance(this.hero, r) < 46) r.fill += dt;
     if (r.fill >= 2) {
-      this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + 12); this.ultimate = Math.min(100, this.ultimate + 18);
+      this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + 12); this.gainUltimate(8);
       this.effect('label', r.x, r.y - 35, 0, 'ありがとう！ 気力＋12', 1.8); this.emit('help'); this.sideRequest = null;
     } else if (r.life <= 0) this.sideRequest = null;
   }
   startSecretBoss() {
-    this.clearRoom(); this.secretActive = true; this.spawnCd = 4; this.firstWave = false;
+    this.clearRoom(); this.secretActive = true; this.spawnCd = .7; this.firstWave = true;
     this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + 30); this.ultimate = 100;
     this.spawnBoss(); this.hero.invulnerable = 3;
   }
@@ -306,6 +311,7 @@ export class SleepGame {
   }
   beginCommute() {
     if (this.state !== 'sendoff') return false;
-    this.clearRoom(); this.state = 'commute'; this.hero.y = 550; return true;
+    this.clearRoom(); this.state = 'commute'; this.hero.x=130; this.hero.y = 495;
+    this.commuteRun={distance:0,length:1600,arrival:0,phase:0,moving:false};this.emit('commute');return true;
   }
 }

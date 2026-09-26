@@ -153,9 +153,9 @@ for (const [id, mob] of Object.entries(MOBS)) {
 PROFILES.find(p => p.id === 'mama').description = '勇者のそばへ移動。12秒ごとに気力18回復、5秒ごとにタオルで周囲の敵と飛び道具を片づける。チームワークで回復量もアップ！';
 PROFILES.filter(p => p.group === 'boss').forEach((p,i) => p.description += ' 技：' + BOSS_MOVES[i].join('・') + '。HP60%・25%で攻撃が激化！');
 PROFILES.push(
-  {id:'boss-children',artId:'child',companion:'girl',group:'boss',name:'ふたりとも、ねむくない！',quote:'もう1冊！ うさちゃんも一緒！',description:'第6戦はふたりの寝かしつけ。まくら・おもちゃ・夜ふかしの星を片づけながら、5つのお願いをかなえる。子どもに攻撃は当たりません。',where:'第6戦・寝かしつけ／すやすやゲージ'},
-  {id:'boss-clock',group:'boss',name:'朝の時間ドロボウ',quote:'あと5分？ もう出発の時間だよ！',description:'朝の4つのお支度のあとに現れる裏ボス。時計弾、交差する針、家事の総攻撃。家族で乗り越え、送り出しと出社へ！',where:'裏ボス・翌朝の玄関'},
-  ...Object.entries(ITEMS).map(([id,item]) => ({id:'item-'+id,group:'item',name:item.name,quote:item.label,description:'魔物を片づけると出現。近づいて拾うか、ポチがお届け。' + (['rice','milk'].includes(id) ? '拾うとすぐ回復。上限を超えた分は持ち越しません。' : '同じ効果は重ならず、残り時間が8秒に戻ります。'),where:'役立ちアイテム・効果は画面上に表示'}))
+  {id:'boss-children',artId:'child',companion:'girl',group:'boss',name:'ふたりとも、ねむくない！',quote:'もう1冊！ うさちゃんも一緒！',description:'第6戦はふたりの寝かしつけ。3幕6ミッション。絵本と水を運び、おもちゃ12体を片づけ、逃げる子を誘い、子守歌とふたりのお布団へ。男の子の列車、女の子の枕、連携星弾幕の妨害が激化！子どもに攻撃は当たりません。',where:'第6戦・寝かしつけ／すやすやゲージ'},
+  {id:'boss-clock',group:'boss',name:'朝の時間ドロボウ',quote:'あと5分？ もう出発の時間だよ！',description:'朝の4つのお支度のあとに現れる裏ボス。時計弾・交差針・家事総攻撃・秒針・連続弾幕・振り子・時間差プレス・三重奏の8技。大群の増援と、後半ほど短い攻撃間隔に注意。家族で乗り越え、送り出しと出社へ！',where:'裏ボス・翌朝の玄関'},
+  ...Object.entries(ITEMS).map(([id,item]) => ({id:'item-'+id,group:'item',name:item.name,quote:item.label,description:'魔物を片づけると出現。近づいて拾うか、ポチがお届け。' + (['rice','milk'].includes(id) ? 'おにぎりは気力回復。ミルクは充填中のみ必殺＋12、必殺で発生したミルクは充填対象外。上限分は持ち越しません。' : '同じ効果は重ならず、残り時間が8秒に戻ります。'),where:'役立ちアイテム・効果は画面上に表示'}))
 );
 export const categories = [['all','全員'],['family','家族'],['mob','雑魚'],['boss','ボス'],['item','道具']];
 export const profilesFor = group => PROFILES.filter(p => group === 'all' || p.group === group);

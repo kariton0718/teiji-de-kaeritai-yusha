@@ -21,3 +21,6 @@
 .overlay.ending-result{justify-content:flex-start;background:#1f3048}
 .ending-art{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border:1px solid #b79a66;border-radius:12px;margin-bottom:18px;flex:none}
 @media(max-height:700px){.story-illustration img{object-fit:contain}}
+.ultimate-choice{font-size:12px!important;text-align:left;padding:10px 12px!important;line-height:1.5}
+.ultimate-choice[aria-pressed="true"]{outline:3px solid #73baa6;background:#e0f4e9!important;color:#294d48!important}
+.overlay.scroll-panel>*{flex-shrink:0}

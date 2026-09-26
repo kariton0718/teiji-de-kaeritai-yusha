@@ -1,5 +1,7 @@
 # 早く寝たい勇者 — 家族と夜・朝を乗り切る試作
 
+**v0.4公開準備（2026-09-26）**：子ども戦3幕6ミッション、必殺4種と充填ループ対策、雑魚の見分け、全敵攻撃力×1.3、裏ボス8技と大群、専用イラストによる出社ランを実装。67テスト成功、スマホ実機は未確認。[最新仕様と検証](../../docs/project/FINALE_ULTIMATES.md)。今回の公開依頼を受領し、67テスト再成功。公開処理の結果は docs/project/CURRENT_STATE.md を参照。下記は過去の履歴です。
+
 **v0.3公開済み**：夜と朝の結末に専用イラスト8枚、各ボス5技と3段階の攻撃強化、雑魚の攻撃頻度を追加。制作ブランチ `codex/hayaku-ending-boss-rush`、公開コミット `6ba2e7aba1756775f5763775bc28511588aca0e3`。[公開処理35833751229](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35833751229)成功。56テスト成功、スマホ実機は未確認。[制作記録](../../docs/project/ENDING_BOSS_RUSH.md)。以下は以前の履歴です。
 
 **v0.2公開済み**：今回分の公開承認を受け、`5e5165e92b68cc846a2f49dc7eab0f33b6f90250`をmainへ反映。[公開処理35803586856](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/35803586856)はテストからGitHub Pages公開まですべて成功。下記の「未公開」は制作途中の履歴です。

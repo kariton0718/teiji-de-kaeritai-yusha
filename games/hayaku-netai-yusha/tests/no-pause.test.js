@@ -111,3 +111,10 @@ test('sendoff illustrations lead to playable commute before the true ending', ()
   assert.match(h.overlay.innerHTML,/sendoff-01/);h.click('次へ →');assert.match(h.overlay.innerHTML,/sendoff-02/);h.click('つづける →');
   assert.equal(h.game.state,'commute');assert.equal(h.overlay.hidden,true);
 });
+test('room intro offers all four ultimates and selecting one carries into the HUD',()=>{
+  const h=harness();h.click('おうちの冒険をはじめる →');h.click('演出をスキップ');
+  const choices=h.overlay.children.filter(e=>e.textContent?.includes(' — '));assert.equal(choices.length,4);
+  choices.find(e=>e.textContent.includes('大旋風')).emit('click');assert.equal(h.game.ultimateId,'cyclone');
+  h.click('いっしょに片づけよう！');h.frames(2);assert.equal(h.elements.get('ult-name').textContent,'お片づけ大旋風');
+  h.game.ultimate=100;h.game.useUltimate();h.frames(20);assert.equal(h.elements.get('ult-value').textContent,'発動中・充填停止');
+});

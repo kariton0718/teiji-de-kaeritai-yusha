@@ -5,8 +5,8 @@ import { ART_IDS, MOB_TYPES, BOSS_TYPES, artURL, CharacterArt } from '../charact
 import { NIGHT, MORNING } from '../config.js';
 import { Painter } from '../render.js';
 
-test('every encounter and item has individual artwork and all 33 WebP files exist', () => {
-  assert.equal(new Set(ART_IDS).size, 33);
+test('every encounter, item and commute scene has artwork and all 35 WebP files exist', () => {
+  assert.equal(new Set(ART_IDS).size, 35);
   for (const config of [...NIGHT, ...MORNING]) assert.ok(MOB_TYPES.includes(config.prop));
   for (const config of NIGHT.filter(c => c.hp > 0)) assert.ok(BOSS_TYPES.includes(config.prop));
   for (const id of ART_IDS) {
@@ -57,6 +57,7 @@ test('renderer uses separate enemy/boss and child sleeping sprites', () => {
   p.person(100, 200, 'girl', 1, true);
   p.dog(100, 200);
   for (const kind of ['rice','milk','shoes','gloves','apron']) p.item({kind,x:100,y:200});
+  p.commute({hero:{x:150,y:490},commuteRun:{distance:0,length:1600,phase:0,arrival:0,moving:false}});
   assert.equal(draws.length, ART_IDS.length);
   for (const id of ART_IDS) assert.ok(ids.includes(id), id);
 });

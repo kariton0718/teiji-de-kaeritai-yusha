@@ -1,0 +1,12 @@
+{
+  "tool": "builtin imagegen",
+  "background": {
+    "source": "/workspace/scratch/6aee4942d2f2/generated_images/exec-ddbb4ad6-4e1f-49b2-ad28-6aa84773cebf.png",
+    "prompt": "Use case: illustration-story. Asset type: premium hand-painted Japanese anime game scrolling background. Create a very wide panoramic morning city illustration, landscape about 3:1. A continuous sunlit pedestrian promenade viewed slightly from above, foreground broad clear warm stone walkway occupying lower half across entire width. Left third cozy Japanese residential streets with flowers and small homes, middle third tree-lined urban avenue with gentle sunbeams and detailed cafes, right third beautiful modern glass office entrance with inviting open doors and warm golden reflected light. Consistent scale and horizon across the entire panorama, not separated panels, no foreground people or cars, no written signs, no letters, no logos. Rich exquisite movie-background craftsmanship, optimistic earned triumph at the end of a family adventure, teal blue and gold palette, atmospheric depth, delicate plants and luminous clouds. Ground must remain clear to composite a running character. No UI."
+  },
+  "runner": {
+    "source": "/workspace/scratch/6aee4942d2f2/generated_images/exec-eb689232-3240-4409-97a1-7d7a9f8b2a6a.png",
+    "prompt": "Use case: stylized-concept. Asset type: transparent-background game character sprite. Reference image ONLY defines the father's identity and clothing, not scene. Draw this same adult anime father, tousled black hair, kind teal eyes, white office shirt sleeves rolled, teal tie, navy trousers, brown business shoes and dark shoulder messenger bag. Full body, dynamic running pose facing to the right, three-quarter side view, determined hopeful smile, tie and shirt move in breeze. Charming slightly chibi JRPG proportions about 4 heads tall, gorgeous polished anime line and shading. Entire silhouette including shoes visible with generous empty margin. Isolated single figure on true transparent background. No floor, no environment, no text, no speed lines, no other people. Match the existing family's warmth, not a child.",
+    "reference": "assets/story/true-01.webp"
+  }
+}

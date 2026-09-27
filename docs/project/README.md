@@ -12,6 +12,6 @@
 | 作品 | データ | 公開状態 |
 | --- | --- | --- |
 | 第1作・定時で帰りたい勇者 | ルートのindex.html / src / assets | 既存URLを維持：https://kariton0718.github.io/teiji-de-kaeritai-yusha/ |
-| 第2作・早く寝たい勇者 | games/hayaku-netai-yusha/ | v0.1公開先：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/ （第1作と独立） |
+| 第2作・早く寝たい勇者 | games/hayaku-netai-yusha/ | v0.4公開先：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/ （第1作と独立） |
 
-添付の`teiji-series-project-guide.md`は2026-09-18の移行資料です。今後の変更は本ディレクトリに記録します。公開前の変更は`codex/hayaku-netai-family-prototype`を確認してください。
+添付の`teiji-series-project-guide.md`は2026-09-18の移行資料です。今後の変更は本ディレクトリに記録します。最新の再開案内は[2026-09-27 Work引継ぎ](WORK_HANDOFF_20260927.md)を参照してください。旧制作ブランチはmainへの包含を毎回確認してください。

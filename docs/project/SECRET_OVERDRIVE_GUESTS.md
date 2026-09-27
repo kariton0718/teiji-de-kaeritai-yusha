@@ -1,4 +1,14 @@
-# v0.5 裏ボス暴走・家族の期間限定援護（未公開）
+# v0.5 裏ボス暴走・家族の期間限定援護（公開済み）
+
+## v0.5公開完了（2026-09-27）
+
+- 公開コミット：`716a310e872015fc2e9538d75c272631f494ccd5`。制作ブランチ `codex/secret-overdrive-guests` とmainへ保存済み。
+- [Pages公開処理36288171534](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36288171534)：テスト・配置・公開すべて成功。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/
+- index.html / main.js / game.js / guests.js / secret-intro.js / combat.js / audio.js のHTTP200と制作版とのSHA-256一致を確認。
+- 71件の機能テスト成功。第1作のソース・素材は差分なし。
+- スマホ実機・FPS・音・手動通しの難度は未確認。旧自動通しと裏ボス単体診断での敗北は解消済みとはしない。
+- 保全：`backup/pre-secret-overdrive-1e4ef68` をGitHubへ保存済み。以下の未公開表記は制作時点の履歴。
 
 2026-09-27 11:17（日本時間）：今回分のpush・公開承認を受領。以下の未公開表記は制作時の記録。公開結果は確認後に追記。
 

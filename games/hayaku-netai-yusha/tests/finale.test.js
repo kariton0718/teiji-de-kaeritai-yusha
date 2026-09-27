@@ -53,9 +53,9 @@ test('pillow jumps to locked landing site, shooters have different counts and pr
   for(const m of Object.values(MOBS))assert.ok(MOB_ROLES[m.behavior]);
 });
 test('secret boss cycles eight attacks, accelerates and summons a large mixed horde within the cap',()=>{
-  const g=game();g.route='morning';g.morning=3;g.startSecretBoss();g.spawnCd=0;g.update(.01);assert.ok(g.warnings.length>=64);assert.ok(g.warnings.every(w=>SECRET_MIX.includes(w.prop)));
-  const seen=[];for(let i=0;i<8;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}assert.deepEqual(seen,BOSS_MOVES[6]);assert.equal(g.boss.attackCd,2.2);
-  g.boss.hp=g.boss.maxHp*.2;bossAttack(g,g.boss);assert.equal(g.boss.attackCd,1.3);assert.ok(g.enemies.length+g.warnings.length<=128);
+  const g=game();g.route='morning';g.morning=3;g.startSecretBoss();g.enterSecretBattle();g.spawnCd=0;g.update(.01);assert.ok(g.warnings.length>=64);assert.ok(g.warnings.every(w=>SECRET_MIX.includes(w.prop)));
+  const seen=[];for(let i=0;i<8;i++){bossAttack(g,g.boss);seen.push(g.boss.move);}assert.deepEqual(seen,BOSS_MOVES[6]);assert.equal(g.boss.attackCd,1.5);
+  g.boss.hp=g.boss.maxHp*.2;bossAttack(g,g.boss);assert.equal(g.boss.attackCd,.8);assert.ok(g.enemies.length+g.warnings.length<=176);
 });
 test('all hostile damage passes the shared increase, including child and boss hazards',()=>{
   for(const base of [8,10,12,14,16,18,20]){const g=game();g.hero.invulnerable=0;g.hurtHero(base,'hostile');assert.equal(100-g.hero.energy,Math.ceil(base*HOSTILE_DAMAGE_SCALE));}

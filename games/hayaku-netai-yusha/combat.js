@@ -1,4 +1,4 @@
-import { BOSS_MOVES } from './combat-data.js?v=0.4.1';
+import { BOSS_MOVES } from './combat-data.js?v=0.5.0';
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const dist = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 export const segmentDistance = (p,a,b) => {
@@ -6,11 +6,13 @@ export const segmentDistance = (p,a,b) => {
   return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
 };
 export function hazard(g, data) {
-  if(g.hazards.length >= 28) return;
+  const limit=g.secretActive?40:28;
+  if(g.hazards.length >= limit) return;
+  if(g.secretActive && data.owner && !data.owner.boss && g.hazards.length>=24)return;
   g.hazards.push({r:40,life:1.1,fired:false,damage:20,...data});
 }
 export function shot(g, origin, angle, options={}) {
-  if(g.projectiles.length>=160 || (!options.friendly && g.projectiles.filter(p=>!p.friendly).length>=112)) return;
+  if(g.projectiles.length>=(g.secretActive?192:160) || (!options.friendly && g.projectiles.filter(p=>!p.friendly).length>=(g.secretActive?144:112))) return;
   const p={x:origin.x,y:origin.y,speed:155,radius:7,life:5,damage:10,friendly:false,kind:'ball',hits:new Set(),...options};
   p.vx=Math.cos(angle)*p.speed;p.vy=Math.sin(angle)*p.speed;g.projectiles.push(p);
 }
@@ -26,6 +28,10 @@ function aimCharge(g,e) {
   line(g,e,e.aim,e.radius,e.windup,{damage:0,visualOnly:true,owner:e});
 }
 export function bossAttack(g,e) {
+  if(g.secretActive) {
+    // Keep room for the boss's next complete pattern without cancelling existing warnings.
+    g.hazards=g.hazards.filter(h=>!h.fired);
+  }
   const stage=g.secretActive?6:g.stage, phase=e.hp<e.maxHp*.25?3:e.hp<e.maxHp*.6?2:1;
   const turn=(e.turn||0)%BOSS_MOVES[stage].length;e.turn=(e.turn||0)+1;e.phase=phase;
   e.move=BOSS_MOVES[stage][turn];g.effect('label',240,185,0,`${phase===3?'ラストスパート！ ':phase===2?'本気！ ':''}${e.move}`,1.6);
@@ -51,7 +57,7 @@ export function bossAttack(g,e) {
     if(turn===2){g.spawn(phase*3,'bag');g.spawn(3,'alarm');line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},25);}
   } else {
     if(turn===0){hazard(g,{x:e.x,y:e.y,kind:'ring',count:10+phase*2,r:32});hazard(g,{x:g.hero.x,y:g.hero.y,r:45,life:1.6});}
-    if(turn===1){line(g,{x:30,y:90},{x:450,y:570},25);line(g,{x:450,y:90},{x:30,y:570},25,1.55);if(phase===2)line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},22,1.8);}
+    if(turn===1){line(g,{x:30,y:90},{x:450,y:570},25);line(g,{x:450,y:90},{x:30,y:570},25,1.55);if(phase>=2)line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},22,1.8);}
     if(turn===2){g.spawn(4,'bread');g.spawn(3,'brush');g.spawn(2,'alarm');e.pull=1.5;hazard(g,{x:e.x,y:e.y,r:85,life:1.6});}
   }
   if(stage===6&&turn>=5){
@@ -60,7 +66,16 @@ export function bossAttack(g,e) {
     if(turn===6){for(let i=0;i<4+phase;i++)hazard(g,{x:clamp(g.hero.x+Math.cos(i*1.3)*110,40,440),y:clamp(g.hero.y+Math.sin(i*1.3)*100,95,550),r:36,life:.9+i*.25});}
     if(turn===7){for(let i=0;i<3;i++)hazard(g,{x:e.x,y:e.y,kind:'gapRing',angle:angle+i*.7,count:18,life:1+i*.65,r:28,prop:'clock'});line(g,{x:24,y:g.hero.y},{x:456,y:g.hero.y},20,2.5);}
   }else if(turn>=3)signatureAttack(g,e,stage,turn,phase);
-  e.attackCd=stage===6?(phase===3?1.3:phase===2?1.75:2.2):(phase===3?1.75:phase===2?2.25:2.9);g.emit('warning');
+  if(stage===6){
+    // Reserve telegraph capacity for the boss: retain fresh boss warnings when mobs crowd the arena.
+    if(phase>=2 && turn%2===0) {
+      const safe=Math.floor(clamp(g.hero.x/96,0,4));
+      for(let i=0;i<5;i++)if(i!==safe)line(g,{x:48+i*96,y:70},{x:48+i*96,y:584},22,1.3+i*.08);
+    }
+    if(phase===3 && turn%2===1)hazard(g,{x:g.hero.x,y:g.hero.y,r:48,life:1.1,damage:24});
+    if(e.lastPhase!==phase){g.spawn(28+phase*8);g.effect('label',240,250,0,phase===3?'最終形態・時間崩壊':phase===2?'第二形態・加速する朝':'時間ドロボウ、襲来！',2);e.lastPhase=phase;g.emit('secretBell');}
+  }
+  e.attackCd=stage===6?(phase===3?.8:phase===2?1.1:1.5):(phase===3?1.75:phase===2?2.25:2.9);g.emit('warning');
 }
 function signatureAttack(g,e,stage,turn,phase) {
   const target={x:g.hero.x,y:g.hero.y},angle=Math.atan2(target.y-e.y,target.x-e.x);

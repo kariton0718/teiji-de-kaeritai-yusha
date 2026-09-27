@@ -1,7 +1,8 @@
-import { WORLD as W, NIGHT } from './config.js?v=0.4.1';
-import { CharacterArt } from './character-art.js?v=0.4.1';
-import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.4.1';
-import { drawCommute } from './commute.js?v=0.4.1';
+import { WORLD as W, NIGHT } from './config.js?v=0.5.0';
+import { CharacterArt } from './character-art.js?v=0.5.0';
+import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.5.0';
+import { drawSecretIntro } from './secret-intro.js?v=0.5.0';
+import { drawCommute } from './commute.js?v=0.5.0';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -135,6 +136,7 @@ export class Painter {
   }
   draw(game, time, stick) {
     this.time = time; const c = this.ctx; c.clearRect(0, 0, W.width, W.height);
+    if (game.state === 'secretIntro') { drawSecretIntro(this,game); return; }
     if (game.state === 'commute') { this.commute(game); return; }
     this.room(game.config.room, game.route === 'morning', game.familyTask ? game.child.progress : game.progress);
     for (const z of game.zones || []) {
@@ -174,8 +176,8 @@ export class Painter {
       this.circle(f.x,f.y,f.radius,'#00000000','#fff1bb');
     }
     const actors = game.enemies.map(e => ({ y: e.y, draw: () => this.enemy(e, game) }));
-    actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y + (game.mama.moving ? Math.sin(time*13)*3 : 0), 'mama', .83); this.label(game.mama.active ? 'ママ・援護中' : 'ママ・回復役', game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
-    actors.push({ y: game.pochi.y, draw: () => { this.dog(game.pochi.x, game.pochi.y, .78); if (game.pochi.active) this.text('♪', game.pochi.x, game.pochi.y - 37, 22, '#5e7857'); } });
+    if(game.mama.present) actors.push({ y: game.mama.y, draw: () => { this.person(game.mama.x, game.mama.y + (game.mama.moving ? Math.sin(time*13)*3 : 0), 'mama', .83); this.label(`ママ・あと${Math.ceil(game.mama.visit)}秒`, game.mama.x, game.mama.y + 37); if (game.mama.active) this.text('♥', game.mama.x + 23, game.mama.y - 42, 24, '#b3556a'); } });
+    if(game.pochi.present) actors.push({ y: game.pochi.y, draw: () => { this.dog(game.pochi.x, game.pochi.y, .78); if (game.pochi.active) this.text('♪', game.pochi.x, game.pochi.y - 37, 22, '#5e7857'); } });
     if (game.familyTask) actors.push({ y: game.child.y, draw: () => {
       if(game.isBedtime){for(let i=0;i<2;i++){const k=game.bedKids[i];this.person(k.x,k.y+(game.bedSpeechLife>0&&game.bedSpeaker===i?Math.sin(time*14)*5:0),i?'girl':'child',1.05,game.helped>=5);if(game.bedSpeechLife>0&&game.bedSpeaker===i)this.text('♪',k.x+32,k.y-42,25,'#d4628d');}}
       else this.children(game.child.x, game.child.y, .94, false);

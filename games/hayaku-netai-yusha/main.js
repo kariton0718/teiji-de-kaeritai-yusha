@@ -1,10 +1,10 @@
-import { SleepGame } from './game.js?v=0.4.1';
-import { Painter } from './render.js?v=0.4.1';
-import { HomeAudio } from './audio.js?v=0.4.1';
-import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.4.1';
-import { canvasPoint, stickVector } from './input.js?v=0.4.1';
-import { mountBestiary } from './bestiary.js?v=0.4.1';
-import { ITEMS } from './combat-data.js?v=0.4.1';
+import { SleepGame } from './game.js?v=0.5.0';
+import { Painter } from './render.js?v=0.5.0';
+import { HomeAudio } from './audio.js?v=0.5.0';
+import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.5.0';
+import { canvasPoint, stickVector } from './input.js?v=0.5.0';
+import { mountBestiary } from './bestiary.js?v=0.5.0';
+import { ITEMS } from './combat-data.js?v=0.5.0';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -22,11 +22,11 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.4 ・ ふたりの夜ふかし最終決戦 / 必殺4種 ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.5 ・ 時間ドロボウ暴走 / ときどき家族の援護 ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {
-  panel('<div class="eyebrow">HOW TO PLAY</div><h2>家族で、夜を乗り切ろう。</h2><p>スライド、または矢印キーで移動。モップと泡の連鎖は最初から自動発動！ 部屋をクリアすると貫通ビーム・ブーメラン・メテオなどの技を選べます。必殺技は部屋の前に4種類から選択。効果中と終了後3秒は充填が止まり、必殺で倒した敵からは溜まりません。</p><p><b>ママ</b>：勇者について歩き、12秒ごとに近くで気力を回復。5秒ごとのタオル援護で、周りの敵と飛び道具を片づけます。画面上に回復までの秒数が出ます。<br><b>ポチ</b>：アイテムを拾って届け、お願いの準備も手伝います。<br><b>子ども2人</b>：朝は「お願い」の輪に2秒。夜の最終戦は運ぶ・片づける・誘う・子守歌・お布団の6ミッション。攻撃を当てる相手ではありません。</p><p>雑魚のマークは「速」高速・「硬」巨体・「射」射撃・「散」拡散・「突」突進・「跳」ジャンプ・「狙」狙撃・「援」加速役。「隙」の間に反撃！ 赤い丸・帯・狙い線は攻撃の予告。夜の6戦を終えると「おやすみ」のエンディング。翌朝は4つの支度と裏ボスを越え、送り出しから出社へ続きます。</p><div class="item-guide">' + Object.entries(ITEMS).map(([id,item]) => `<div><img src="./assets/characters/item-${id}.webp" alt="${item.name}" width="56" height="56"><span><b>${item.name}</b><small>${item.label}</small></span></div>`).join('') + '</div>');
+  panel('<div class="eyebrow">HOW TO PLAY</div><h2>家族で、夜を乗り切ろう。</h2><p>スライド、または矢印キーで移動。モップと泡の連鎖は最初から自動発動！ 部屋をクリアすると貫通ビーム・ブーメラン・メテオなどの技を選べます。必殺技は部屋の前に4種類から選択。効果中と終了後3秒は充填が止まり、必殺で倒した敵からは溜まりません。</p><p><b>ママ</b>：登場予告のあと8秒間だけ援護。近くで一度回復し、周りの敵と飛び道具を片づけて帰ります。次の登場まで少し待とう。<br><b>ポチ</b>：ときどき7秒間だけ登場。アイテムを拾って届け、お願いの準備も手伝って帰ります。<br><b>子ども2人</b>：朝は「お願い」の輪に2秒。夜の最終戦は運ぶ・片づける・誘う・子守歌・お布団の6ミッション。攻撃を当てる相手ではありません。</p><p>雑魚のマークは「速」高速・「硬」巨体・「射」射撃・「散」拡散・「突」突進・「跳」ジャンプ・「狙」狙撃・「援」加速役。「隙」の間に反撃！ 赤い丸・帯・狙い線は攻撃の予告。夜の6戦を終えると「おやすみ」のエンディング。翌朝は4つの支度と裏ボスを越え、送り出しから出社へ続きます。</p><div class="item-guide">' + Object.entries(ITEMS).map(([id,item]) => `<div><img src="./assets/characters/item-${id}.webp" alt="${item.name}" width="56" height="56"><span><b>${item.name}</b><small>${item.label}</small></span></div>`).join('') + '</div>');
   overlay.classList.add('scroll-panel');
   button('わかった！', title);
 }
@@ -80,6 +80,8 @@ function changeState() {
   if (game.state === priorState) return; priorState = game.state; clearInput();
   if (game.state === 'upgrade') upgrades();
   else if (game.state === 'nightEnding') playStory('night', () => result(false));
+  else if (game.state === 'secretIntro') { scene=null; story=null; overlay.hidden=true; setHud(false); $('notice').classList.remove('show'); noticeLeft=0; }
+  else if (game.state === 'playing' && game.secretActive) { overlay.hidden=true; scene=null; setHud(true); showNotice('最終決戦！ 赤い予告をかわして、時間ドロボウを倒せ！',4); }
   else if (game.state === 'morningRoomIntro') roomIntro();
   else if (game.state === 'sendoff') playStory('sendoff', () => { game.beginCommute(); priorState = 'commute'; scene = null; overlay.hidden = true; setHud(true); $('ultimate').hidden = true; showNotice('最後の一走り！ 右へスライドすると街を駆け抜けます。', 5); });
   else if (game.state === 'trueEnding') playStory('true', () => result(true));
@@ -123,7 +125,7 @@ function refreshHud() {
   $('ultimate').classList.toggle('ready', game.ultimate >= 100&&game.ultimateLock<=0); $('ultimate').disabled = game.ultimate < 100||game.ultimateLock>0; $('ult-value').textContent = game.ultimateActive ? '発動中・充填停止' : game.ultimateLock>0 ? `充填再開まで${Math.ceil(game.ultimateLock)}秒` : game.ultimate >= 100 ? '発動！' : `${Math.floor(game.ultimate)}%`;
   $('ult-name').textContent = game.ultimateName;
   $('skill-list').textContent = SKILLS.filter(s => game.skills[s.id]).map(s => `${s.icon}${game.skills[s.id]}`).join(' ');
-  $('ally-status').textContent = game.mama.active > 0 ? 'ママ：援護中！ タオルで敵弾もお片づけ' : `ママ：追従・回復まで ${Math.max(0,Math.ceil(game.mamaCd))}秒 ／ ポチ：アイテム回収`;
+  $('ally-status').textContent = [ ['ママ',game.mama], ['ポチ',game.pochi] ].map(([name,a])=>a.present?`${name}：援護中 ${Math.ceil(a.visit)}秒`:a.cooldown<=2?`${name}：まもなく登場！`:`${name}：お出かけ中`).join(' ／ ');
   $('buff-status').textContent = game.pickupLife > 0 ? game.lastPickup : Object.entries(game.buffs).filter(([,t]) => t > 0).map(([id,t]) => `${id === 'shoes' ? '速さUP' : id === 'gloves' ? '威力UP' : '半減ガード'} ${Math.ceil(t)}秒`).join(' ／ ');
 }
 let hudLeft = 0;
@@ -133,7 +135,7 @@ function frame(now) {
   if (!document.hidden) {
     if (pointer === null) { input.x = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0); input.y = (keys.has('ArrowDown') || keys.has('KeyS') ? 1 : 0) - (keys.has('ArrowUp') || keys.has('KeyW') ? 1 : 0); }
     game.update(dt, input); changeState();
-    if (!document.hidden) audio.update(dt, story ? 'story' : game.state === 'result' ? 'ending' : game.state === 'commute' ? 'commute' : game.isBedtime ? 'bed' : game.route === 'morning' ? 'morning' : 'night');
+    if (!document.hidden) audio.update(dt, game.state === 'secretIntro' ? 'secretIntro' : game.secretActive && game.state === 'playing' ? 'secretBattle' : story ? 'story' : game.state === 'result' ? 'ending' : game.state === 'commute' ? 'commute' : game.isBedtime ? 'bed' : game.route === 'morning' ? 'morning' : 'night');
     const events = game.events.splice(0); for (const e of new Set(events)) audio.event(e);
   }
   canvas.style.objectPosition = scene ? 'center top' : 'center';

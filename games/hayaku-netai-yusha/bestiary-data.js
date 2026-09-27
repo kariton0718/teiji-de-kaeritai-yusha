@@ -1,4 +1,4 @@
-import { MOBS, ITEMS, BOSS_MOVES } from './combat-data.js?v=0.4.1';
+import { MOBS, ITEMS, BOSS_MOVES } from './combat-data.js?v=0.5.0';
 export const PROFILES = [
   {
     "id": "hero",
@@ -13,7 +13,7 @@ export const PROFILES = [
     "group": "family",
     "name": "ママ",
     "quote": "こっちは任せて！",
-    "description": "気力を回復し、周りの家事も片づけてくれる心強いパートナー。",
+    "description": "ときどき8秒間駆けつける心強いパートナー。近くで一度回復し、敵弾も片づけて退場。",
     "where": "味方・回復と家事のお手伝い"
   },
   {
@@ -21,7 +21,7 @@ export const PROFILES = [
     "group": "family",
     "name": "ポチ",
     "quote": "わんっ！",
-    "description": "落ちたアイテムを運ぶ、元気なお助け犬。お願いの準備もお手伝い。",
+    "description": "ときどき7秒間登場する、元気なお助け犬。落ちたアイテムを回収し、お願いの準備もお手伝い。",
     "where": "味方・アイテム回収"
   },
   {

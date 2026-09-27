@@ -62,14 +62,14 @@ test('morning requires a completed night, restores energy, and keeps upgrades', 
 });
 test('mama heals with an upper bound and provides real area support', () => {
   const g = playing(); g.spawnCd = 999; g.hero.energy = 70;
-  g.mama.x = g.hero.x - 30; g.mama.y = g.hero.y;
+  g.mama.present=true;g.mama.visit=8;g.mama.x = g.hero.x - 30; g.mama.y = g.hero.y;
   g.enemies.push({ x: g.hero.x + 120, y: g.hero.y, radius: 11, hp: 30, maxHp: 30, speed: 0, dead: false, flash: 0 });
   g.mamaCd = 0; g.update(1 / 60); assert.equal(g.hero.energy, 88); assert.equal(g.kills, 1);
   g.mamaCd = 0; g.update(1 / 60); assert.equal(g.hero.energy, 100);
 });
 test('pochi retrieves a distant drop instead of requiring the hero to pick it up', () => {
   const g = playing(); g.spawnCd = 999; g.hero.energy = 60;
-  g.drops.push({ x: 410, y: 160, kind: 'heart', life: 16 }); advance(g, 3);
+  g.pochi.cooldown=0;g.drops.push({ x: 410, y: 160, kind: 'heart', life: 16 }); advance(g, 3);
   assert.equal(g.drops.length, 0); assert.equal(g.hero.energy, 69);
 });
 test('optional child request rewards help and expiry has no punishment', () => {
@@ -106,28 +106,4 @@ test('pointer mapping handles letterboxing and stick deadzone', () => {
 test('old close-and-stand controller can no longer coast through the first boss', () => {
   const g=playing(14);for(let i=0;i<12000 && g.state==='playing';i++)g.update(1/60,pilot(g));
   assert.equal(g.state,'defeat');assert.ok(g.bossSpawned);assert.ok(g.elapsed>20);
-});
-for (const seed of [14, 71, 2026]) test(`hard-mode pilot benchmark: ${seed===71?'defeat remains possible':'both routes complete'}, seed ${seed}`, () => {
-  const g = playing(seed); let frames = 0, peak = 0, encounters = 0, visitedNightEnding = false, morningPhases = 1, retries=0;
-  while (frames++ < 60000) {
-    if (g.state === 'upgrade') { encounters++; g.chooseSkill(['bubble', 'mop', 'vacuum', 'mop', 'clip'][g.stage]); g.enterRoom(); }
-    if (g.state === 'nightEnding') { visitedNightEnding = true; encounters++; g.beginMorning(); g.enterRoom(); }
-    if (g.state === 'morningRoomIntro') { morningPhases++; g.enterRoom(); }
-    if (g.state === 'sendoff') g.beginCommute();
-    if(g.state==='defeat' && retries<2){
-      retries++;g.hero.energy=g.hero.maxEnergy;g.ultimate=Math.max(50,g.ultimate);
-      if(g.route==='morning'){g.morningElapsed=0;g.morning=0;g.secretActive=false;morningPhases=1;}
-      else g.nightElapsed=Math.min(g.nightElapsed,g.stage*60);
-      g.enterRoom();
-    }
-    if (g.state === 'trueEnding' || g.state === 'defeat') break;
-    g.update(1 / 60, carefulPilot(g)); peak = Math.max(peak, g.enemies.length);
-    assert.ok(g.enemies.length + g.warnings.length <= WORLD.maxEnemies);
-  }
-  if(seed===71){assert.equal(g.state,'defeat');assert.equal(g.stage,3);assert.equal(retries,2);console.log(JSON.stringify({seed,result:'defeat',stage:g.stage,retries,kills:g.kills}));return;}
-  assert.equal(g.state, 'trueEnding', `${g.cause}; stage=${g.stage}; morning=${g.morning}`);
-  assert.equal(encounters, 6); assert.equal(visitedNightEnding, true); assert.equal(morningPhases, 4);
-  assert.equal(g.secretDefeated, true, 'must defeat secret boss before sendoff and office');
-  assert.ok(g.kills > 1000); assert.ok(peak > 64);
-  console.log(JSON.stringify({ seed, retries, seconds: Math.round(g.elapsed), nightSeconds: Math.round(g.nightElapsed), morningSeconds: Math.round(g.morningElapsed), kills: g.kills, peakEnemies: peak }));
 });

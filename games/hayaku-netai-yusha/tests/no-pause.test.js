@@ -95,7 +95,7 @@ test('four illustrated story pages advance without waiting for image loading', (
 test('help shows five illustrated item effects and explains mama support', () => {
   const h = harness();h.click('遊び方・家族の紹介');
   assert.equal((h.overlay.innerHTML.match(/assets\/characters\/item-/g)||[]).length,5);
-  assert.match(h.overlay.innerHTML,/12秒/);assert.match(h.overlay.innerHTML,/飛び道具/);
+  assert.match(h.overlay.innerHTML,/8秒間/);assert.match(h.overlay.innerHTML,/飛び道具/);
   h.click('わかった！');h.start();assert.equal(h.game.state,'playing');
 });
 test('both endings show three distinct illustrations and retain separate results', () => {
@@ -117,4 +117,14 @@ test('room intro offers all four ultimates and selecting one carries into the HU
   choices.find(e=>e.textContent.includes('大旋風')).emit('click');assert.equal(h.game.ultimateId,'cyclone');
   h.click('いっしょに片づけよう！');h.frames(2);assert.equal(h.elements.get('ult-name').textContent,'お片づけ大旋風');
   h.game.ultimate=100;h.game.useUltimate();h.frames(20);assert.equal(h.elements.get('ult-value').textContent,'発動中・充填停止');
+});
+
+test('secret cinematic hides controls, freezes on hidden tab and restores battle controls',()=>{
+ const h=harness();h.start();h.game.route='morning';h.game.startSecretBoss();h.frames(2);
+ assert.equal(h.game.state,'secretIntro');assert.equal(h.elements.get('ultimate').hidden,true);
+ const t=h.game.secretIntroTime,clock=h.game.morningElapsed;
+ h.document.hidden=true;h.frames(120);assert.equal(h.game.secretIntroTime,t);
+ h.document.hidden=false;h.document.emit('visibilitychange');h.frames(435);
+ assert.equal(h.game.state,'playing');assert.equal(h.elements.get('ultimate').hidden,false);
+ assert.ok(h.game.morningElapsed-clock<.2);assert.equal(h.overlay.hidden,true);
 });

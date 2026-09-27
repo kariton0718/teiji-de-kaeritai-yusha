@@ -33,7 +33,7 @@ test('fast projectiles use swept collision; piercing attacks hit each enemy once
   assert.equal(segmentDistance({x:50,y:0},{x:0,y:0},{x:100,y:0}),0);
 });
 test('mama follows, heals locally and clears hostile shots near her',()=>{
-  const g=game();g.hero.x=400;g.hero.y=200;const before=distance(g.hero,g.mama);g.updateAllies(.05);assert.ok(distance(g.hero,g.mama)<before);
+  const g=game();g.mama.present=true;g.mama.visit=8;g.hero.x=400;g.hero.y=200;const before=distance(g.hero,g.mama);g.updateAllies(.05);assert.ok(distance(g.hero,g.mama)<before);
   g.mamaCd=0;g.hero.energy=50;g.updateAllies(.05);assert.equal(g.hero.energy,50);
   g.mama.x=g.hero.x-40;g.mama.y=g.hero.y;g.mamaSweepCd=0;
   shot(g,g.mama,0);shot(g,g.mama,0,{friendly:true});g.updateAllies(.05);
@@ -69,7 +69,7 @@ test('each combat boss cycles five named moves, then accelerates in phase two',(
 test('fourth morning task leads to secret boss, only its defeat enables sendoff',()=>{
   const g=game();g.route='morning';g.morning=3;g.enterRoom();g.child.progress=99;g.request.fill=1.99;
   g.hero.x=g.request.x;g.hero.y=g.request.y;g.updateTask(.02);
-  assert.equal(g.state,'playing');assert.equal(g.secretActive,true);assert.equal(g.familyTask,false);assert.equal(g.boss.prop,'clock');assert.ok(Number.isFinite(g.progress));
+  assert.equal(g.state,'secretIntro');g.enterSecretBattle();assert.equal(g.state,'playing');assert.equal(g.secretActive,true);assert.equal(g.familyTask,false);assert.equal(g.boss.prop,'clock');assert.ok(Number.isFinite(g.progress));
   g.hurtEnemy(g.boss,9999);g.update(.02);assert.equal(g.state,'sendoff');assert.equal(g.secretDefeated,true);
   g.beginCommute();assert.equal(g.state,'commute');
 });

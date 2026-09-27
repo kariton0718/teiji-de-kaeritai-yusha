@@ -1,9 +1,10 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.4.1';
-import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.4.1';
-import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.4.1';
-import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.4.1';
-import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.4.1';
-import { updateCommute } from './commute.js?v=0.4.1';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.5.0';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.5.0';
+import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.5.0';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.5.0';
+import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.5.0';
+import { updateGuests, resetGuests } from './guests.js?v=0.5.0';
+import { updateCommute } from './commute.js?v=0.5.0';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };
@@ -36,8 +37,9 @@ export class SleepGame {
     this.noise = 0; this.requestWait = 0; this.dangerCd = 3; this.helped = 0;
     this.firstWave = true; this.sideRequest = null; this.sideCd = 13;
     this.hero.x = 240; this.hero.y = 430; this.hero.invulnerable = 2;
-    this.mama.x = 78; this.mama.y = 480; this.pochi.x = 370; this.pochi.y = 450;
+    resetGuests(this); this.secretIntroTime = 0;
   }
+  get enemyLimit() { return this.secretActive ? 176 : W.maxEnemies; }
   get config() { return this.secretActive ? SECRET_BOSS : this.route === 'morning' ? MORNING[this.morning] : NIGHT[this.stage]; }
   get familyTask() { return !this.secretActive && (this.route === 'morning' || this.stage === 5); }
   get isBedtime() { return this.route === 'night' && this.stage === 5; }
@@ -69,7 +71,7 @@ export class SleepGame {
   }
   spawn(count, prop = null) {
     const mix = this.secretActive ? SECRET_MIX : this.route === 'morning' ? MORNING_MIX[this.morning] : NIGHT_MIX[this.stage];
-    for (let i = 0; i < count && this.enemies.length + this.warnings.length < W.maxEnemies; i++) {
+    for (let i = 0; i < count && this.enemies.length + this.warnings.length < this.enemyLimit; i++) {
       const side = Math.floor(this.random() * 4);
       let p = { x: side < 2 ? 22 + side * 436 : 24 + this.random() * 432, y: side >= 2 ? 62 + (side - 2) * 518 : 65 + this.random() * 510 };
       if (distance(p, this.hero) < 120) p = { x: this.hero.x < 240 ? 453 : 27, y: 80 + this.random() * 470 };
@@ -104,7 +106,7 @@ export class SleepGame {
   }
   hurtHero(damage, source) {
     if (this.state !== 'playing' || this.hero.invulnerable > 0) return;
-    damage=Math.ceil(damage*HOSTILE_DAMAGE_SCALE);
+    damage=Math.ceil(damage*HOSTILE_DAMAGE_SCALE*(this.secretActive?1.35:1));
     if (this.buffs.apron > 0) damage = Math.ceil(damage / 2);
     if(this.ultimateActive?.id==='family')damage=Math.ceil(damage*.5);
     if(this.isBedtime&&this.request?.kind==='sing')this.request.fill=Math.max(0,this.request.fill-.6);
@@ -132,6 +134,13 @@ export class SleepGame {
     this.effect('heart', drop.x, drop.y, 20); this.emit('collect');
   }
   update(dt, input = {}) {
+    if (this.state === 'secretIntro') {
+      this.secretIntroTime += clamp(dt,0,.05);
+      const beat = Math.floor(this.secretIntroTime / 1.8);
+      if(beat !== this.secretIntroBeat){this.secretIntroBeat=beat;this.emit('secretBell');}
+      if(this.secretIntroTime >= 7.2) this.enterSecretBattle();
+      return; // Cinematic never consumes the morning clock or deals damage.
+    }
     if (this.state !== 'playing' && this.state !== 'commute') return;
     dt = clamp(dt, 0, .05); this.elapsed += dt;
     if (this.route === 'night') this.nightElapsed += dt; else this.morningElapsed += dt;
@@ -153,8 +162,8 @@ export class SleepGame {
     if (input.ultimate) this.useUltimate();
     this.spawnCd -= dt;
     if (this.spawnCd <= 0) {
-      const count = this.secretActive ? this.firstWave?64:22+(this.boss?.phase||1)*3 : this.isBedtime ? this.firstWave?70:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
-      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?1.5:1.9) : this.isBedtime ? 2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
+      const count = this.secretActive ? this.firstWave?116:44+(this.boss?.phase||1)*8 : this.isBedtime ? this.firstWave?70:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
+      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?.7:this.boss?.phase===2?.9:1.1) : this.isBedtime ? 2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
     }
     for (const w of this.warnings) {
       w.life -= dt; if (w.life > 0) continue;
@@ -178,7 +187,7 @@ export class SleepGame {
       } else this.attackCd = .08;
     }
     this.updateSkills(dt); updateEnemies(this, dt); updateProjectiles(this, dt); if (this.state !== 'playing') return;
-    this.updateAllies(dt); this.updateTask(dt); this.updateOptionalRequest(dt);
+    this.updateAllies(dt); this.updateTask(dt); if(this.state!=='playing')return; this.updateOptionalRequest(dt);
     for (const d of this.drops) { d.life -= dt; if (distance(d, h) < 32) this.collect(d); }
     this.drops = this.drops.filter(d => d.life > 0);
     this.enemies = this.enemies.filter(e => !e.dead);
@@ -213,48 +222,16 @@ export class SleepGame {
   spawnBoss() {
     this.bossSpawned = true;
     // Reserve one entity slot for the boss even when all horde slots are occupied.
-    if (this.enemies.length + this.warnings.length >= W.maxEnemies) {
+    if (this.enemies.length + this.warnings.length >= this.enemyLimit) {
       if (this.warnings.length) this.warnings.pop(); else this.enemies.pop();
     }
-    this.boss = { x: this.hero.x < 240 ? 370 : 110, y: 125, hp: this.config.hp * 1.8, maxHp: this.config.hp * 1.8, radius: 38, speed: 36 + this.stage * 4, prop: this.config.prop, boss: true, flash: 0, dead: false, attackCd: 1.2 };
+    this.boss = { x: this.hero.x < 240 ? 370 : 110, y: 125, hp: this.config.hp * 1.8, maxHp: this.config.hp * 1.8, radius: 38, speed: this.secretActive ? 90 : 36 + this.stage * 4, prop: this.config.prop, boss: true, flash: 0, dead: false, attackCd: 1.2, phase: 1 };
     this.enemies.push(this.boss); this.effect('label', 240, 250, 0, this.config.boss, 2.2); this.emit('boss');
   }
   updateEnemies(dt) {
     updateEnemies(this, dt);
   }
-  updateAllies(dt) {
-    this.mama.active = Math.max(0, this.mama.active - dt); this.pochi.active = Math.max(0, this.pochi.active - dt);
-    this.mamaCd -= dt; this.pochiCd -= dt;
-    const follow = { x: clamp(this.hero.x - 58, 30, 450), y: clamp(this.hero.y + 30, 85, 565) };
-    const direction = unit(follow.x - this.mama.x, follow.y - this.mama.y);
-    this.mama.moving = distance(follow, this.mama) > 8;
-    if (this.mama.moving) { this.mama.x += direction.x * 185 * dt; this.mama.y += direction.y * 185 * dt; }
-    this.mamaSweepCd -= dt;
-    if (this.mamaSweepCd <= 0) {
-      this.area(this.mama.x, this.mama.y, 135, 38 + this.skills.heart * 8, 'mamaWave', 18);
-      this.projectiles = this.projectiles.filter(p => p.friendly || distance(p, this.mama) > 175);
-      this.mama.active = 1.5; this.mamaSweepCd = 5;
-      this.effect('label', this.mama.x, this.mama.y - 48, 0, 'ママの援護！', 1);
-    }
-    if (this.mamaCd <= 0 && distance(this.mama, this.hero) < 190) {
-      const heal = Math.min(this.hero.maxEnergy - this.hero.energy, 18 + this.skills.heart * 5);
-      this.mama.active = 3; this.hero.energy += heal;
-      this.area(this.mama.x, this.mama.y, 175, 45, 'heart');
-      this.effects.push({ kind: 'healLink', x: this.mama.x, y: this.mama.y, x2: this.hero.x, y2: this.hero.y, life: 1, maxLife: 1 });
-      this.effect('label', this.hero.x, this.hero.y - 65, 0, `ママの回復 気力＋${Math.round(heal)}`, 2);
-      this.mamaCd = 12; this.emit('mama');
-    }
-    const target = this.drops.find(d => d.life > 0) || ((this.request || this.sideRequest) && this.pochiCd <= 2 ? this.request || this.sideRequest : { x: this.hero.x + 40, y: this.hero.y + 35 });
-    const n = unit(target.x - this.pochi.x, target.y - this.pochi.y);
-    if (distance(target, this.pochi) > 7) { this.pochi.x += n.x * 190 * dt; this.pochi.y += n.y * 190 * dt; }
-    if (this.drops.includes(target) && distance(target, this.pochi) < 24) { this.collect(target); this.pochi.active = 1; }
-    if (this.pochiCd <= 0) {
-      this.pochi.active = 2; this.pochiCd = 12;
-      if (this.familyTask && this.request) { if(this.request.kind!=='tidy')this.request.fill = Math.max(this.request.fill,Math.min((this.request.hold||2)-.3, this.request.fill + .35)); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチが見つけた！', 1.6); }
-      else { this.gainUltimate(4); this.effect('label', this.pochi.x, this.pochi.y - 30, 0, 'ポチのお届け！', 1.5); }
-      this.emit('pochi');
-    }
-  }
+  updateAllies(dt) { updateGuests(this,dt); }
   updateTask(dt) {
     if (!this.familyTask) return;
     if(this.isBedtime){updateBedtime(this,dt);return;}
@@ -279,7 +256,7 @@ export class SleepGame {
     }
   }
   updateOptionalRequest(dt) {
-    if (this.familyTask) return;
+    if (this.familyTask || this.secretActive) return;
     this.sideCd -= dt;
     if (!this.sideRequest && this.sideCd <= 0) {
       this.sideRequest = { x: 360, y: 235, label: this.stage % 2 ? '絵本を探して！' : 'ぬいぐるみ取って！', fill: 0, life: 14 }; this.sideCd = 32;
@@ -293,9 +270,15 @@ export class SleepGame {
     } else if (r.life <= 0) this.sideRequest = null;
   }
   startSecretBoss() {
-    this.clearRoom(); this.secretActive = true; this.spawnCd = .7; this.firstWave = true;
+    this.clearRoom(); this.secretActive = true; this.state = 'secretIntro';
+    this.secretIntroBeat = -1; this.emit('secretBell');
+  }
+  enterSecretBattle() {
+    if(this.state !== 'secretIntro')return false;
+    this.state = 'playing'; this.spawnCd = .25; this.firstWave = true;
     this.hero.energy = Math.min(this.hero.maxEnergy, this.hero.energy + 30); this.ultimate = 100;
-    this.spawnBoss(); this.hero.invulnerable = 3;
+    this.spawnBoss(); this.hero.invulnerable = 3; this.emit('secretBattle');
+    return true;
   }
   offers() { return SKILLS.filter(s => this.skills[s.id] < 3); }
   chooseSkill(id) {

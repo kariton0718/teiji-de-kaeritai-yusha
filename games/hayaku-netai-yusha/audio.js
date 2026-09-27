@@ -16,6 +16,13 @@ export class HomeAudio {
   update(dt, mode) {
     if (!this.enabled) return; this.left -= dt; if (this.left > 0) return;
     if (this.mode !== mode) { this.mode = mode; this.step = 0; }
+    if(mode==='secretIntro'||mode==='secretBattle'){
+      const notes=[0,7,12,3,10,7,15,12],base=mode==='secretIntro'?110:146.83;
+      this.tone(base*2**(notes[this.step%8]/12),.25,.022,'triangle');
+      if(this.step%4===0){this.tone(base/2,.6,.025,'sine');this.tone(base*1.5,.45,.012,'triangle');}
+      this.tone(this.step%2?95:60,.08,.02,'sine');
+      this.step++;this.left=mode==='secretIntro'?.23:.14;return;
+    }
     const quiet = ['ending', 'story'].includes(mode); const morning = mode === 'morning'||mode==='commute';
     const melody = quiet ? [0, 4, 7, 11, 7, 4, 2, 7] : morning ? [0, 7, 12, 11, 7, 4, 9, 7, 4, 7, 11, 12, 14, 12, 7, 4] : [0, 4, 7, 12, 11, 7, 4, 2, 5, 9, 12, 14, 12, 9, 7, 4];
     const base = quiet ? 220 : 196; const note = melody[this.step % melody.length];
@@ -26,6 +33,7 @@ export class HomeAudio {
     this.step++; this.left = quiet ? .55 : mode==='bed'?.17:morning ? .18 : .23;
   }
   event(type) {
+    if(type==='secretBell'||type==='secretBattle'){for(const f of [110,164.81,220,311.13])this.tone(f,1.2,.017,'triangle');}
     if(type==='arrival')for(const f of [392,494,587,784])this.tone(f,1.8,.022,'triangle');
     if(type==='commute')for(const f of [392,523,659])this.tone(f,.8,.014,'sine');
     if (type === 'sweep') this.tone(370, .07, .01, 'triangle');

@@ -56,7 +56,7 @@ export const ITEMS = {
   gloves: { name: '家事グローブ', label: '8秒 威力UP', color: '#ffb17a' },
   apron: { name: 'お守りエプロン', label: '8秒 ダメージ半減', color: '#c7b2f4' },
 };
-export const SECRET_BOSS = { name: '出発前の最終決戦', room: 'entry', boss: '朝の時間ドロボウ', prop: 'clock', hp: 1800, quota: 0, action: '時計の予告をよけて、家族の朝を取り戻そう！' };
+export const SECRET_BOSS = { name: '出発前の最終決戦', room: 'entry', boss: '朝の時間ドロボウ', prop: 'clock', hp: 4000, quota: 0, action: '時計の予告をよけて、家族の朝を取り戻そう！' };
 export const BOSS_MOVES = [
   ['ブロック落とし','おもちゃ大突進','積み木の行進','積み木のドミノ','おもちゃ列車クロス'],
   ['ソース3連弾','焦げつき十字焼き','フライパン大噴火','フライパンブーメラン','焦げつきホットゾーン'],

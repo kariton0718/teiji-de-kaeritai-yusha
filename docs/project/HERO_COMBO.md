@@ -1,4 +1,14 @@
-# 主人公の攻撃爽快感・序盤改善（2026-09-30、未公開）
+# 主人公の攻撃爽快感・序盤改善（2026-09-30、公開済み）
+
+## v0.6公開完了（2026-09-30）
+
+- 今回のpush・公開依頼を受け、`521fa4f2d69da9d1debb815f4688927fe65f5fd5`を制作ブランチ`codex/hero-satisfying-combo`とmainへ保存。
+- [Pages公開処理36596369225](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36596369225)：テスト・配置・公開すべて成功。75件の機能テスト成功。
+- ローカル制作版80c4cabと公開コミットのGitツリー一致を確認。第1作の差分なし。
+- 公開HTML/main.js/game.js/render.js/audio.js/config.jsのHTTP200とSHA-256一致を確認。
+- 保全：`backup/pre-hero-combo-abaa374`をGitHubへ保存済み。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/?v=0.6.0
+- スマホ実機の操作感・FPS・音・人による全編通しは未確認。以下の「未公開」は制作時点の履歴。
 
 ユーザー感想：「序盤で負けちゃう。主人公の攻撃をもっと爽快に」。
 基準main abaa374。保全 backup/pre-hero-combo-abaa374、制作 codex/hero-satisfying-combo（いずれも今回分はローカル）。

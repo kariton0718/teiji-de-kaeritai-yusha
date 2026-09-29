@@ -1,8 +1,8 @@
-import { WORLD as W, NIGHT } from './config.js?v=0.5.0';
-import { CharacterArt } from './character-art.js?v=0.5.0';
-import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.5.0';
-import { drawSecretIntro } from './secret-intro.js?v=0.5.0';
-import { drawCommute } from './commute.js?v=0.5.0';
+import { WORLD as W, NIGHT } from './config.js?v=0.6.0';
+import { CharacterArt } from './character-art.js?v=0.6.0';
+import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.0';
+import { drawSecretIntro } from './secret-intro.js?v=0.6.0';
+import { drawCommute } from './commute.js?v=0.6.0';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -252,6 +252,16 @@ export class Painter {
     }
     if(e.kind==='vacuum'){
       for(let i=0;i<4;i++){c.beginPath();c.arc(e.x,e.y,Math.max(2,e.radius*(1-t)*(i+1)/4),t*8+i,t*8+i+Math.PI);c.strokeStyle='#53a1a7';c.lineWidth=3;c.stroke();}
+      c.restore();return;
+    }
+    if(e.kind==='mopSlash'||e.kind==='mopFinish'){
+      const finish=e.kind==='mopFinish',full=finish||game.skills.mop>=3,r=e.radius*(.82+t*.18),a=e.angle;
+      for(let i=0;i<3;i++){
+        c.beginPath();c.lineWidth=(finish?10:8)*(1-t)+2;
+        c.strokeStyle=i===0?'#fff9dc':i===1?'#65e6dc':'#ffd477';
+        c.arc(e.x,e.y,r-i*9,full?0:a-2.1+(e.direction<0?-t:t)*.22,full?Math.PI*2:a+2.1+(e.direction<0?-t:t)*.22);c.stroke();
+      }
+      if(finish)for(let i=0;i<8;i++){const a=i*Math.PI/4;this.line(e.x+Math.cos(a)*r*.85,e.y+Math.sin(a)*r*.85,e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,'#fff1bb',3);}
       c.restore();return;
     }
     if (e.kind === 'tidy') {

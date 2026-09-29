@@ -37,6 +37,7 @@ export class HomeAudio {
     if(type==='arrival')for(const f of [392,494,587,784])this.tone(f,1.8,.022,'triangle');
     if(type==='commute')for(const f of [392,523,659])this.tone(f,.8,.014,'sine');
     if (type === 'sweep') this.tone(370, .07, .01, 'triangle');
+    if (type === 'mopFinish') { this.tone(185,.12,.014,'triangle'); this.tone(740,.18,.014,'sine'); }
     if (type === 'combo') { this.tone(660, .13, .025); this.tone(880, .22, .02); }
     if (type === 'hurt') this.tone(110, .2, .025, 'triangle');
     if (['help', 'mama', 'pochi', 'collect'].includes(type)) this.tone(type === 'pochi' ? 590 : 780, .18, .017);

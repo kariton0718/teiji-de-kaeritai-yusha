@@ -1,10 +1,10 @@
-import { SleepGame } from './game.js?v=0.5.0';
-import { Painter } from './render.js?v=0.5.0';
-import { HomeAudio } from './audio.js?v=0.5.0';
-import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.5.0';
-import { canvasPoint, stickVector } from './input.js?v=0.5.0';
-import { mountBestiary } from './bestiary.js?v=0.5.0';
-import { ITEMS } from './combat-data.js?v=0.5.0';
+import { SleepGame } from './game.js?v=0.6.0';
+import { Painter } from './render.js?v=0.6.0';
+import { HomeAudio } from './audio.js?v=0.6.0';
+import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.6.0';
+import { canvasPoint, stickVector } from './input.js?v=0.6.0';
+import { mountBestiary } from './bestiary.js?v=0.6.0';
+import { ITEMS } from './combat-data.js?v=0.6.0';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -22,7 +22,7 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.5 ・ 時間ドロボウ暴走 / ときどき家族の援護 ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.6 ・ 爽快モップ3連撃 / ひろがる泡連鎖 ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {

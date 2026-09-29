@@ -1,10 +1,10 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.5.0';
-import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.5.0';
-import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.5.0';
-import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.5.0';
-import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.5.0';
-import { updateGuests, resetGuests } from './guests.js?v=0.5.0';
-import { updateCommute } from './commute.js?v=0.5.0';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.6.0';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.6.0';
+import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.6.0';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.6.0';
+import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.6.0';
+import { updateGuests, resetGuests } from './guests.js?v=0.6.0';
+import { updateCommute } from './commute.js?v=0.6.0';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };
@@ -31,7 +31,7 @@ export class SleepGame {
     this.projectiles = []; this.falls = []; this.zones = []; this.buffs = { shoes: 0, gloves: 0, apron: 0 };
     this.skillCds = { iron: 1, towel: 1, meteor: 2 }; this.mamaSweepCd = 3;
     this.lastPickup = ''; this.pickupLife = 0;
-    this.stageKills = 0; this.roomTime = 0; this.spawnCd = .8; this.attackCd = 0;
+    this.stageKills = 0; this.roomTime = 0; this.spawnCd = .8; this.attackCd = 0; this.mopCombo = 0;
     this.bubbleCd = 1; this.vacuumCd = 2; this.clipCd = 1; this.mamaCd = 9; this.pochiCd = 3;
     this.boss = null; this.bossSpawned = false; this.request = null; this.requestIndex = 0;
     this.noise = 0; this.requestWait = 0; this.dangerCd = 3; this.helped = 0;
@@ -173,17 +173,23 @@ export class SleepGame {
     this.warnings = this.warnings.filter(w => w.life > 0);
     this.attackCd -= dt;
     if (this.attackCd <= 0) {
-      const level = this.skills.mop; const range = 92 + level * 14;
+      const level = this.skills.mop; const finisher = this.mopCombo % 3 === 2;
+      const range = 120 + level * 18 + (finisher ? 32 : 0);
       const target = this.enemies.find(e => !e.dead && distance(h, e) < range + e.radius);
       if (target) {
         if (level < 3) h.facing = unit(target.x - h.x, target.y - h.y);
-        this.effect(this.isBedtime ? 'quiet' : 'sweep', h.x, h.y, range);
+        const swing = { kind: this.isBedtime ? 'quiet' : finisher ? 'mopFinish' : 'mopSlash',
+          x:h.x,y:h.y,radius:range,angle:Math.atan2(h.facing.y,h.facing.x),
+          direction:this.mopCombo%2 ? -1 : 1,life:.24,maxLife:.24 };
+        if(this.effects.length>=W.maxEffects)this.effects.shift();
+        this.effects.push(swing);
         for (const e of this.enemies) {
           if (e.dead || distance(h, e) > range + e.radius) continue;
           const v = unit(e.x - h.x, e.y - h.y);
-          if (level >= 3 || v.x * h.facing.x + v.y * h.facing.y > -.15) this.hurtEnemy(e, 22 + level * 8, 12);
+          if (finisher || level >= 3 || v.x * h.facing.x + v.y * h.facing.y > -.5)
+            this.hurtEnemy(e, (finisher ? 46 : 28) + level * 10, finisher ? 42 : 24);
         }
-        this.emit('sweep'); this.attackCd = .43;
+        this.mopCombo++; this.emit(finisher ? 'mopFinish' : 'sweep'); this.attackCd = finisher ? .36 : .26;
       } else this.attackCd = .08;
     }
     this.updateSkills(dt); updateEnemies(this, dt); updateProjectiles(this, dt); if (this.state !== 'playing') return;
@@ -200,13 +206,13 @@ export class SleepGame {
     extraSkills(this, dt);
     this.bubbleCd -= dt; this.clipCd -= dt; this.vacuumCd -= dt;
     if (this.skills.bubble && this.bubbleCd <= 0) {
-      let target = this.enemies.find(e => !e.dead && distance(e, this.hero) < 215);
+      let target = this.enemies.find(e => !e.dead && distance(e, this.hero) < 255);
       const used = new Set();
-      for (let i = 0; i < 3 + this.skills.bubble * 2 && target; i++) {
-        used.add(target); this.area(target.x, target.y, 42, 30, 'bubble');
-        const prev = target; target = this.enemies.find(e => !e.dead && !used.has(e) && distance(prev, e) < 125);
+      for (let i = 0; i < 5 + this.skills.bubble * 2 && target; i++) {
+        used.add(target); this.area(target.x, target.y, 52, 36, 'bubble', 8);
+        const prev = target; target = this.enemies.find(e => !e.dead && !used.has(e) && distance(prev, e) < 155);
       }
-      this.bubbleCd = 2.7 - this.skills.bubble * .35;
+      this.bubbleCd = 2.1 - this.skills.bubble * .3;
     }
     if (this.skills.clip && this.clipCd <= 0) {
       const targets = this.enemies.filter(e => !e.dead && distance(e, this.hero) < 310).slice(0, 2 + this.skills.clip * 2);

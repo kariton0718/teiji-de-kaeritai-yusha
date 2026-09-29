@@ -1,5 +1,5 @@
-import { artURL } from './character-art.js?v=0.5.0';
-import { categories, profilesFor } from './bestiary-data.js?v=0.5.0';
+import { artURL } from './character-art.js?v=0.6.0';
+import { categories, profilesFor } from './bestiary-data.js?v=0.6.0';
 
 export function mountBestiary(parent) {
   const el = (tag, cls, text) => {

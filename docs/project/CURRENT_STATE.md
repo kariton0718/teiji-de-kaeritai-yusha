@@ -2,6 +2,15 @@
 
 確認・更新日：2026-09-30
 
+## v0.6.1公開完了（2026-09-30）
+
+- 今回の明示依頼で制作ブランチ `codex/bedtime-entrance-balance` とmainへプッシュ。公開コミット `c132f640c126c4840998f3bdfa131be17c1f4b96`。
+- [Pages公開処理36647827067](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36647827067)：テスト・配置・公開すべて成功。78件のテスト成功。
+- 制作ecb3868と公開コミットのGitツリー一致。公開index.html / main.js / game.js / render.js / bedtime-intro.js / bedtime.jsのHTTP200・SHA-256一致を確認。
+- 保全ブランチ `backup/pre-bedtime-balance-8f91494` もGitHubへ保存済み。第1作は変更なし。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/?v=0.6.1
+- スマホ実機の操作感・FPS・音・人による全編通しは未確認。以下の未公開表記は制作時点の履歴。
+
 ## 最新制作：v0.6.1 寝かしつけ開幕・攻撃調整（未公開）
 
 - 基準main `8f91494`。保全 `backup/pre-bedtime-balance-8f91494`、制作 `codex/bedtime-entrance-balance`（ローカル保存）。

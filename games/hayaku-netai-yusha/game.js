@@ -1,10 +1,10 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.6.0';
-import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.6.0';
-import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.6.0';
-import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.6.0';
-import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.6.0';
-import { updateGuests, resetGuests } from './guests.js?v=0.6.0';
-import { updateCommute } from './commute.js?v=0.6.0';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.6.1';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.6.1';
+import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.6.1';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.6.1';
+import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.6.1';
+import { updateGuests, resetGuests } from './guests.js?v=0.6.1';
+import { updateCommute } from './commute.js?v=0.6.1';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };
@@ -58,6 +58,10 @@ export class SleepGame {
     return Math.min(100, this.stageKills / this.config.quota * 100);
   }
   begin() { this.reset(); this.state = 'intro'; }
+  startBedtimeIntro() {
+    if (!this.isBedtime || this.secretActive) return false;
+    this.clearRoom(); this.bedtimeIntroTime=0; this.state='bedtimeIntro'; this.emit('room'); return true;
+  }
   enterRoom() {
     this.secretActive = false;
     this.clearRoom(); this.child.progress = 0; this.child.mood = this.isBedtime ? 'もう1冊、読んで？' : this.config.child || 'がんばれ！';
@@ -134,6 +138,11 @@ export class SleepGame {
     this.effect('heart', drop.x, drop.y, 20); this.emit('collect');
   }
   update(dt, input = {}) {
+    if (this.state === 'bedtimeIntro') {
+      this.bedtimeIntroTime += clamp(dt,0,.05);
+      if(this.bedtimeIntroTime >= 6.6) this.enterRoom();
+      return;
+    }
     if (this.state === 'secretIntro') {
       this.secretIntroTime += clamp(dt,0,.05);
       const beat = Math.floor(this.secretIntroTime / 1.8);
@@ -162,8 +171,8 @@ export class SleepGame {
     if (input.ultimate) this.useUltimate();
     this.spawnCd -= dt;
     if (this.spawnCd <= 0) {
-      const count = this.secretActive ? this.firstWave?116:44+(this.boss?.phase||1)*8 : this.isBedtime ? this.firstWave?70:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
-      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?.7:this.boss?.phase===2?.9:1.1) : this.isBedtime ? 2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
+      const count = this.secretActive ? this.firstWave?116:44+(this.boss?.phase||1)*8 : this.isBedtime ? this.firstWave?96:this.roomTime<18&&this.bedPhase===1?30:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
+      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?.7:this.boss?.phase===2?.9:1.1) : this.isBedtime ? this.roomTime<18&&this.bedPhase===1?1.8:2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
     }
     for (const w of this.warnings) {
       w.life -= dt; if (w.life > 0) continue;
@@ -174,7 +183,7 @@ export class SleepGame {
     this.attackCd -= dt;
     if (this.attackCd <= 0) {
       const level = this.skills.mop; const finisher = this.mopCombo % 3 === 2;
-      const range = 120 + level * 18 + (finisher ? 32 : 0);
+      const range = 112 + level * 16 + (finisher ? 26 : 0);
       const target = this.enemies.find(e => !e.dead && distance(h, e) < range + e.radius);
       if (target) {
         if (level < 3) h.facing = unit(target.x - h.x, target.y - h.y);
@@ -186,10 +195,10 @@ export class SleepGame {
         for (const e of this.enemies) {
           if (e.dead || distance(h, e) > range + e.radius) continue;
           const v = unit(e.x - h.x, e.y - h.y);
-          if (finisher || level >= 3 || v.x * h.facing.x + v.y * h.facing.y > -.5)
-            this.hurtEnemy(e, (finisher ? 46 : 28) + level * 10, finisher ? 42 : 24);
+          if (finisher || level >= 3 || v.x * h.facing.x + v.y * h.facing.y > -.35)
+            this.hurtEnemy(e, (finisher ? 42 : 26) + level * 9, finisher ? 34 : 20);
         }
-        this.mopCombo++; this.emit(finisher ? 'mopFinish' : 'sweep'); this.attackCd = finisher ? .36 : .26;
+        this.mopCombo++; this.emit(finisher ? 'mopFinish' : 'sweep'); this.attackCd = finisher ? .40 : .31;
       } else this.attackCd = .08;
     }
     this.updateSkills(dt); updateEnemies(this, dt); updateProjectiles(this, dt); if (this.state !== 'playing') return;
@@ -206,13 +215,13 @@ export class SleepGame {
     extraSkills(this, dt);
     this.bubbleCd -= dt; this.clipCd -= dt; this.vacuumCd -= dt;
     if (this.skills.bubble && this.bubbleCd <= 0) {
-      let target = this.enemies.find(e => !e.dead && distance(e, this.hero) < 255);
+      let target = this.enemies.find(e => !e.dead && distance(e, this.hero) < 235);
       const used = new Set();
-      for (let i = 0; i < 5 + this.skills.bubble * 2 && target; i++) {
-        used.add(target); this.area(target.x, target.y, 52, 36, 'bubble', 8);
-        const prev = target; target = this.enemies.find(e => !e.dead && !used.has(e) && distance(prev, e) < 155);
+      for (let i = 0; i < 4 + this.skills.bubble * 2 && target; i++) {
+        used.add(target); this.area(target.x, target.y, 47, 33, 'bubble', 6);
+        const prev = target; target = this.enemies.find(e => !e.dead && !used.has(e) && distance(prev, e) < 140);
       }
-      this.bubbleCd = 2.1 - this.skills.bubble * .3;
+      this.bubbleCd = 2.4 - this.skills.bubble * .3;
     }
     if (this.skills.clip && this.clipCd <= 0) {
       const targets = this.enemies.filter(e => !e.dead && distance(e, this.hero) < 310).slice(0, 2 + this.skills.clip * 2);

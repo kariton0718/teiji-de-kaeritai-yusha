@@ -1,10 +1,10 @@
-import { SleepGame } from './game.js?v=0.6.0';
-import { Painter } from './render.js?v=0.6.0';
-import { HomeAudio } from './audio.js?v=0.6.0';
-import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.6.0';
-import { canvasPoint, stickVector } from './input.js?v=0.6.0';
-import { mountBestiary } from './bestiary.js?v=0.6.0';
-import { ITEMS } from './combat-data.js?v=0.6.0';
+import { SleepGame } from './game.js?v=0.6.1';
+import { Painter } from './render.js?v=0.6.1';
+import { HomeAudio } from './audio.js?v=0.6.1';
+import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.6.1';
+import { canvasPoint, stickVector } from './input.js?v=0.6.1';
+import { mountBestiary } from './bestiary.js?v=0.6.1';
+import { ITEMS } from './combat-data.js?v=0.6.1';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -22,7 +22,7 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.6 ・ 爽快モップ3連撃 / ひろがる泡連鎖 ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.6.1 ・ 寝かしつけ最終決戦 / モップ3連撃 ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {
@@ -46,7 +46,7 @@ function roomIntro() {
   if(game.isBedtime){const p=document.createElement('p');p.className='lead';p.textContent='最終決戦・3幕6ミッション！ 絵本と水を運び、おもちゃ12体を片づけ、逃げる子を誘い、子守歌とふたりのお布団へ。妨害はどんどん激しくなる！';overlay.append(p);}
   const heading=document.createElement('p');heading.textContent='今回使う必殺技を選ぼう（部屋ごとに変更OK）';overlay.append(heading);
   for(const skill of game.ultimateOptions){const b=button(`${game.ultimateId===skill.id?'✓ ':''}${skill.name} — ${skill.detail}`,()=>{if(game.selectUltimate(skill.id))roomIntro();},true);b.classList.add('ultimate-choice');b.setAttribute('aria-pressed',String(game.ultimateId===skill.id));}
-  button(game.familyTask ? 'お手伝いをはじめる →' : 'いっしょに片づけよう！', () => { game.enterRoom(); priorState = 'playing'; overlay.hidden = true; scene = null; setHud(true); showNotice(game.isBedtime?'光る輪と指示を追いかけて、ふたりの夜ふかしを乗り切ろう！':cfg.action, 5); });
+  button(game.familyTask ? 'お手伝いをはじめる →' : 'いっしょに片づけよう！', () => { if(game.isBedtime){game.startBedtimeIntro();changeState();return;} game.enterRoom(); priorState = 'playing'; overlay.hidden = true; scene = null; setHud(true); showNotice(game.isBedtime?'光る輪と指示を追いかけて、ふたりの夜ふかしを乗り切ろう！':cfg.action, 5); });
 }
 function showNotice(s, duration = 3) { $('notice').textContent = s; $('notice').classList.add('show'); noticeLeft = duration; }
 function upgrades() {
@@ -80,8 +80,8 @@ function changeState() {
   if (game.state === priorState) return; priorState = game.state; clearInput();
   if (game.state === 'upgrade') upgrades();
   else if (game.state === 'nightEnding') playStory('night', () => result(false));
-  else if (game.state === 'secretIntro') { scene=null; story=null; overlay.hidden=true; setHud(false); $('notice').classList.remove('show'); noticeLeft=0; }
-  else if (game.state === 'playing' && game.secretActive) { overlay.hidden=true; scene=null; setHud(true); showNotice('最終決戦！ 赤い予告をかわして、時間ドロボウを倒せ！',4); }
+  else if ((game.state === 'secretIntro' || game.state === 'bedtimeIntro')) { scene=null; story=null; overlay.hidden=true; setHud(false); $('notice').classList.remove('show'); noticeLeft=0; }
+  else if (game.state === 'playing' && (game.secretActive || game.isBedtime)) { overlay.hidden=true; scene=null; setHud(true); showNotice(game.isBedtime?'寝かしつけ最終決戦！ 光る輪と指示を追いかけよう！':'最終決戦！ 赤い予告をかわして、時間ドロボウを倒せ！',4); }
   else if (game.state === 'morningRoomIntro') roomIntro();
   else if (game.state === 'sendoff') playStory('sendoff', () => { game.beginCommute(); priorState = 'commute'; scene = null; overlay.hidden = true; setHud(true); $('ultimate').hidden = true; showNotice('最後の一走り！ 右へスライドすると街を駆け抜けます。', 5); });
   else if (game.state === 'trueEnding') playStory('true', () => result(true));

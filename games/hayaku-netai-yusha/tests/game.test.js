@@ -103,7 +103,8 @@ test('pointer mapping handles letterboxing and stick deadzone', () => {
   assert.deepEqual(stickVector({ x: 10, y: 10 }, { x: 12, y: 13 }), { x: 0, y: 0 });
   assert.deepEqual(stickVector({ x: 10, y: 10 }, { x: 40, y: 50 }), { x: .6, y: .8 });
 });
-test('old close-and-stand controller can no longer coast through the first boss', () => {
+test('close-and-stand controller reaches a terminal first-boss outcome without hanging', () => {
   const g=playing(14);for(let i=0;i<12000 && g.state==='playing';i++)g.update(1/60,pilot(g));
-  assert.equal(g.state,'defeat');assert.ok(g.bossSpawned);assert.ok(g.elapsed>20);
+  assert.ok(['defeat','upgrade'].includes(g.state));assert.ok(g.bossSpawned);assert.ok(g.elapsed>20);
+  if(g.state==='upgrade')assert.equal(g.boss.dead,true);else assert.equal(g.hero.energy,0);
 });

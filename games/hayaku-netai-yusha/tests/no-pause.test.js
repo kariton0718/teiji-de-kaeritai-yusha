@@ -128,3 +128,12 @@ test('secret cinematic hides controls, freezes on hidden tab and restores battle
  assert.equal(h.game.state,'playing');assert.equal(h.elements.get('ultimate').hidden,false);
  assert.ok(h.game.morningElapsed-clock<.2);assert.equal(h.overlay.hidden,true);
 });
+
+test('bedtime room button opens cinematic, hides controls and automatically restores play',()=>{
+ const h=harness();h.start();h.game.stage=5;h.game.state='defeat';h.frames(1);
+ const retry=h.overlay.children.find(b=>b.textContent?.includes('もう一度'));
+ assert.ok(retry);retry.emit('click');h.click('お手伝いをはじめる →');
+ assert.equal(h.game.state,'bedtimeIntro');assert.equal(h.overlay.hidden,true);
+ const time=h.game.nightElapsed;h.document.hidden=true;h.frames(30);assert.equal(h.game.bedtimeIntroTime,0);
+ h.document.hidden=false;h.frames(410);assert.equal(h.game.state,'playing');assert.equal(h.overlay.hidden,true);assert.ok(h.game.nightElapsed-time<.3);
+});

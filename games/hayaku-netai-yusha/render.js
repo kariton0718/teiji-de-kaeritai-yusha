@@ -1,8 +1,9 @@
-import { WORLD as W, NIGHT } from './config.js?v=0.6.0';
-import { CharacterArt } from './character-art.js?v=0.6.0';
-import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.0';
-import { drawSecretIntro } from './secret-intro.js?v=0.6.0';
-import { drawCommute } from './commute.js?v=0.6.0';
+import { drawBedtimeIntro } from './bedtime-intro.js?v=0.6.1';
+import { WORLD as W, NIGHT } from './config.js?v=0.6.1';
+import { CharacterArt } from './character-art.js?v=0.6.1';
+import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.1';
+import { drawSecretIntro } from './secret-intro.js?v=0.6.1';
+import { drawCommute } from './commute.js?v=0.6.1';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -136,6 +137,7 @@ export class Painter {
   }
   draw(game, time, stick) {
     this.time = time; const c = this.ctx; c.clearRect(0, 0, W.width, W.height);
+    if (game.state === 'bedtimeIntro') { drawBedtimeIntro(this,game); return; }
     if (game.state === 'secretIntro') { drawSecretIntro(this,game); return; }
     if (game.state === 'commute') { this.commute(game); return; }
     this.room(game.config.room, game.route === 'morning', game.familyTask ? game.child.progress : game.progress);
@@ -257,7 +259,7 @@ export class Painter {
     if(e.kind==='mopSlash'||e.kind==='mopFinish'){
       const finish=e.kind==='mopFinish',full=finish||game.skills.mop>=3,r=e.radius*(.82+t*.18),a=e.angle;
       for(let i=0;i<3;i++){
-        c.beginPath();c.lineWidth=(finish?10:8)*(1-t)+2;
+        c.beginPath();c.lineWidth=(finish?7:5)*(1-t)+2;
         c.strokeStyle=i===0?'#fff9dc':i===1?'#65e6dc':'#ffd477';
         c.arc(e.x,e.y,r-i*9,full?0:a-2.1+(e.direction<0?-t:t)*.22,full?Math.PI*2:a+2.1+(e.direction<0?-t:t)*.22);c.stroke();
       }

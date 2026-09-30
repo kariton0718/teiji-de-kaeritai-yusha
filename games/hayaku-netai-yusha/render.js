@@ -1,9 +1,9 @@
-import { drawBedtimeIntro } from './bedtime-intro.js?v=0.6.1';
-import { WORLD as W, NIGHT } from './config.js?v=0.6.1';
-import { CharacterArt } from './character-art.js?v=0.6.1';
-import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.1';
-import { drawSecretIntro } from './secret-intro.js?v=0.6.1';
-import { drawCommute } from './commute.js?v=0.6.1';
+import { drawBedtimeIntro } from './bedtime-intro.js?v=0.6.2';
+import { WORLD as W, NIGHT } from './config.js?v=0.6.2';
+import { CharacterArt } from './character-art.js?v=0.6.2';
+import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.2';
+import { drawSecretIntro } from './secret-intro.js?v=0.6.2';
+import { drawCommute } from './commute.js?v=0.6.2';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {

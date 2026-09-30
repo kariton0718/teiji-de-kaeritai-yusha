@@ -1,10 +1,10 @@
-import { SleepGame } from './game.js?v=0.6.1';
-import { Painter } from './render.js?v=0.6.1';
-import { HomeAudio } from './audio.js?v=0.6.1';
-import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.6.1';
-import { canvasPoint, stickVector } from './input.js?v=0.6.1';
-import { mountBestiary } from './bestiary.js?v=0.6.1';
-import { ITEMS } from './combat-data.js?v=0.6.1';
+import { SleepGame } from './game.js?v=0.6.2';
+import { Painter } from './render.js?v=0.6.2';
+import { HomeAudio } from './audio.js?v=0.6.2';
+import { NIGHT, MORNING, STORY, SKILLS } from './config.js?v=0.6.2';
+import { canvasPoint, stickVector } from './input.js?v=0.6.2';
+import { mountBestiary } from './bestiary.js?v=0.6.2';
+import { ITEMS } from './combat-data.js?v=0.6.2';
 const $ = id => document.getElementById(id);
 const canvas = $('canvas'), overlay = $('overlay'), game = new SleepGame(), painter = new Painter(canvas), audio = new HomeAudio();
 let scene = 'family', story = null, storyIndex = 0, storyDone = null, priorState = '', last = 0, noticeLeft = 0;
@@ -22,7 +22,7 @@ function title() {
   button('おうちの冒険をはじめる →', () => { game.begin(); playStory('opening', () => roomIntro()); });
   button('遊び方・家族の紹介', instructions, true);
   button('キャラクター図鑑を見る ↓', () => { const book = $('bestiary'); book.scrollIntoView({block: 'start'}); }, true);
-  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.6.1 ・ 寝かしつけ最終決戦 / モップ3連撃 ・ 音は初期OFF'; overlay.append(p);
+  const p = document.createElement('p'); p.className = 'subtle'; p.textContent = 'v0.6.2 ・ ボーナスで広がる攻撃 / モップ3連撃 ・ 音は初期OFF'; overlay.append(p);
   mountBestiary(overlay);
 }
 function instructions() {
@@ -50,7 +50,7 @@ function roomIntro() {
 }
 function showNotice(s, duration = 3) { $('notice').textContent = s; $('notice').classList.add('show'); noticeLeft = duration; }
 function upgrades() {
-  panel(`<div class="eyebrow">ROOM CLEAR / おつかれさま！</div><h2>家事のコツを、ひとつ。</h2><p>次の部屋へ。使うほど、まとめて片づく。</p><div class="choices" id="choices"></div>`);
+  panel(`<div class="eyebrow">ROOM CLEAR / おつかれさま！</div><h2>家事のコツを、ひとつ。</h2><p>次の部屋へ。モップや泡を選ぶと、攻撃範囲が広がります。</p><div class="choices" id="choices"></div>`);
   overlay.classList.add('scroll-panel');
   for (const skill of game.offers()) {
     const b = document.createElement('button'); b.className = 'choice'; b.innerHTML = `<strong>${skill.icon} ${skill.name}　Lv.${game.skills[skill.id] + 1}</strong><small>${skill.detail}</small>`;

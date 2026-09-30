@@ -14,8 +14,8 @@ export const MORNING = [
   { name: 'お着替えラストスパート', room: 'entry', action: '着替えをそろえて、出発の準備！', request: '着替えを渡す', prop: 'sock', color: '#c5bd90', child: 'この服で行く！' },
 ];
 export const SKILLS = [
-  { id: 'mop', icon: '🧹', name: 'モップ旋風', detail: '高速2撃→3撃目は全周大回転！ 範囲と威力UP、Lv.3で毎撃全周。' },
-  { id: 'bubble', icon: '🫧', name: '泡バブル', detail: '近くの敵から泡がはじけて連鎖する。' },
+  { id: 'mop', icon: '🧹', name: 'モップ旋風', detail: '近距離の3連撃。選ぶたびに範囲と威力UP！ Lv.3で毎撃全周。' },
+  { id: 'bubble', icon: '🫧', name: '泡バブル', detail: '近くの敵へ泡が連鎖。選ぶたびに射程・はじける範囲・連鎖距離UP！' },
   { id: 'vacuum', icon: '🌀', name: 'お片づけ吸引', detail: '離れた魔物を引き寄せ、まとめて片づける。' },
   { id: 'clip', icon: '📎', name: '洗濯ばさみ連射', detail: '離れた魔物にも連続で届く。' },
   { id: 'heart', icon: '💛', name: '家族のチームワーク', detail: '気力の上限＋20。ママの回復もパワーアップ。' },

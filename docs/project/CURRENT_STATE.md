@@ -2,7 +2,12 @@
 
 確認・更新日：2026-09-30
 
-## v0.6.3 朝の演出・雑魚増加（公開準備）
+## v0.6.3 朝の演出・雑魚増加（公開済み）
+
+- 公開コミット `0c6e164402afc6bafab8ff9313010c4a8e5c13b4`。制作ブランチ・main・保全ブランチをGitHubへ保存済み。
+- [Pages公開処理36691938792](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36691938792)：全工程成功。制作0836479と公開コードのGitツリー一致。
+- 公開index.html / main.js / game.js / render.js / morning-intro.jsのHTTP200・SHA-256一致を確認。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/?v=0.6.3
 
 - 2026-09-30、添付の「翌朝6:30」演出の豪華化、裏ボス前の朝ステージ雑魚増加、変更後のpush・公開を依頼済み。
 - 基準main `ae0169d`、保全 `backup/pre-morning-rush-ae0169d`、制作 `codex/morning-rush-cinematic`。

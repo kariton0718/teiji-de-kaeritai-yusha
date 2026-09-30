@@ -1,9 +1,10 @@
-import { drawBedtimeIntro } from './bedtime-intro.js?v=0.6.2';
-import { WORLD as W, NIGHT } from './config.js?v=0.6.2';
-import { CharacterArt } from './character-art.js?v=0.6.2';
-import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.2';
-import { drawSecretIntro } from './secret-intro.js?v=0.6.2';
-import { drawCommute } from './commute.js?v=0.6.2';
+import { drawMorningIntro } from './morning-intro.js?v=0.6.3';
+import { drawBedtimeIntro } from './bedtime-intro.js?v=0.6.3';
+import { WORLD as W, NIGHT } from './config.js?v=0.6.3';
+import { CharacterArt } from './character-art.js?v=0.6.3';
+import { ITEMS, MOB_ROLES } from './combat-data.js?v=0.6.3';
+import { drawSecretIntro } from './secret-intro.js?v=0.6.3';
+import { drawCommute } from './commute.js?v=0.6.3';
 const C = { ink: '#27364f', cream: '#fff1d4', skin: '#f3bd95', gold: '#f5ca73', teal: '#4a9b93', rose: '#e78f88' };
 const FONT = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 export class Painter {
@@ -281,7 +282,7 @@ export class Painter {
   }
   commute(game) { drawCommute(this,game); }
   scene(kind, time) {
-    this.time = time; const c = this.ctx; const morning = ['alarm', 'morning', 'sendoff', 'rush', 'office', 'memory', 'trueEnd'].includes(kind);
+    this.time = time; if(kind==='alarm'||kind==='morning'){drawMorningIntro(this,kind,time);return;} const c = this.ctx; const morning = ['alarm', 'morning', 'sendoff', 'rush', 'office', 'memory', 'trueEnd'].includes(kind);
     const grad = c.createLinearGradient(0, 0, 0, 620); grad.addColorStop(0, morning ? '#c2dbdc' : '#283959'); grad.addColorStop(1, morning ? '#fff0cf' : '#6b7395');
     c.fillStyle = grad; c.fillRect(0, 0, 480, 620);
     c.save(); c.translate(24, -40); c.scale(.9, .9);

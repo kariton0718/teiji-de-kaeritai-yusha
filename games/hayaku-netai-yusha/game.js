@@ -1,10 +1,10 @@
-import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.6.2';
-import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.6.2';
-import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.6.2';
-import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.6.2';
-import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.6.2';
-import { updateGuests, resetGuests } from './guests.js?v=0.6.2';
-import { updateCommute } from './commute.js?v=0.6.2';
+import { WORLD as W, NIGHT, MORNING, SKILLS } from './config.js?v=0.6.3';
+import { MOBS, NIGHT_MIX, MORNING_MIX, SECRET_MIX, HOSTILE_DAMAGE_SCALE, ITEMS, SECRET_BOSS } from './combat-data.js?v=0.6.3';
+import { updateEnemies, updateProjectiles, extraSkills, shot, hazard } from './combat.js?v=0.6.3';
+import { ULTIMATES, activateUltimate, updateUltimate } from './ultimates.js?v=0.6.3';
+import { nextBedRequest, updateBedtime } from './bedtime.js?v=0.6.3';
+import { updateGuests, resetGuests } from './guests.js?v=0.6.3';
+import { updateCommute } from './commute.js?v=0.6.3';
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return { x: x / d, y: y / d }; };
@@ -171,8 +171,8 @@ export class SleepGame {
     if (input.ultimate) this.useUltimate();
     this.spawnCd -= dt;
     if (this.spawnCd <= 0) {
-      const count = this.secretActive ? this.firstWave?116:44+(this.boss?.phase||1)*8 : this.isBedtime ? this.firstWave?96:this.roomTime<18&&this.bedPhase===1?30:18+this.bedPhase*4 : this.familyTask ? 10 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
-      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?.7:this.boss?.phase===2?.9:1.1) : this.isBedtime ? this.roomTime<18&&this.bedPhase===1?1.8:2.4-this.bedPhase*.3 : this.familyTask ? 3.8 : 2.9;
+      const count = this.secretActive ? this.firstWave?116:44+(this.boss?.phase||1)*8 : this.isBedtime ? this.firstWave?96:this.roomTime<18&&this.bedPhase===1?30:18+this.bedPhase*4 : this.familyTask ? this.firstWave?52+this.morning*8:22+this.morning*4 : this.firstWave ? 72 + this.stage * 5 : 20 + this.stage * 3;
+      this.firstWave = false; this.spawn(count); this.spawnCd = this.secretActive ? (this.boss?.phase===3?.7:this.boss?.phase===2?.9:1.1) : this.isBedtime ? this.roomTime<18&&this.bedPhase===1?1.8:2.4-this.bedPhase*.3 : this.familyTask ? 2.2-this.morning*.15 : 2.9;
     }
     for (const w of this.warnings) {
       w.life -= dt; if (w.life > 0) continue;

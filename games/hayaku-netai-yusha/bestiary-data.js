@@ -1,4 +1,4 @@
-import { MOBS, ITEMS, BOSS_MOVES } from './combat-data.js?v=0.6.2';
+import { MOBS, ITEMS, BOSS_MOVES } from './combat-data.js?v=0.6.3';
 export const PROFILES = [
   {
     "id": "hero",

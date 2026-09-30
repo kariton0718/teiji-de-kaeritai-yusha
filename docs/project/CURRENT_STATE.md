@@ -2,7 +2,12 @@
 
 確認・更新日：2026-09-30
 
-## v0.6.2 初期範囲縮小・ステージボーナス成長（公開準備）
+## v0.6.2 初期範囲縮小・ステージボーナス成長（公開済み）
+
+- 公開コミット `00571e25b277de8d767f50ffdfe3665b96020e76`。制作ブランチ・main・保全ブランチをGitHubへ保存済み。
+- [Pages公開処理36691179023](https://github.com/kariton0718/teiji-de-kaeritai-yusha/actions/runs/36691179023)：全工程成功。制作9873984と公開コードのGitツリー一致。
+- 公開index.html / main.js / game.js / config.js / render.jsのHTTP200・SHA-256一致を確認。
+- 公開URL：https://kariton0718.github.io/teiji-de-kaeritai-yusha/hayaku-netai-yusha/?v=0.6.2
 
 - 2026-09-30ユーザーより変更後のpush・公開まで依頼済み。基準main `52e8b41`、制作 `codex/stage-range-growth`、保全 `backup/pre-range-growth-52e8b41`。
 - モップ通常範囲：Lv1/2/3 = 80/108/136（旧128/144/160）。3撃目 = 96/129/162（旧154/170/186）。初期は近距離、ステージボーナス「モップ旋風」を選んだときに範囲が成長。
